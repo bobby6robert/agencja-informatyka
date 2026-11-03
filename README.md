@@ -11,6 +11,13 @@ Przy każdym uruchomieniu sprawdza, czy na GitHubie są nowe materiały, i sama 
 - **Pliki do ćwiczeń** kopiuje pliki do folderu na Pulpicie i go otwiera.
 - Materiały zapisują się w `%LOCALAPPDATA%\AgencjaCyfrowychDetektywow`. Bez internetu aplikacja działa na ostatnio pobranej wersji.
 
+## Na telefonie (Android i iPhone)
+Otwórz **https://bobby6robert.github.io/agencja-informatyka/** i dodaj stronę do ekranu głównego:
+- **Android (Chrome):** przycisk „Zainstaluj” na stronie albo menu ⋮ → „Dodaj do ekranu głównego”.
+- **iPhone (Safari):** Udostępnij → „Do ekranu początkowego”.
+
+Aplikacja na telefonie aktualizuje się sama tymi samymi poprawkami, co wersja na Windows. Otwarte wcześniej lekcje działają też bez internetu.
+
 ## Dla nauczyciela – jak wprowadzić poprawkę
 1. Podmień albo dodaj pliki w folderze `tresc` (np. `tresc\klasa1\sprawdziany.html`).
 2. Kliknij dwa razy **`PUBLIKUJ.bat`** i wpisz krótko, co się zmieniło.
