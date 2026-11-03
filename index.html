@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agencja Cyfrowych Detektywów</title>
+<meta name="description" content="Informatyka – lekcje, misje i sprawdziany">
+<meta name="theme-color" content="#14213d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Agencja">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="app.webmanifest">
+<link rel="icon" href="ikony/ikona-192.png">
+<link rel="apple-touch-icon" href="ikony/apple-touch-icon.png">
+<style>
+  :root {
+    --granat: #14213d; --zloty: #fca311; --tlo: #f3f5f9; --karta: #fff; --tekst: #14213d;
+    --szary: #5f6b7a; --linia: #dde2ea; --hover: #fff8e6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --tlo: #0d1526; --karta: #18233b; --tekst: #e8edf5; --szary: #9aa6b8; --linia: #2a3754; --hover: #22304f; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; background: var(--tlo); color: var(--tekst);
+    -webkit-tap-highlight-color: transparent;
+  }
+  header {
+    background: var(--granat); color: #fff;
+    padding: calc(18px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 18px max(16px, env(safe-area-inset-left));
+  }
+  header h1 { margin: 0; font-size: clamp(1.25rem, 5vw, 1.8rem); font-weight: 600; display: flex; align-items: center; gap: 10px; }
+  header h1 img { width: 36px; height: 36px; border-radius: 8px; }
+  header p { margin: 6px 0 0; color: var(--zloty); }
+  main { max-width: 960px; margin: 0 auto; padding: 16px max(16px, env(safe-area-inset-left)) calc(24px + env(safe-area-inset-bottom)); }
+  .zakladki { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .zakladki button {
+    font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 999px; cursor: pointer;
+    border: 2px solid var(--granat); background: var(--karta); color: var(--tekst);
+  }
+  @media (prefers-color-scheme: dark) { .zakladki button { border-color: var(--zloty); } }
+  .zakladki button[aria-selected="true"] { background: var(--granat); color: #fff; }
+  @media (prefers-color-scheme: dark) { .zakladki button[aria-selected="true"] { background: var(--zloty); color: var(--granat); } }
+  .zakladki button:disabled { opacity: .45; cursor: default; }
+  .podtytul { color: var(--szary); margin: 0 0 12px; }
+  .kafelki { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .kafelek {
+    display: block; text-decoration: none; color: inherit; background: var(--karta); border-radius: 12px;
+    border-left: 6px solid var(--zloty); padding: 16px 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+  .kafelek:hover, .kafelek:focus-visible { background: var(--hover); }
+  .kafelek h2 { margin: 0 0 6px; font-size: 1.2rem; }
+  .kafelek p { margin: 0; color: var(--szary); }
+  .stopka { margin-top: 22px; color: var(--szary); font-size: .9rem; }
+  .baner {
+    background: var(--karta); border: 1px solid var(--linia); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  }
+  .baner button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 0; background: var(--zloty); color: var(--granat); font-weight: 600; cursor: pointer; }
+  .baner .x { background: transparent; color: var(--szary); margin-left: auto; }
+  .komunikat { padding: 24px; text-align: center; color: var(--szary); }
+
+  /* widok lekcji */
+  #podglad { position: fixed; inset: 0; display: none; flex-direction: column; background: var(--tlo); z-index: 10; }
+  #podglad.otwarty { display: flex; }
+  .pasek {
+    display: flex; align-items: center; gap: 10px; background: var(--granat); color: #fff;
+    padding: calc(8px + env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 8px max(10px, env(safe-area-inset-left));
+  }
+  .pasek button { font: inherit; font-weight: 600; background: var(--zloty); color: var(--granat); border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+  .pasek span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #ramka { flex: 1; width: 100%; border: 0; background: #fff; }
+  #ladowanie { position: absolute; inset: 60px 0 auto; text-align: center; color: var(--szary); padding: 30px; }
+
+  /* lista plików */
+  .grupa { margin: 18px 0 8px; font-size: 1rem; color: var(--szary); }
+  .plik {
+    display: flex; justify-content: space-between; gap: 10px; align-items: center; background: var(--karta);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; text-decoration: none; color: inherit;
+  }
+  .plik:hover { background: var(--hover); }
+  .plik small { color: var(--szary); white-space: nowrap; }
+  .wstecz { font: inherit; font-weight: 600; background: none; border: 0; color: inherit; padding: 0; cursor: pointer; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1><img src="ikony/ikona-192.png" alt="">Agencja Cyfrowych Detektywów</h1>
+  <p>Informatyka – lekcje, misje i sprawdziany</p>
+</header>
+<main id="glowna"><div class="komunikat">Wczytywanie…</div></main>
+
+<div id="podglad" role="dialog" aria-label="Lekcja">
+  <div class="pasek"><button id="menu" type="button">← Menu</button><span id="tytul"></span></div>
+  <div id="ladowanie">Wczytywanie… (za pierwszym razem może to chwilę potrwać)</div>
+  <iframe id="ramka" title="Treść lekcji" allow="clipboard-write; fullscreen"></iframe>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const glowna = $("#glowna");
+let dane = null, klasa = 0, instalacja = null;
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const sciezka = p => p.split("/").map(encodeURIComponent).join("/");
+const hash = p => (dane.pliki.find(f => f.p === p) || {}).h || "";
+const rozmiar = b => b > 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB";
+const zapamietaj = (k, v) => { try { localStorage.setItem(k, v) } catch (e) {} };
+const odczytaj = k => { try { return localStorage.getItem(k) } catch (e) { return null } };
+
+async function start() {
+  try {
+    const r = await fetch("manifest.json", { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    dane = await r.json();
+  } catch (e) {
+    glowna.innerHTML = `<div class="komunikat">Nie udało się wczytać materiałów. Sprawdź połączenie z internetem i odśwież stronę.</div>`;
+    return;
+  }
+  const zapisana = +odczytaj("klasa");
+  const klasy = dane.menu.klasy;
+  klasa = klasy[zapisana] && klasy[zapisana].aktywna ? zapisana : Math.max(0, klasy.findIndex(k => k.aktywna));
+  pokaz();
+  addEventListener("hashchange", pokaz);
+}
+
+function pokaz() {
+  const [, typ, a, b] = location.hash.match(/^#\/(lekcja|pliki)\/(\d+)\/(\d+)/) || [];
+  const poz = typ && dane.menu.klasy[+a] && dane.menu.klasy[+a].pozycje[+b];
+  if (poz && typ === "lekcja") return otworzLekcje(poz);
+  zamknijLekcje();
+  if (poz && typ === "pliki") return listaPlikow(poz, +a);
+  menu();
+}
+
+function menu() {
+  const klasy = dane.menu.klasy, k = klasy[klasa];
+  glowna.innerHTML = banerInstalacji() + `
+    <div class="zakladki" role="tablist">${klasy.map((x, i) =>
+      `<button role="tab" data-k="${i}" aria-selected="${i === klasa}" ${x.aktywna ? "" : "disabled"}>${esc(x.nazwa)}${x.aktywna ? "" : " (wkrótce)"}</button>`).join("")}</div>
+    ${k.podtytul ? `<p class="podtytul">${esc(k.podtytul)}</p>` : ""}
+    <div class="kafelki">${(k.pozycje || []).map((p, i) =>
+      `<a class="kafelek" href="#/${p.typ === "folder" ? "pliki" : "lekcja"}/${klasa}/${i}">
+        <h2>${esc(p.ikona || (p.typ === "folder" ? "📁" : "📘"))} ${esc(p.nazwa)}</h2>
+        <p>${esc(p.typ === "folder" ? "Lista plików do pobrania na telefon lub komputer." : p.opis)}</p></a>`).join("")}</div>
+    <p class="stopka">Wersja materiałów: ${esc(dane.wersja)} (${esc(dane.data)})${dane.opis ? " – " + esc(dane.opis) : ""}</p>`;
+  glowna.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { klasa = +b.dataset.k; zapamietaj("klasa", klasa); menu(); });
+  const zainstaluj = $("#zainstaluj");
+  if (zainstaluj) zainstaluj.onclick = async () => { instalacja.prompt(); await instalacja.userChoice; instalacja = null; menu(); };
+  const ukryj = $("#ukryj");
+  if (ukryj) ukryj.onclick = () => { zapamietaj("bezBanera", "1"); menu(); };
+}
+
+function banerInstalacji() {
+  const zainstalowana = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if (zainstalowana || odczytaj("bezBanera")) return "";
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (instalacja)
+    return `<div class="baner">📲 Dodaj aplikację do ekranu głównego telefonu. <button id="zainstaluj" type="button">Zainstaluj</button><button class="x" id="ukryj" type="button" aria-label="Ukryj">✕</button></div>`;
+  if (ios)
+    return `<div class="baner">📲 Aby dodać aplikację do ekranu: stuknij <b>Udostępnij</b> (kwadrat ze strzałką), a potem <b>Do ekranu początkowego</b>.<button class="x" id="ukryj" type="button" aria-label="Ukryj">✕</button></div>`;
+  return "";
+}
+
+function otworzLekcje(poz) {
+  const url = sciezka(poz.plik) + "?v=" + hash(poz.plik).slice(0, 12);
+  $("#tytul").textContent = poz.nazwa;
+  const ramka = $("#ramka");
+  if (ramka.dataset.url !== url) {
+    $("#ladowanie").style.display = "block";
+    ramka.onload = () => { $("#ladowanie").style.display = "none"; };
+    ramka.dataset.url = url;
+    ramka.src = url;
+  }
+  $("#podglad").classList.add("otwarty");
+  document.body.style.overflow = "hidden";
+}
+
+function zamknijLekcje() {
+  $("#podglad").classList.remove("otwarty");
+  document.body.style.overflow = "";
+  const ramka = $("#ramka");
+  ramka.removeAttribute("src"); ramka.dataset.url = "";
+}
+
+function listaPlikow(poz, k) {
+  const prefiks = poz.folder.replace(/\/$/, "") + "/";
+  const pliki = dane.pliki.filter(f => f.p.startsWith(prefiks));
+  const grupy = {};
+  for (const f of pliki) {
+    const rel = f.p.slice(prefiks.length), i = rel.lastIndexOf("/");
+    (grupy[i < 0 ? "" : rel.slice(0, i)] ||= []).push(f);
+  }
+  glowna.innerHTML = `<button class="wstecz" type="button" id="wstecz">← Menu</button>
+    <h2 style="margin:0 0 4px">${esc(poz.nazwa)} – ${esc(dane.menu.klasy[k].nazwa)}</h2>
+    <p class="podtytul">Stuknij plik, aby go pobrać. Pliki Access (.accdb) działają tylko na komputerze.</p>
+    ${Object.keys(grupy).sort().map(g => `${g ? `<h3 class="grupa">📂 ${esc(g.replace(/\//g, " › "))}</h3>` : ""}
+      ${grupy[g].map(f => {
+        const nazwa = f.p.slice(f.p.lastIndexOf("/") + 1);
+        return `<a class="plik" href="${sciezka(f.p)}" download="${esc(nazwa)}"><span>${esc(nazwa)}</span><small>${rozmiar(f.r)}</small></a>`;
+      }).join("")}`).join("")}`;
+  $("#wstecz").onclick = () => { location.hash = ""; };
+  scrollTo(0, 0);
+}
+
+$("#menu").onclick = () => { if (history.length > 1 && location.hash) history.back(); else location.hash = ""; };
+
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); instalacja = e; if (dane && !location.hash.startsWith("#/")) menu(); });
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+start();
+</script>
+</body>
+</html>

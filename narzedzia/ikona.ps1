@@ -1,29 +1,46 @@
-﻿# Rysuje ikonę aplikacji (lupa na granatowym tle) i zapisuje aplikacja\zrodlo\ikona.ico
+﻿# Rysuje ikonę aplikacji (lupa na granatowym tle):
+#  - aplikacja\zrodlo\ikona.ico (program na Windows)
+#  - ikony\*.png (wersja na telefony / PWA)
 Add-Type -AssemblyName System.Drawing
-$cel = Join-Path $PSScriptRoot '..\aplikacja\zrodlo\ikona.ico'
-$rozmiary = 256, 64, 48, 32, 16
-$pngi = foreach ($r in $rozmiary) {
+$root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+
+function Rysuj([int]$r, [bool]$pelne) {
     $bmp = New-Object System.Drawing.Bitmap $r, $r
     $g = [System.Drawing.Graphics]::FromImage($bmp)
     $g.SmoothingMode = 'AntiAlias'
-    $s = $r / 256.0
-    $tlo = New-Object System.Drawing.Drawing2D.GraphicsPath
-    $d = 80 * $s; $m = 8 * $s; $w = $r - 2 * $m
-    $tlo.AddArc($m, $m, $d, $d, 180, 90); $tlo.AddArc($m + $w - $d, $m, $d, $d, 270, 90)
-    $tlo.AddArc($m + $w - $d, $m + $w - $d, $d, $d, 0, 90); $tlo.AddArc($m, $m + $w - $d, $d, $d, 90, 90)
-    $tlo.CloseFigure()
-    $g.FillPath((New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(20, 33, 61))), $tlo)
+    $granat = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(20, 33, 61))
+    if ($pelne) {
+        # Pełne tło (iPhone i Android same zaokrąglają rogi), lupa mniejsza – w „bezpiecznej strefie”.
+        $g.FillRectangle($granat, 0, 0, $r, $r)
+        $s = $r / 256.0 * 0.78; $o = $r * 0.11
+    } else {
+        $s = $r / 256.0; $o = 0
+        $tlo = New-Object System.Drawing.Drawing2D.GraphicsPath
+        $d = 80 * $s; $m = 8 * $s; $w = $r - 2 * $m
+        $tlo.AddArc($m, $m, $d, $d, 180, 90); $tlo.AddArc($m + $w - $d, $m, $d, $d, 270, 90)
+        $tlo.AddArc($m + $w - $d, $m + $w - $d, $d, $d, 0, 90); $tlo.AddArc($m, $m + $w - $d, $d, $d, 90, 90)
+        $tlo.CloseFigure()
+        $g.FillPath($granat, $tlo)
+    }
     $zloty = [System.Drawing.Color]::FromArgb(252, 163, 17)
     $raczka = New-Object System.Drawing.Pen $zloty, ([single](34 * $s))
     $raczka.StartCap = 'Round'; $raczka.EndCap = 'Round'
-    $g.DrawLine($raczka, [single](150 * $s), [single](150 * $s), [single](205 * $s), [single](205 * $s))
-    $g.FillEllipse((New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(90, 255, 255, 255))), [single](58 * $s), [single](58 * $s), [single](110 * $s), [single](110 * $s))
-    $g.DrawEllipse((New-Object System.Drawing.Pen ([System.Drawing.Color]::White), ([single](22 * $s))), [single](58 * $s), [single](58 * $s), [single](110 * $s), [single](110 * $s))
+    $g.DrawLine($raczka, [single]($o + 150 * $s), [single]($o + 150 * $s), [single]($o + 205 * $s), [single]($o + 205 * $s))
+    $g.FillEllipse((New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(90, 255, 255, 255))), [single]($o + 58 * $s), [single]($o + 58 * $s), [single](110 * $s), [single](110 * $s))
+    $g.DrawEllipse((New-Object System.Drawing.Pen ([System.Drawing.Color]::White), ([single](22 * $s))), [single]($o + 58 * $s), [single]($o + 58 * $s), [single](110 * $s), [single](110 * $s))
     $g.Dispose()
+    return $bmp
+}
+
+function Png($bmp) {
     $ms = New-Object System.IO.MemoryStream
     $bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Png)
-    , $ms.ToArray()
+    return , $ms.ToArray()
 }
+
+# --- ikona.ico ---
+$rozmiary = 256, 64, 48, 32, 16
+$pngi = foreach ($r in $rozmiary) { , (Png (Rysuj $r $false)) }
 $f = New-Object System.IO.MemoryStream
 $bw = New-Object System.IO.BinaryWriter $f
 $bw.Write([uint16]0); $bw.Write([uint16]1); $bw.Write([uint16]$rozmiary.Count)
@@ -35,5 +52,13 @@ for ($i = 0; $i -lt $rozmiary.Count; $i++) {
     $offset += $pngi[$i].Length
 }
 foreach ($p in $pngi) { $bw.Write($p) }
-[System.IO.File]::WriteAllBytes($cel, $f.ToArray())
-Write-Host "Zapisano $cel"
+[System.IO.File]::WriteAllBytes((Join-Path $root 'aplikacja\zrodlo\ikona.ico'), $f.ToArray())
+
+# --- ikony PWA ---
+$ikony = Join-Path $root 'ikony'
+New-Item -ItemType Directory -Force $ikony | Out-Null
+(Rysuj 192 $false).Save((Join-Path $ikony 'ikona-192.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+(Rysuj 512 $false).Save((Join-Path $ikony 'ikona-512.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+(Rysuj 512 $true).Save((Join-Path $ikony 'ikona-maskable-512.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+(Rysuj 180 $true).Save((Join-Path $ikony 'apple-touch-icon.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+Write-Host "Zapisano ikona.ico oraz ikony PWA w folderze ikony"
