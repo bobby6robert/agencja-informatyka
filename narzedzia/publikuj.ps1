@@ -20,10 +20,18 @@ foreach ($k in $menu.klasy) { foreach ($p in $k.pozycje) {
 $podejrzane = Get-ChildItem tresc -Recurse -File | Where-Object { $_.Name -match 'hasl|\.gs$|DLA-NAUCZYCIELA' -or $_.FullName -match 'DLA-NAUCZYCIELA' }
 if ($podejrzane) { Blad ("w folderze 'tresc' są pliki wyglądające na materiały nauczyciela:`n" + ($podejrzane.FullName -join "`n")) }
 
+# 3. Ukrycie przycisku „Narzędzia” (narzędzia nauczyciela) w lekcjach dla ucznia
+$utf8 = New-Object Text.UTF8Encoding $false
+foreach ($h in Get-ChildItem tresc -Recurse -File -Filter *.html) {
+    $t = [IO.File]::ReadAllText($h.FullName, $utf8)
+    $n = $t.Replace('<button id="tl">Narzędzia</button>', '<button id="tl" style="display:none">Narzędzia</button>')
+    if ($n -ne $t) { [IO.File]::WriteAllText($h.FullName, $n, $utf8); Write-Host "Ukryto narzędzia nauczyciela: $($h.Name)" }
+}
+
 if (-not $Opis) { $Opis = Read-Host 'Co zmieniłeś? (krótko – uczniowie zobaczą ten opis)' }
 if (-not $Opis) { $Opis = 'poprawki' }
 
-# 3. Manifest
+# 4. Manifest
 $stary = $null
 if (Test-Path manifest.json) { $stary = [IO.File]::ReadAllText((Join-Path $root 'manifest.json'), [Text.Encoding]::UTF8) | ConvertFrom-Json }
 $wersja = if ($stary) { [int]$stary.wersja + 1 } else { 1 }
@@ -56,7 +64,7 @@ Write-Host "manifest.json: wersja $wersja, plików: $(@($pliki).Count)"
 
 if ($BezWysylania) { exit 0 }
 
-# 4. Wysyłka na GitHub
+# 5. Wysyłka na GitHub
 git add -A
 if ($LASTEXITCODE) { Blad "git add nie powiódł się." }
 git commit -q -m "Wersja ${wersja}: $Opis"

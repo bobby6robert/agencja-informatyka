@@ -263,7 +263,7 @@ function renderNav(){
 }
 function hud(){
   const x=xpTotal(),L=lvOf(x),lo=50*(L-1)*(L-1),hi=50*L*L,e=document.getElementById("hud");if(!e)return;
-  e.innerHTML=`<span class="lv">Poziom ${L}: ${TITLES[Math.min(L-1,5)]}</span><span class="xb" title="${x} XP"><b style="width:${Math.min(100,Math.round((x-lo)/(hi-lo)*100))}%"></b></span><span class="mute">${x} XP</span><button id="bd">Odznaki ${BADGES.filter(b=>b[2]()).length}/${BADGES.length}</button><button id="dp">Dyplom</button><button id="tl">Narzędzia</button>`;
+  e.innerHTML=`<span class="lv">Poziom ${L}: ${TITLES[Math.min(L-1,5)]}</span><span class="xb" title="${x} XP"><b style="width:${Math.min(100,Math.round((x-lo)/(hi-lo)*100))}%"></b></span><span class="mute">${x} XP</span><button id="bd">Odznaki ${BADGES.filter(b=>b[2]()).length}/${BADGES.length}</button><button id="dp">Dyplom</button><button id="tl" style="display:none">Narzędzia</button>`;
   document.getElementById("bd").onclick=badgePanel;document.getElementById("dp").onclick=certPanel;document.getElementById("tl").onclick=toolsPanel;
 }
 function toast(t){let e=document.getElementById("toast");if(!e){e=document.createElement("div");e.id="toast";e.setAttribute("aria-live","polite");document.body.appendChild(e)}e.textContent=t;e.className="show";clearTimeout(toast.t);toast.t=setTimeout(()=>e.className="",2800)}

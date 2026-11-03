@@ -1,7 +1,7 @@
 {
-  "wersja": 1,
-  "data": "2026-11-03 14:12",
-  "opis": "Pierwsza wersja",
+  "wersja": 2,
+  "data": "2026-11-03 14:37",
+  "opis": "Ukryto narzędzia nauczyciela",
   "wersjaAplikacji": 1,
   "plikAplikacji": "aplikacja/Agencja Cyfrowych Detektywów.exe",
   "hashAplikacji": "39829879bb498d76dcb7c0050d91e465f23dfdd405ca15012aa5f473d9f02417",
@@ -41,7 +41,7 @@
   ]
 },
   "pliki": [
-    {"p":"tresc/klasa1/klasa1-informatyka-efekty.html","h":"88b6e59ac11c7b2b7c6e5a85b0ce8cbf7777f65728965a924a14108cace1956a","r":12361677},
+    {"p":"tresc/klasa1/klasa1-informatyka-efekty.html","h":"28fb573c43afeaa4c94516bb1700802ddc52682b0398d2ea6a57644068844599","r":12361698},
     {"p":"tresc/klasa1/pliki-do-cwiczen/akcentowanie.pdf","h":"16ef44e0cec6207a27ddfe5b4e1ba06edc20b0d63f21afc9aca419ad6de321b9","r":75840},
     {"p":"tresc/klasa1/pliki-do-cwiczen/arkusz-kalkulacyjny/CZYTAJ-TO.txt","h":"89548fbc41ce1c9821868673334830908dfd5e30f04b4501cc95f16d033f85f2","r":907},
     {"p":"tresc/klasa1/pliki-do-cwiczen/arkusz-kalkulacyjny/od-wydawcy/auta.xlsx","h":"28ca7398b286a119cfb20648a884c061add43fc6ab11c6f542cb33d08364df32","r":46624},
