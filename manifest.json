@@ -1,7 +1,7 @@
 {
-  "wersja": 3,
-  "data": "2026-11-03 15:28",
-  "opis": "Klasa 2 (lekcje, misje, sprawdziany, pliki) i poprawki klasy 1",
+  "wersja": 4,
+  "data": "2026-11-03 18:52",
+  "opis": "Przywrócono ranking w klasach 1 i 2",
   "wersjaAplikacji": 1,
   "plikAplikacji": "aplikacja/Agencja Cyfrowych Detektywów.exe",
   "hashAplikacji": "39829879bb498d76dcb7c0050d91e465f23dfdd405ca15012aa5f473d9f02417",
@@ -73,7 +73,7 @@
   ]
 },
   "pliki": [
-    {"p":"tresc/klasa1/klasa1-informatyka-efekty.html","h":"375896d3dbb6eba49406ef987609b16453a357a263f17c644713fde252af438c","r":12365933},
+    {"p":"tresc/klasa1/klasa1-informatyka-efekty.html","h":"d5b387c0412f23ad301921cc37a5db9b1222428ba80b8508c9b53f13c552e566","r":12366047},
     {"p":"tresc/klasa1/pliki-do-cwiczen/akcentowanie.pdf","h":"16ef44e0cec6207a27ddfe5b4e1ba06edc20b0d63f21afc9aca419ad6de321b9","r":75840},
     {"p":"tresc/klasa1/pliki-do-cwiczen/arkusz-kalkulacyjny/CZYTAJ-TO.txt","h":"89548fbc41ce1c9821868673334830908dfd5e30f04b4501cc95f16d033f85f2","r":907},
     {"p":"tresc/klasa1/pliki-do-cwiczen/arkusz-kalkulacyjny/od-wydawcy/auta.xlsx","h":"28ca7398b286a119cfb20648a884c061add43fc6ab11c6f542cb33d08364df32","r":46624},
@@ -116,8 +116,8 @@
     {"p":"tresc/klasa1/pliki-do-cwiczen/plan-wystapienia-dlaczego-warto-zyc-ekologicznie.pdf","h":"cb8baf2a6d42fcca4a5a33536dd0bf9361948c3f36a76b3bbce1c59fb99d9575","r":4261370},
     {"p":"tresc/klasa1/pliki-do-cwiczen/plan-wystapienia-dlaczego-warto-zyc-ekologicznie.ppsx","h":"8bf49eb8abcdac97adb2b5cdeb65407a0182c6c473221d658000f93b3fd93d4e","r":5835944},
     {"p":"tresc/klasa1/pliki-do-cwiczen/przyklad-prezentacji-etapow-procesu.ppsx","h":"85700da2a96cbc7c2b9a3616f77061870a5cb088d933bd84c297e873c44fdf63","r":5275113},
-    {"p":"tresc/klasa1/pliki-do-cwiczen/przyklad-prezentacji-rozbudowanego-schematu-office.ppsx","h":"650b33a8996a379ec4ea8fbea346d59579c7588d9cbd6636ab6375c55bc46631","r":522563},
     {"p":"tresc/klasa1/pliki-do-cwiczen/przyklad-prezentacji-rozbudowanego-schematu.ppsx","h":"ec2f3c871841cba480284d43b5f544499eaca45f382b31b65db4c0f49150612a","r":518007},
+    {"p":"tresc/klasa1/pliki-do-cwiczen/przyklad-prezentacji-rozbudowanego-schematu-office.ppsx","h":"650b33a8996a379ec4ea8fbea346d59579c7588d9cbd6636ab6375c55bc46631","r":522563},
     {"p":"tresc/klasa1/pliki-do-cwiczen/przyklady-slajdow-do-dyskusji-zly-lepszy-dobry.ppsx","h":"1d4a6ad85b1fdcd48e4c47da8e0950ee5df8ea9f3c62ec8ecfaf04e92bf5b9e4","r":14199085},
     {"p":"tresc/klasa1/pliki-do-cwiczen/raport.docx","h":"2162a8b63964a6ea5a863fba220f8cb14a68a3647ca1aa08ecc85451cf5bfa31","r":1008603},
     {"p":"tresc/klasa1/pliki-do-cwiczen/samochod.jpg","h":"0a9d6cc9b1a363271730e911de7e6ff3df40dfd04a9705cb0c3ecd1c7e16dd52","r":1041499},
@@ -132,7 +132,7 @@
     {"p":"tresc/klasa1/pliki-do-cwiczen/wycieczka.jpg","h":"647e40a1087d98bb3712fcb153dde6eded84f306999c15e9d44d1b025b70288b","r":1003193},
     {"p":"tresc/klasa1/pliki-do-cwiczen/wystapienia.pdf","h":"37d41d34507f5761758cd323e2a9c7e65e62e0ce06944c3abf5b58fd7308dc41","r":46374},
     {"p":"tresc/klasa1/sprawdziany.html","h":"efaf393dd47afd543b3b283aa9b7cb05e45743ee3430380b28ef72d7cbce71b6","r":46910},
-    {"p":"tresc/klasa2/klasa2-informatyka-efekty.html","h":"19d9f62c16404115aa52c7bb2d02d20a4862615ab86cf56c4356cb4b4b84e56b","r":3357779},
+    {"p":"tresc/klasa2/klasa2-informatyka-efekty.html","h":"f6dccd5df0125fadca0aeba5d28788488047b140ec5037e23050080f33a41fd7","r":3357893},
     {"p":"tresc/klasa2/pliki-do-cwiczen/README.txt","h":"84d46a39b8587eda6803de393b6b15616dd98ba12d6d57347cc314dc9c5aaad9","r":837},
     {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-1-tworzenie-tresci/biuro.jpg","h":"d94ed7a0fc5e1274fe7ed7ea5f26f49f0548b6e6add05733d952bcf373a3668a","r":302956},
     {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-1-tworzenie-tresci/biuro_podrozy.html","h":"3cf4aa0f2469a96f8ab744bcdb2ca5f2021317c283bf8a45da60d54d0ae042f6","r":2559},

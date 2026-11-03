@@ -2,6 +2,8 @@
 # podbija numer wersji i wysyła wszystko na GitHub. Uczniowie dostaną zmiany przy następnym uruchomieniu.
 param([string]$Opis, [switch]$BezWysylania)
 $ErrorActionPreference = 'Stop'
+# Adres wdrożonego skryptu Google (ranking.gs) – wpisywany do lekcji, w których ranking jest pusty.
+$AdresRankingu = 'https://script.google.com/macros/s/AKfycbzGvnKlock74eu0ptTr8Dy7O7BKdnQBL2V8B9vFoSWcl80k3ZLd06R1tBz8m82dQPKySw/exec'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location $root
 
@@ -25,7 +27,11 @@ $utf8 = New-Object Text.UTF8Encoding $false
 foreach ($h in Get-ChildItem tresc -Recurse -File -Filter *.html) {
     $t = [IO.File]::ReadAllText($h.FullName, $utf8)
     $n = $t.Replace('<button id="tl">Narzędzia</button>', '<button id="tl" style="display:none">Narzędzia</button>')
-    if ($n -ne $t) { [IO.File]::WriteAllText($h.FullName, $n, $utf8); Write-Host "Ukryto narzędzia nauczyciela: $($h.Name)" }
+    if ($n -ne $t) { Write-Host "Ukryto narzędzia nauczyciela: $($h.Name)" }
+    # Pusty adres rankingu = ranking wyłączony; wpisujemy adres skryptu Google nauczyciela.
+    $r = $n.Replace('RANK_URL="";', 'RANK_URL="' + $AdresRankingu + '";')
+    if ($r -ne $n) { Write-Host "Wpisano adres rankingu: $($h.Name)" }
+    if ($r -ne $t) { [IO.File]::WriteAllText($h.FullName, $r, $utf8) }
 }
 
 if (-not $Opis) { $Opis = Read-Host 'Co zmieniłeś? (krótko – uczniowie zobaczą ten opis)' }
