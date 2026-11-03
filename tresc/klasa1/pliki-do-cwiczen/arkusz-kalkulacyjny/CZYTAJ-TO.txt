@@ -1,0 +1,7 @@
+Rozdział 5 – Arkusz kalkulacyjny: pliki do ćwiczeń
+
+Folder od-wydawcy: pliki z paczki wydawcy (handlowcy.xlsx, auta.xlsx, koncerty.xlsx, lubelskie.xlsx, narodziny.xlsx, prawo-jazdy.xlsx, festiwal-filmowy.xlsx, zabiegi-pielegnacyjne.csv).
+
+Folder przykladowe: pliki PRZYKŁADOWE wygenerowane do tego programu – dane są wymyślone (poza kursy_walut.csv, który odtwarza tabelkę z podręcznika) i służą tylko do ćwiczeń z polecenia „plik otrzymany od nauczyciela”: kursy_walut.csv, loteria_nela.csv, wzrost.xlsx, zaproszeni_autorzy.csv, pracownicy.xlsx, adresy_e-mail.xlsx, recenzje.xlsx, zabytki.xlsx, rozmowy_tel.xlsx, sprzedaz.xlsx, slaskie.xlsx, malopolskie.xlsx, media.xlsx, rosliny.xlsx, zycie.xlsx. Można je zastąpić własnymi plikami.
+
+Nie ma w paczce: F1_GP_Abu_Zabi_2018.csv, styl_tabeli.pdf (przygotuj samodzielnie). Pliki z dane.gov.pl i ranking ATP uczniowie pobierają sami.

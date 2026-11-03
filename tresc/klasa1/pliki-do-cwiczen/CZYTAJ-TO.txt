@@ -1,0 +1,10 @@
+Pliki do ćwiczeń – Informatyka na czasie 1 (zakres podstawowy)
+Lekcja 3.3 (skalowanie, kadrowanie): ogrod.jpg, pies.jpg
+Lekcja 3.4 (warstwy): panorama.jpg
+Lekcja 3.5/3.6 (fotomontaż, retusz): koszula.jpg, pekniecia.jpg, krajobraz.jpg, samochod.jpg, montaz.pdf
+Zadania z tematu 3: ogrody.jpg, monitor.jpg, wycieczka.jpg, plamy.jpg, tapeta.jpg, t03-cw3.jpg, t03-cw5a.jpg, t03-cw5b.jpg, t03-zad1.jpg, t03-zad8.jpg, t03-zad11.jpg
+Temat 5.4 (infografika): akcentowanie.pdf
+Temat 7.6 (modele usług): modele-uslug.pdf
+Temat 9 (cyberbezpieczeństwo): phishing.pdf, t09-cw1.docx
+Temat 10 (rozbudowane dokumenty tekstowe): raport.docx (lekcja 10.9–10.10). Pozostałe pliki z poleceń (kulinaria.docx, przepisy.docx, nagłówki.pdf itd.) nie wchodzą w paczkę wydawcy – przygotuj je samodzielnie albo zadania wykonaj na własnych plikach.
+Temat 11 (sztuka prezentacji): pliki .ppsx, wystapienia.pdf, plan-wystapienia-... (pdf, ppsx), karta-recenzji-wystapienia.docx – do lekcji 11.1–11.5 i zadań z tematu 11.

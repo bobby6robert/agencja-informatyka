@@ -1,0 +1,35 @@
+{
+  "klasy": [
+    {
+      "nazwa": "Klasa 1",
+      "podtytul": "Informatyka na czasie 1",
+      "aktywna": true,
+      "pozycje": [
+        {
+          "typ": "strona",
+          "ikona": "🕵",
+          "nazwa": "Lekcje i misje",
+          "opis": "Lekcje, misje Agencji Cyfrowych Detektywów, quizy i ranking.",
+          "plik": "tresc/klasa1/klasa1-informatyka-efekty.html"
+        },
+        {
+          "typ": "strona",
+          "ikona": "📝",
+          "nazwa": "Sprawdziany",
+          "opis": "Sprawdziany i kartkówki. Hasło poda nauczyciel.",
+          "plik": "tresc/klasa1/sprawdziany.html"
+        },
+        {
+          "typ": "folder",
+          "ikona": "📁",
+          "nazwa": "Pliki do ćwiczeń",
+          "opis": "Kopiuje pliki (zdjęcia, arkusze, dokumenty) do folderu na Pulpicie.",
+          "folder": "tresc/klasa1/pliki-do-cwiczen",
+          "cel": "Pliki do ćwiczeń - klasa 1"
+        }
+      ]
+    },
+    { "nazwa": "Klasa 2", "aktywna": false, "pozycje": [] },
+    { "nazwa": "Klasa 3", "aktywna": false, "pozycje": [] }
+  ]
+}
