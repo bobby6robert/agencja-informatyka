@@ -1,7 +1,7 @@
 {
-  "wersja": 2,
-  "data": "2026-11-03 14:37",
-  "opis": "Ukryto narzędzia nauczyciela",
+  "wersja": 3,
+  "data": "2026-11-03 15:28",
+  "opis": "Klasa 2 (lekcje, misje, sprawdziany, pliki) i poprawki klasy 1",
   "wersjaAplikacji": 1,
   "plikAplikacji": "aplikacja/Agencja Cyfrowych Detektywów.exe",
   "hashAplikacji": "39829879bb498d76dcb7c0050d91e465f23dfdd405ca15012aa5f473d9f02417",
@@ -36,12 +36,44 @@
         }
       ]
     },
-    { "nazwa": "Klasa 2", "aktywna": false, "pozycje": [] },
-    { "nazwa": "Klasa 3", "aktywna": false, "pozycje": [] }
+    {
+      "nazwa": "Klasa 2",
+      "podtytul": "Informatyka na czasie 2",
+      "aktywna": true,
+      "pozycje": [
+        {
+          "typ": "strona",
+          "ikona": "🕵",
+          "nazwa": "Lekcje i misje",
+          "opis": "Lekcje, misje Agencji Cyfrowych Detektywów, quizy i ranking.",
+          "plik": "tresc/klasa2/klasa2-informatyka-efekty.html"
+        },
+        {
+          "typ": "strona",
+          "ikona": "📝",
+          "nazwa": "Sprawdziany",
+          "opis": "Sprawdziany i kartkówki. Hasło poda nauczyciel.",
+          "plik": "tresc/klasa2/sprawdziany.html"
+        },
+        {
+          "typ": "folder",
+          "ikona": "📁",
+          "nazwa": "Pliki do ćwiczeń",
+          "opis": "Kopiuje pliki (bazy danych, grafiki, dokumenty) do folderu na Pulpicie.",
+          "folder": "tresc/klasa2/pliki-do-cwiczen",
+          "cel": "Pliki do ćwiczeń - klasa 2"
+        }
+      ]
+    },
+    {
+      "nazwa": "Klasa 3",
+      "aktywna": false,
+      "pozycje": []
+    }
   ]
 },
   "pliki": [
-    {"p":"tresc/klasa1/klasa1-informatyka-efekty.html","h":"28fb573c43afeaa4c94516bb1700802ddc52682b0398d2ea6a57644068844599","r":12361698},
+    {"p":"tresc/klasa1/klasa1-informatyka-efekty.html","h":"375896d3dbb6eba49406ef987609b16453a357a263f17c644713fde252af438c","r":12365933},
     {"p":"tresc/klasa1/pliki-do-cwiczen/akcentowanie.pdf","h":"16ef44e0cec6207a27ddfe5b4e1ba06edc20b0d63f21afc9aca419ad6de321b9","r":75840},
     {"p":"tresc/klasa1/pliki-do-cwiczen/arkusz-kalkulacyjny/CZYTAJ-TO.txt","h":"89548fbc41ce1c9821868673334830908dfd5e30f04b4501cc95f16d033f85f2","r":907},
     {"p":"tresc/klasa1/pliki-do-cwiczen/arkusz-kalkulacyjny/od-wydawcy/auta.xlsx","h":"28ca7398b286a119cfb20648a884c061add43fc6ab11c6f542cb33d08364df32","r":46624},
@@ -84,8 +116,8 @@
     {"p":"tresc/klasa1/pliki-do-cwiczen/plan-wystapienia-dlaczego-warto-zyc-ekologicznie.pdf","h":"cb8baf2a6d42fcca4a5a33536dd0bf9361948c3f36a76b3bbce1c59fb99d9575","r":4261370},
     {"p":"tresc/klasa1/pliki-do-cwiczen/plan-wystapienia-dlaczego-warto-zyc-ekologicznie.ppsx","h":"8bf49eb8abcdac97adb2b5cdeb65407a0182c6c473221d658000f93b3fd93d4e","r":5835944},
     {"p":"tresc/klasa1/pliki-do-cwiczen/przyklad-prezentacji-etapow-procesu.ppsx","h":"85700da2a96cbc7c2b9a3616f77061870a5cb088d933bd84c297e873c44fdf63","r":5275113},
-    {"p":"tresc/klasa1/pliki-do-cwiczen/przyklad-prezentacji-rozbudowanego-schematu.ppsx","h":"ec2f3c871841cba480284d43b5f544499eaca45f382b31b65db4c0f49150612a","r":518007},
     {"p":"tresc/klasa1/pliki-do-cwiczen/przyklad-prezentacji-rozbudowanego-schematu-office.ppsx","h":"650b33a8996a379ec4ea8fbea346d59579c7588d9cbd6636ab6375c55bc46631","r":522563},
+    {"p":"tresc/klasa1/pliki-do-cwiczen/przyklad-prezentacji-rozbudowanego-schematu.ppsx","h":"ec2f3c871841cba480284d43b5f544499eaca45f382b31b65db4c0f49150612a","r":518007},
     {"p":"tresc/klasa1/pliki-do-cwiczen/przyklady-slajdow-do-dyskusji-zly-lepszy-dobry.ppsx","h":"1d4a6ad85b1fdcd48e4c47da8e0950ee5df8ea9f3c62ec8ecfaf04e92bf5b9e4","r":14199085},
     {"p":"tresc/klasa1/pliki-do-cwiczen/raport.docx","h":"2162a8b63964a6ea5a863fba220f8cb14a68a3647ca1aa08ecc85451cf5bfa31","r":1008603},
     {"p":"tresc/klasa1/pliki-do-cwiczen/samochod.jpg","h":"0a9d6cc9b1a363271730e911de7e6ff3df40dfd04a9705cb0c3ecd1c7e16dd52","r":1041499},
@@ -99,6 +131,23 @@
     {"p":"tresc/klasa1/pliki-do-cwiczen/tapeta.jpg","h":"4c817cccdec65f990827ea1de2bcef8225006fc5731e5b0b4b0dbf7b9f1ce775","r":172343},
     {"p":"tresc/klasa1/pliki-do-cwiczen/wycieczka.jpg","h":"647e40a1087d98bb3712fcb153dde6eded84f306999c15e9d44d1b025b70288b","r":1003193},
     {"p":"tresc/klasa1/pliki-do-cwiczen/wystapienia.pdf","h":"37d41d34507f5761758cd323e2a9c7e65e62e0ce06944c3abf5b58fd7308dc41","r":46374},
-    {"p":"tresc/klasa1/sprawdziany.html","h":"a7465f62606627a68efb8f295d828fb05b0ab34870ed8a90c3acb109370a4005","r":63666}
+    {"p":"tresc/klasa1/sprawdziany.html","h":"efaf393dd47afd543b3b283aa9b7cb05e45743ee3430380b28ef72d7cbce71b6","r":46910},
+    {"p":"tresc/klasa2/klasa2-informatyka-efekty.html","h":"19d9f62c16404115aa52c7bb2d02d20a4862615ab86cf56c4356cb4b4b84e56b","r":3357779},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/README.txt","h":"84d46a39b8587eda6803de393b6b15616dd98ba12d6d57347cc314dc9c5aaad9","r":837},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-1-tworzenie-tresci/biuro.jpg","h":"d94ed7a0fc5e1274fe7ed7ea5f26f49f0548b6e6add05733d952bcf373a3668a","r":302956},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-1-tworzenie-tresci/biuro_podrozy.html","h":"3cf4aa0f2469a96f8ab744bcdb2ca5f2021317c283bf8a45da60d54d0ae042f6","r":2559},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-1-tworzenie-tresci/przyroda.jpg","h":"09405ef4c86f46d2dc53ee7aa3138485174d605b11f731ac080b5c833a2247e4","r":694696},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_1.accdb","h":"b81eeab088842d06056856f72a9942af24ae58eb5f175007061ca101a5f05541","r":524288},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_2.accdb","h":"73b5e192ae7b7073486e223f5246472be2a618544293114456e627a3c3527eec","r":716800},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_3.accdb","h":"e9eba75011a7d9aacb7f349966afee0e2ac8d525c7e4787fb54996a30e66b60e","r":716800},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_4.accdb","h":"a3cec0217eac570de650f948fcfe38a2c7db62a686416bef17901dbef595fb1b","r":716800},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_5.accdb","h":"35f0cc2c167ed3f3c4676201415290aa3890f9fe3e9320eb8cd76be906eb0c9d","r":716800},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_z1.accdb","h":"81cc733bc8ce0b1a7c022fae17c649cbd72670960f6264afb903debae2a207c2","r":684032},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_z10.accdb","h":"8194238513bf21e839877067a2865bdbae9212c91e68eb6e750ba588d137b848","r":638976},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_z3.accdb","h":"da2bd716495a9d1828fe934a34c0b77085ee8a7058d0a0c6e4c12fbfbd76c627","r":753664},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_z5.accdb","h":"2e9cbcd8860c0fc125a4e5e5a3a88f7a6b78101a13f9b3c79065d67e69dd0c17","r":638976},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_z6.accdb","h":"f2f10d975f7c1f45f5132e8aea09585a3188b643a7ebf0cf5dbb6bc325cc5b52","r":671744},
+    {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_z7.accdb","h":"0a17b3d011a43876734c20c1b87faf419b5cf0fd6a1878be5f4ff6e56dad1f92","r":659456},
+    {"p":"tresc/klasa2/sprawdziany.html","h":"9edc7874e5fc04158f5b7460a2871b771cdf82a405718fb2dee8c8c83d8ba1ba","r":38269}
   ]
 }
