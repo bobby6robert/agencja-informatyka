@@ -41,6 +41,13 @@
 .haslo-duze{font-family:Consolas,monospace;font-size:clamp(3rem,10vw,8rem);font-weight:800;letter-spacing:.15em;color:var(--akc);text-align:center;margin:.2em 0}
 .login{max-width:440px;margin:60px auto}
 .ranking-duzy .tabela{font-size:clamp(1rem,1.5vw,1.4rem)}
+.planL{display:grid;gap:10px;margin-top:14px}
+.planP{display:grid;grid-template-columns:44px 120px 200px 1fr auto;gap:14px;align-items:center;text-align:left;background:var(--panel);border:2px solid transparent;border-radius:14px;padding:14px 16px;font-size:1.05rem}
+.planP:hover{border-color:var(--akc2)}
+.planP .nr{font-size:1.6rem;font-weight:800;color:var(--akc)}
+.planP .kl small{display:block}
+.planP.biez{border-color:var(--akc);box-shadow:0 0 0 4px color-mix(in srgb,var(--akc) 25%,transparent)}
+.planP .teraz{background:var(--akc);color:#111;font-weight:800;border-radius:999px;padding:.2em .8em}
 @media (max-width:900px){.odprawa{grid-template-columns:1fr}}
 </style>
 </head>
@@ -59,20 +66,29 @@ const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelecto
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const app=$("#app");
 async function api(a,d){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({},d,{a}))});const t=await r.text();try{return JSON.parse(t)}catch(e){throw new Error("stary")}}
-let haslo="",D=null,klasa=null,etapI=1,krok="odprawa",timer=null;
+let haslo="",D=null,klasa=null,etapI=1,krok="plan",timer=null,dzienPl=null,teoriaNr=null;
 try{haslo=sessionStorage.getItem("agencja-panel")||"";const z=JSON.parse(sessionStorage.getItem("agencja-prow")||"{}");if(z.k)klasa=z.k;if(z.e!=null)etapI=z.e}catch(e){}
 const zapamietaj=()=>{try{sessionStorage.setItem("agencja-prow",JSON.stringify({k:klasa,e:etapI}))}catch(e){}};
 
-const K=()=>D&&D.klasy.find(k=>k.k===klasa);
+/* klasa = „oddział|grupa”, np. „1C|2”; pusta grupa = cała klasa */
+const klucz=k=>k.k+"|"+(k.g||"");
+const etyk=k=>k.k+(k.g?" gr "+k.g:"");
+const wGrupie=(g,k)=>g.k===k.k&&String(g.g||"")===String(k.g||"");
+const K=()=>D&&D.klasy.find(k=>klucz(k)===klasa);
 const motyw=()=>{const k=K();return k&&F.motywy[k.m]?k.m:"det"};
 const M=()=>F.motywy[motyw()];
 const tok=t=>String(t).replace(/\{(\w+)\}/g,(w,k)=>M()[k]!=null?M()[k]:w);
 const E=()=>F.etapy[etapI];
 const tytul=e=>e.tytul[motyw()]||e.tytul.det;
 const odIdx=k=>{if(!k||!k.od)return F.etapy.length-1;const i=F.etapy.findIndex(e=>e.id===k.od);return i<0?F.etapy.length-1:i};
+const nastepny=k=>{if(!k||!k.od)return 1;const i=F.etapy.findIndex(e=>e.id===k.od);return Math.min(F.etapy.length-1,(i<0?0:i)+1)};   // podpowiedź: lekcja po ostatnio odblokowanej
 const stan=g=>{try{return JSON.parse(g.stan||"{}")}catch(e){return {}}};
 function ocenaTestu(sk,mx){const p=Math.round((+sk||0)/(+mx||1)*100);for(const [g,o] of F.skalaTestow)if(p>=g)return o;return "1"}
 function nazwaTestu(id){const m=/^k(\d)(\d)([abk])$/.exec(id);if(!m)return id;return `Klasa ${m[1]} · Rozdział ${m[2]} · ${m[3]==="k"?"kartkówka":"sprawdzian "+m[3].toUpperCase()}`}
+const grupaZPlanu=t=>{const m=/^(\d)([a-z]+?)l?(\d)\/(\d)$/i.exec(String(t||"").trim());return m?{k:(m[1]+m[2]).toUpperCase(),g:m[3],nr:+m[1]}:null};
+const MATERIALY={1:"../tresc/klasa1/klasa1-informatyka-efekty.html",2:"../tresc/klasa2/klasa2-informatyka-efekty.html"};   // klasy z materiałami w aplikacji
+const GRA_KLASY=[1];   // klasy, dla których jest gra
+const DNI=["","Poniedziałek","Wtorek","Środa","Czwartek","Piątek"];
 
 /* ---------- logowanie ---------- */
 function logowanie(msg){
@@ -87,7 +103,7 @@ async function wczytaj(pierwszy){
     const r=await api("panel",{haslo});
     if(!r.ok){if(pierwszy)return logowanie({haslo:"Złe hasło.",brakHasla:"Najpierw ustaw hasło w arkuszu (Ustawienia, B1).",blokada:"Za dużo prób. Odczekaj 10 minut."}[r.e]||"Błąd logowania.");return}
     try{sessionStorage.setItem("agencja-panel",haslo)}catch(e){}
-    D=r;if(!K())klasa=(D.klasy[0]||{}).k||null;
+    D=r;D.plan=D.plan||[];if(!K())klasa=D.klasy[0]?klucz(D.klasy[0]):null;
     if(pierwszy)rysuj();else if(krok==="podglad")podglad();
   }catch(e){if(pierwszy)logowanie(e.message==="stary"?"Zaktualizuj skrypt w arkuszu.":"Brak połączenia z arkuszem.")}
 }
@@ -96,17 +112,27 @@ async function wczytaj(pierwszy){
 function kroki(){
   const e=E();
   return e.typ==="test"
-    ?[["odprawa","1. Scena"],["haslo","2. Hasło do testu"],["podglad","3. Wyniki na żywo"],["koniec","4. Ranking"]]
+    ?[["odprawa","1. Informacja"],["haslo","2. Hasło do testu"],["podglad","3. Wyniki na żywo"],["koniec","4. Ranking"]]
     :[["odprawa","1. Odprawa"],["teoria","2. Teoria"],["podglad","3. Misja – podgląd na żywo"],["koniec","4. Ranking"]];
 }
+const pelny=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})};
 function rysuj(){
   clearInterval(timer);timer=null;
+  if(krok==="plan"||krok==="planEdycja"||krok==="teoriaK"){
+    document.body.dataset.m="det";
+    app.innerHTML=`<div class="pasekG"><b>Prowadzenie lekcji</b><button class="drugi" id="doPlanu">📅 Plan</button>
+      ${krok==="teoriaK"?`<b style="color:var(--tekst)">Teoria · ${esc(teoriaNr.etyk)}</b>`:""}<span style="flex:1"></span>
+      <button class="drugi" id="wybor">Wybór ręczny klasy i lekcji</button><button class="drugi" id="pelny" title="Pełny ekran">⛶</button></div><div id="ekran"></div>`;
+    $("#doPlanu").onclick=()=>{krok="plan";rysuj()};$("#pelny").onclick=pelny;
+    $("#wybor").onclick=()=>{krok="odprawa";rysuj()};
+    return ({plan:planDnia,planEdycja:edycjaPlanu,teoriaK:teoriaKlasy})[krok]();
+  }
   document.body.dataset.m=motyw();
   const k=K(),oi=odIdx(k),e=E();
   const odbl=etapI<=oi, stanOdb=!k?"":!k.od?"wszystkie etapy odblokowane":`odblokowane do: ${esc(F.etapy[oi].lekcja||tytul(F.etapy[oi]))}`;
   app.innerHTML=`<div class="pasekG">
-    <b>Prowadzenie lekcji</b>
-    <select id="selK" aria-label="Klasa">${D.klasy.map(x=>`<option ${x.k===klasa?"selected":""}>${esc(x.k)}</option>`).join("")}</select>
+    <button class="drugi" id="doPlanu" title="Plan dnia">📅</button>
+    <select id="selK" aria-label="Klasa i grupa">${D.klasy.map(x=>`<option value="${esc(klucz(x))}" ${klucz(x)===klasa?"selected":""}>${esc(etyk(x))}</option>`).join("")}</select>
     <select id="selE" aria-label="Lekcja">${F.etapy.map((x,i)=>`<option value="${i}" ${i===etapI?"selected":""}>${esc(x.lekcja||x.id)} – ${esc(tytul(x))}</option>`).join("")}</select>
     <div class="kroki">${kroki().map(([id,n])=>`<button data-k="${id}" aria-pressed="${krok===id}">${n}</button>`).join("")}</div>
     <span style="flex:1"></span>
@@ -114,10 +140,11 @@ function rysuj(){
     ${odbl&&k&&k.od?`<span class="st-ok">✔ odblokowane</span>`:`<button class="glowny" id="odblokuj">🔓 Odblokuj: ${esc(tytul(e))}</button>`}
     <button class="drugi" id="pelny" title="Pełny ekran">⛶</button>
   </div><div id="ekran"></div>`;
+  $("#doPlanu").onclick=()=>{krok="plan";rysuj()};
   $("#selK").onchange=ev=>{klasa=ev.target.value;zapamietaj();rysuj()};
   $("#selE").onchange=ev=>{etapI=+ev.target.value;krok="odprawa";zapamietaj();rysuj()};
   $$(".kroki button").forEach(b=>b.onclick=()=>{krok=b.dataset.k;rysuj()});
-  $("#pelny").onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})};
+  $("#pelny").onclick=pelny;
   const ob=$("#odblokuj");if(ob)ob.onclick=odblokuj;
   ({odprawa,teoria,podglad,koniec,haslo:hasloTestu})[krok]();
 }
@@ -125,13 +152,77 @@ function rysuj(){
 async function odblokuj(){
   const k=K(),e=E();if(!k)return;
   const oi=odIdx(k);
-  if(!k.od&&!confirm(`Klasa ${k.k} ma teraz odblokowane wszystkie etapy. Po kliknięciu uczniowie będą mieli dostęp tylko do etapów do „${tytul(e)}” włącznie (kolejne odblokujesz na następnych lekcjach). Kontynuować?`))return;
+  if(!k.od&&!confirm(`${etyk(k)} ma teraz odblokowane wszystkie etapy. Po kliknięciu uczniowie będą mieli dostęp tylko do etapów do „${tytul(e)}” włącznie (kolejne odblokujesz na następnych lekcjach). Kontynuować?`))return;
   if(k.od&&etapI<=oi)return;
   const b=$("#odblokuj");b.disabled=true;b.textContent="Odblokowuję…";
-  try{const r=await api("ustawKlase",{haslo,k:k.k,m:k.m,dm:k.dm||[],cel:k.cel,od:e.id});
+  try{const r=await api("ustawKlase",{haslo,k:k.k,g:k.g||"",m:k.m,dm:k.dm||[],cel:k.cel,od:e.id});
     if(r.ok){k.od=e.id;if(krok!=="podglad"&&krok!=="haslo")krok=e.typ==="test"?"haslo":"podglad";rysuj()}
     else{b.disabled=false;b.textContent=r.e==="zajety"?"Arkusz zajęty – kliknij ponownie":"Błąd: "+r.e}}
   catch(er){b.disabled=false;b.textContent="Brak połączenia – kliknij ponownie"}
+}
+
+/* ---------- plan dnia ---------- */
+const minuty=t=>{const m=/(\d{1,2}):(\d{2})/.exec(t);return m?+m[1]*60+ +m[2]:0};
+function planDnia(){
+  const w=$("#ekran"),dzis=new Date(),dz=dzis.getDay();
+  if(dzienPl==null)dzienPl=dz>=1&&dz<=5?dz:1;
+  const teraz=dzis.getHours()*60+dzis.getMinutes();
+  const lekcje=D.plan.filter(x=>x.d===dzienPl).sort((a,b)=>a.nr-b.nr);
+  w.innerHTML=`<div class="ekran"><div class="zakladki">${[1,2,3,4,5].map(d=>`<button data-d="${d}" aria-pressed="${d===dzienPl}">${DNI[d]}${d===dz?" (dziś)":""}</button>`).join("")}</div>
+    ${lekcje.length?`<div class="planL">${lekcje.map((x,i)=>{
+      const gr=grupaZPlanu(x.gr),kl=gr&&D.klasy.find(k=>k.k===gr.k&&String(k.g||"")===gr.g)||gr&&D.klasy.find(k=>k.k===gr.k&&!k.g);
+      const [od,doo]=x.godz.split(/[–-]/).map(minuty),biez=dzienPl===dz&&teraz>=od-5&&teraz<=doo;
+      const gra=gr&&GRA_KLASY.includes(gr.nr)&&kl;
+      let opis;
+      if(gra){const n=F.etapy[nastepny(kl)];opis=`Następna: <b>${esc(n.lekcja||n.id)}</b> – ${esc(n.tytul[kl.m]||n.tytul.det)}${kl.od?"":" <span class='mala'>(misje jeszcze nieodblokowywane)</span>"}`}
+      else opis=gr&&MATERIALY[gr.nr]?"Teoria z materiałów klasy "+gr.nr+" (bez gry)":"Brak materiałów w aplikacji";
+      return `<button class="planP ${biez?"biez":""}" data-i="${i}"><span class="nr">${x.nr}</span><span class="g">${esc(x.godz)}</span>
+        <span class="kl"><b>${gr?esc(gr.k)+" gr "+esc(gr.g):esc(x.gr)}</b><small>${esc(x.przed)}${x.sala?" · "+esc(x.sala):""}</small></span><span class="op">${opis}</span>${biez?`<span class="teraz">TERAZ</span>`:""}</button>`}).join("")}</div>`
+      :`<p class="mala">Brak zajęć w tym dniu.</p>`}
+    <p style="margin-top:20px"><button class="drugi" id="edytuj">✎ Zmień plan (wklej tabelę)</button></p></div>`;
+  $$("[data-d]",w).forEach(b=>b.onclick=()=>{dzienPl=+b.dataset.d;planDnia()});
+  $("#edytuj").onclick=()=>{krok="planEdycja";rysuj()};
+  $$(".planP",w).forEach(b=>b.onclick=()=>{
+    const x=lekcje[+b.dataset.i],gr=grupaZPlanu(x.gr);if(!gr)return;
+    const kl=D.klasy.find(k=>k.k===gr.k&&String(k.g||"")===gr.g)||D.klasy.find(k=>k.k===gr.k&&!k.g);
+    if(GRA_KLASY.includes(gr.nr)&&kl){klasa=klucz(kl);etapI=nastepny(kl);krok="odprawa";zapamietaj();return rysuj()}
+    teoriaNr={nr:gr.nr,etyk:gr.k+" gr "+gr.g};krok="teoriaK";rysuj();
+  });
+}
+function parsujPlan(t){
+  const wynik=[];let d=0;const linie=String(t).split(/\r?\n/).map(x=>x.trim());
+  const dni={"poniedziałek":1,"poniedzialek":1,"wtorek":2,"środa":3,"sroda":3,"czwartek":4,"piątek":5,"piatek":5};
+  for(let i=0;i<linie.length;i++){
+    const l=linie[i],dn=dni[l.toLowerCase().split(/\s/)[0]];
+    if(dn&&l.split(/\s+/).length<=2){d=dn;continue}
+    const m=/^(\d{1,2})\s+(\d{1,2}:\d{2})\s*[–-]\s*(\d{1,2}:\d{2})\s+(\S+)/.exec(l);
+    if(m&&d){let przed="",sala="";const nast=linie.slice(i+1,i+3).find(x=>x.includes("·"));if(nast){[przed,sala]=nast.split("·").map(x=>x.trim())}
+      wynik.push([d,+m[1],m[2]+"–"+m[3],m[4],przed,sala||""])}
+  }
+  return wynik;
+}
+function edycjaPlanu(){
+  const w=$("#ekran");
+  w.innerHTML=`<div class="ekran"><h2>Zmiana planu</h2><p class="mala">Wklej tabelę z planem (tak jak z Twojej aplikacji „Na czym skończyliśmy”: nazwy dni, a pod nimi wiersze „Nr · Godz. · Grupa”). Grupy zapisuj jak w planie, np. 1cl2/2.</p>
+    <textarea id="txt" rows="16" style="width:100%;font:inherit;font-size:.9rem;padding:.6em;border-radius:10px;background:var(--tlo);color:var(--tekst)"></textarea>
+    <p><button class="drugi" id="podgl">Sprawdź</button> <button class="glowny" id="zap" disabled>Zapisz plan</button> <span class="mala" id="st"></span></p><div id="wyn"></div></div>`;
+  let plan=[];
+  $("#podgl").onclick=()=>{plan=parsujPlan($("#txt").value);$("#zap").disabled=!plan.length;
+    $("#wyn").innerHTML=plan.length?`<table class="tabela"><tr><th>Dzień</th><th>Nr</th><th>Godz.</th><th>Grupa</th><th>Przedmiot</th><th>Sala</th></tr>${plan.map(r=>`<tr><td>${DNI[r[0]]}</td><td>${r[1]}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td>${esc(r[4])}</td><td>${esc(r[5])}</td></tr>`).join("")}</table>`:`<p class="blad">Nie rozpoznano żadnych zajęć.</p>`};
+  $("#zap").onclick=async()=>{$("#st").textContent="Zapisuję…";
+    try{const r=await api("ustawPlan",{haslo,plan});if(r.ok){D.plan=plan.map(x=>({d:x[0],nr:x[1],godz:x[2],gr:x[3],przed:x[4],sala:x[5]}));$("#st").textContent=`✔ Zapisano ${r.ile} zajęć. Nowe grupy: uruchom w arkuszu przygotuj(), żeby dostały kody.`}
+      else $("#st").textContent=r.e==="akcja"?"Zaktualizuj skrypt w arkuszu.":"Błąd: "+r.e}catch(e){$("#st").textContent="Brak połączenia."}};
+}
+function teoriaKlasy(){
+  const w=$("#ekran"),url=MATERIALY[teoriaNr.nr];
+  if(!url){w.innerHTML=`<div class="ekran"><h2>${esc(teoriaNr.etyk)}</h2><p>Materiałów dla klasy ${teoriaNr.nr} nie ma jeszcze w aplikacji.</p></div>`;return}
+  w.innerHTML=`<div class="ramkaT"><div class="nawT"><b>Materiały klasy ${teoriaNr.nr} – wybierz lekcję w menu po lewej</b><button class="drugi" id="zoomM">A−</button><button class="drugi" id="zoomP">A+</button></div><iframe id="ifT" src="${url}" title="Teoria"></iframe></div>`;
+  const ifr=$("#ifT");let zoom=1;
+  const prez=()=>{try{const d=ifr.contentDocument;if(!d||!d.body)return;
+    if(!d.getElementById("trybPrez")){const st=d.createElement("style");st.id="trybPrez";st.textContent="header,#hud,#misnick,#misrank{display:none!important}.layout{min-height:100vh!important}main{max-width:none!important}";d.head.appendChild(st);
+      const bt=d.getElementById("bTeacher");if(bt&&bt.getAttribute("aria-pressed")!=="true")bt.click()}
+    d.body.style.zoom=zoom}catch(e){}};
+  ifr.onload=prez;$("#zoomP").onclick=()=>{zoom=Math.min(2,zoom+.1);prez()};$("#zoomM").onclick=()=>{zoom=Math.max(.6,zoom-.1);prez()};
 }
 
 /* ---------- 1. odprawa (bez fabuły – sceny uczniowie zobaczą w swojej misji) ---------- */
@@ -181,7 +272,7 @@ function teoria(){
 /* ---------- 3. podgląd na żywo ---------- */
 function podglad(){
   const e=E(),w=$("#ekran"),k=K();if(!w)return;
-  const uczniowie=D.gracze.filter(g=>g.k===klasa).map(g=>({g,s:stan(g)})).sort((a,b)=>String(a.g.n).localeCompare(String(b.g.n),"pl"));
+  const uczniowie=D.gracze.filter(g=>k&&wGrupie(g,k)).map(g=>({g,s:stan(g)})).sort((a,b)=>String(a.g.n).localeCompare(String(b.g.n),"pl"));
   const teraz=Date.now();
   const wiersze=uczniowie.map(({g,s})=>{
     if(e.typ==="test"){const t=(s.testy||{})[e.id];return {g,ok:!!t,html:t?`<td class="st-ok">✔ napisany</td><td>${esc(t.test||"")}</td><td>${t.s}/${t.m} (${t.proc}%)</td><td><span class="oc">${ocenaTestu(t.s,t.m)}</span></td><td></td><td>${t.data?new Date(t.data).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"}):""}</td>`:`<td class="st-nie">– jeszcze nie</td><td></td><td></td><td></td><td></td><td></td>`}}
@@ -202,7 +293,7 @@ function podglad(){
     trudne=`<div class="karta"><h3>Zadania sprawiające kłopot (pierwsze podejście)</h3>${lista.length?`<ul class="trudne">${lista.map(x=>`<li><b>${Math.round(x.zle/x.n*100)}% błędnych</b> (${x.zle}/${x.n}${x.podp?`, podpowiedzi: ${x.podp}`:""}) · ${e.bezPoziomu?"":esc(F.poziomy[x.poz].n)+", "}zad. ${x.i+1}: ${esc(x.q)}</li>`).join("")}</ul>`:`<p class="mala">Na razie brak błędów albo brak wyników.</p>`}</div>`;
   }
   w.innerHTML=`<div class="ekran"><div class="ostrz">⚠ Ten ekran zawiera wyniki uczniów – wyłącz demonstrację Veyon, zanim go otworzysz.</div>
-    <h2>${esc(tytul(e))} · klasa ${esc(klasa)}</h2>
+    <h2>${esc(tytul(e))} · ${esc(k?etyk(k):"")}</h2>
     ${odIdx(k)<etapI||!k||!k.od&&false?"":""}
     <div class="liczniki"><div><b>${ile}/${uczniowie.length}</b>${e.typ==="test"?"napisało":"ukończyło"}</div>${e.typ==="misja"?`<div><b>${trw}</b>w trakcie</div>`:""}<div><b>${uczniowie.length-ile-trw}</b>nie zaczęło</div></div>
     <div class="karta"><div class="przewin" style="overflow-x:auto"><table class="tabela"><tr><th>Uczeń</th><th>Stan</th><th>${e.typ==="test"?"Test":"Poziom"}</th><th>Wynik</th><th>Ocena</th><th>${e.typ==="test"?"":"💡"}</th><th>Godzina</th></tr>
@@ -226,9 +317,9 @@ function hasloTestu(){
 /* ---------- 4. zakończenie: ranking klasy ---------- */
 function koniec(){
   const e=E(),w=$("#ekran");
-  const top=D.gracze.filter(g=>g.k===klasa).sort((a,b)=>(+b.xp||0)-(+a.xp||0)).slice(0,15);
+  const kk=K(),top=D.gracze.filter(g=>kk&&g.k===kk.k).sort((a,b)=>(+b.xp||0)-(+a.xp||0)).slice(0,15);
   const stopien=xp=>{let i=0;F.progi.forEach((p,j)=>{if(xp>=p)i=j});return M().stopnie[i]};
-  w.innerHTML=`<div class="ekran duzy"><div class="temat">${esc(e.lekcja||"")}</div><h1>Ranking klasy ${esc(klasa)}</h1>
+  w.innerHTML=`<div class="ekran duzy"><div class="temat">${esc(e.lekcja||"")}</div><h1>Ranking klasy ${esc(kk?kk.k:"")}</h1>
     <div class="ranking-duzy misjaInfo" style="max-width:900px">
     <table class="tabela"><tr><th>#</th><th>Agent</th><th>Stopień</th><th>XP</th></tr>${top.map((g,i)=>`<tr><td>${i<3?["🥇","🥈","🥉"][i]:i+1}</td><td>${esc(g.n)}</td><td>${esc(stopien(+g.xp||0))}</td><td>${+g.xp||0}</td></tr>`).join("")||`<tr><td colspan="4" class="mala">Brak wyników.</td></tr>`}</table></div></div>`;
 }

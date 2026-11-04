@@ -55,6 +55,8 @@ try{haslo=sessionStorage.getItem("agencja-panel")||""}catch(e){}
 async function api(a,d){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({},d,{a}))});const t=await r.text();try{return JSON.parse(t)}catch(e){throw new Error("stary")}}
 const stopien=xp=>{let i=0;F.progi.forEach((p,j)=>{if(xp>=p)i=j});return F.motywy.det.stopnie[i]};
 const data=s=>s?new Date(s).toLocaleString("pl-PL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"–";
+const etyk=k=>k.k+(k.g?" gr "+k.g:"");
+const wGrupie=(g,k)=>g.k===k.k&&String(g.g||"")===String(k.g||"");
 function stanUcznia(g){try{return JSON.parse(g.stan||"{}")}catch(e){return {}}}
 
 function logowanie(msg){
@@ -110,8 +112,8 @@ function uczniowie(t,odd){
   t.innerHTML=`<div class="karta"><p><label>Oddział: <select id="f"><option value="">wszystkie</option>${odd.map(k=>`<option ${k===filtr?"selected":""}>${esc(k)}</option>`).join("")}</select></label>
   <button id="csv">⬇ Pobierz CSV (Excel)</button> <span class="mute">${lista.length} uczniów · kliknij wiersz, aby zobaczyć szczegóły</span></p>
   <p class="mute">Ocena przy misji to propozycja wg poziomu (Rekrut do 4, Agent do 5, Elita do 6); po poprawie na wyższym poziomie zostaje najwyższa. Kartkówka i sprawdzian wg skali szkolnej. 💡 = liczba podpowiedzi.</p>
-  <div class="przewin"><table><tr><th>Uczeń</th><th>Oddział</th><th>XP</th><th>Stopień</th>${F.etapy.map(e=>`<th>${esc(e.tytul.det)}</th>`).join("")}<th>Ostatnio</th></tr>
-  ${lista.map((g,i)=>{const s=stanUcznia(g);return `<tr class="klik" data-i="${D.gracze.indexOf(g)}"><td><b>${esc(g.n)}</b></td><td>${esc(g.k)}</td><td>${+g.xp||0}</td><td>${esc(stopien(+g.xp||0))}</td>${F.etapy.map(e=>`<td>${komorka(e,s)}</td>`).join("")}<td class="mute">${data(g.ost)}</td></tr>`}).join("")}
+  <div class="przewin"><table><tr><th>Uczeń</th><th>Oddział</th><th>Grupa</th><th>XP</th><th>Stopień</th>${F.etapy.map(e=>`<th>${esc(e.tytul.det)}</th>`).join("")}<th>Ostatnio</th></tr>
+  ${lista.map((g,i)=>{const s=stanUcznia(g);return `<tr class="klik" data-i="${D.gracze.indexOf(g)}"><td><b>${esc(g.n)}</b></td><td>${esc(g.k)}</td><td>${esc(g.g||"–")}</td><td>${+g.xp||0}</td><td>${esc(stopien(+g.xp||0))}</td>${F.etapy.map(e=>`<td>${komorka(e,s)}</td>`).join("")}<td class="mute">${data(g.ost)}</td></tr>`}).join("")}
   </table></div></div><div id="szczeg"></div>`;
   $("#f").onchange=e=>{filtr=e.target.value;rysuj()};
   $$("tr.klik",t).forEach(r=>r.onclick=()=>szczegoly(D.gracze[+r.dataset.i]));
@@ -126,7 +128,7 @@ function szczegoly(g){
   const s=stanUcznia(g),M=F.motywy[s.motyw||"det"]||F.motywy.det;
   const b=$("#szczeg");
   const proby=r=>r.proby&&r.proby.length>1?`<br><span class="mute">Podejścia: ${r.proby.map(p=>`${esc(F.poziomy[p.poziom].n)} ${p.proc}% → ${p.ocena}`).join("; ")}</span>`:"";
-  b.innerHTML=`<div class="karta"><h2>${esc(g.n)} <span class="mute">${esc(g.k)}</span></h2>
+  b.innerHTML=`<div class="karta"><h2>${esc(g.n)} <span class="mute">${esc(g.k)}${g.g?" gr "+esc(g.g):""}</span></h2>
   <div class="szczeg"><div><b>Klimat:</b> ${esc(M.nazwa)}<br><b>XP:</b> ${+g.xp||0} (${esc(stopien(+g.xp||0))})<br><b>Karty:</b> ${(s.karty||[]).length}/${Object.keys(F.karty).length}<br><b>Zagadki dodatkowe:</b> ${F.etapy.filter(e=>e.zagadka&&(s.zagadki||{})[e.id]).length}/${F.etapy.filter(e=>e.zagadka).length}<br><b>Wyzwania tygodnia:</b> ${Object.keys(s.wyzwania||{}).length}<br><b>Ostatnio:</b> ${data(g.ost)}
     <p style="margin-top:1em"><button data-pin>🔑 Resetuj PIN</button> <button data-usun style="color:var(--zle)">🗑 Usuń ucznia</button></p><p class="mute" data-st></p></div>
   <div>${F.etapy.map(e=>{const r=e.typ==="test"?(s.testy||{})[e.id]:(s.misje||{})[e.id];
@@ -147,8 +149,8 @@ function klasy(t){
   const MK=Object.keys(F.motywy);
   t.innerHTML=`<div class="karta"><p class="mute">Uczeń dołącza do klasy, wpisując jej kod. <b>Klimat domyślny</b> ustawia się uczniowi na start, a <b>klimaty włączone</b> to te, między którymi może się przełączać. Zmiany zapisuje przycisk przy klasie. Kody zmieniasz w arkuszu, karta „Klasy”.</p>
   <div class="przewin"><table><tr><th>Oddział</th><th>Kod klasy</th><th>Uczniów</th><th>Wspólny cel</th><th>Klimat domyślny</th><th>Klimaty włączone</th><th>Odblokowane do</th><th>Komunikat dla klasy</th><th></th></tr>
-  ${D.klasy.map((k,i)=>{const s=sum[k.k]||{s:0,n:0},p=Math.min(100,Math.round(s.s/k.cel*100)),dm=k.dm&&k.dm.length?k.dm:MK;
-    return `<tr data-k="${i}"><td><b>${esc(k.k)}</b></td><td class="haslo" style="font-size:1rem">${esc(k.kod)}</td><td>${s.n}<br><span class="mute">śr. ${s.n?Math.round(s.s/s.n):0} XP</span></td>
+  ${D.klasy.map((k,i)=>{const gg=D.gracze.filter(g=>wGrupie(g,k)),s={s:gg.reduce((a,g)=>a+(+g.xp||0),0),n:gg.length},p=Math.min(100,Math.round((sum[k.k]||{s:0}).s/k.cel*100)),dm=k.dm&&k.dm.length?k.dm:MK;
+    return `<tr data-k="${i}"><td><b>${esc(k.k)}</b><br><span class="mute">${k.g?"grupa "+esc(k.g):"cała klasa"}</span></td><td class="haslo" style="font-size:1rem">${esc(k.kod)}</td><td>${s.n}<br><span class="mute">śr. ${s.n?Math.round(s.s/s.n):0} XP</span></td>
     <td><input type="number" min="100" step="100" value="${k.cel}" data-cel style="width:6.5em"><div class="pasek" style="margin-top:4px"><i style="width:${p}%"></i></div><span class="mute">${s.s} XP (${p}%)</span></td>
     <td><select data-m>${MK.map(m=>`<option value="${m}" ${(k.m||"det")===m?"selected":""}>${esc(F.motywy[m].nazwa)}</option>`).join("")}</select></td>
     <td style="white-space:nowrap">${MK.map(m=>`<label style="display:block;margin:0 0 .15em"><input type="checkbox" data-dm="${m}" ${dm.includes(m)?"checked":""}> ${esc(F.motywy[m].nazwa)}</label>`).join("")}</td>
@@ -168,7 +170,7 @@ function klasy(t){
       if(!wl.length){st.textContent="Włącz co najmniej jeden klimat.";return}
       if(!wl.includes(m)){st.textContent="Klimat domyślny musi być włączony.";return}
       const dm=wl.length===MK.length?[]:wl,cel=+$("[data-cel]",tr).value||k.cel,od=$("[data-od]",tr).value,kom=$("[data-kom]",tr).value.trim();
-      if(await akcja("ustawKlase",{k:k.k,m,dm,cel,od,kom},st)){k.m=m;k.dm=dm;k.cel=cel;k.od=od;k.kom=kom}
+      if(await akcja("ustawKlase",{k:k.k,g:k.g||"",m,dm,cel,od,kom},st)){k.m=m;k.dm=dm;k.cel=cel;k.od=od;k.kom=kom}
     };
   });
 }
@@ -183,13 +185,13 @@ function wyniki(t){
 function zalegle(t){
   const odI=k=>{if(!k.od)return -1;return F.etapy.findIndex(e=>e.id===k.od)};
   const bloki=D.klasy.filter(k=>!filtr||k.k===filtr).map(k=>{
-    const oi=odI(k),gr=D.gracze.filter(g=>g.k===k.k);
+    const oi=odI(k),gr=D.gracze.filter(g=>wGrupie(g,k));
     if(!gr.length)return "";
-    if(oi<0)return `<div class="karta"><h3>${esc(k.k)}</h3><p class="mute">Wszystkie etapy są odblokowane – zaległości liczę, gdy zaczniesz odblokowywać misje w „Prowadzeniu lekcji” (albo ustawisz „Odblokowane do” w zakładce Klasy).</p></div>`;
+    if(oi<0)return `<div class="karta"><h3>${esc(etyk(k))}</h3><p class="mute">Wszystkie etapy są odblokowane – zaległości liczę, gdy zaczniesz odblokowywać misje w „Prowadzeniu lekcji” (albo ustawisz „Odblokowane do” w zakładce Klasy).</p></div>`;
     const etapy=F.etapy.slice(0,oi+1);
     const wiersze=gr.map(g=>{const s=stanUcznia(g);const brak=etapy.filter(e=>!(e.typ==="test"?(s.testy||{})[e.id]:(s.misje||{})[e.id]));return {g,brak}}).filter(x=>x.brak.length)
       .sort((a,b)=>b.brak.length-a.brak.length||String(a.g.n).localeCompare(String(b.g.n),"pl"));
-    return `<div class="karta"><h3>${esc(k.k)} <span class="mute">· odblokowane do: ${esc(F.etapy[oi].lekcja||F.etapy[oi].tytul.det)}</span></h3>
+    return `<div class="karta"><h3>${esc(etyk(k))} <span class="mute">· odblokowane do: ${esc(F.etapy[oi].lekcja||F.etapy[oi].tytul.det)}</span></h3>
       ${wiersze.length?`<table><tr><th>Uczeń</th><th>Do zaliczenia</th></tr>${wiersze.map(x=>`<tr><td><b>${esc(x.g.n)}</b></td><td style="white-space:normal">${x.brak.map(e=>`<span class="oc" style="background:color-mix(in srgb,var(--zle) 18%,transparent);margin:0 .3em .2em 0;display:inline-block">${esc(e.lekcja||e.tytul.det)}${e===F.etapy[oi]?" (bieżąca)":""}</span>`).join("")}</td></tr>`).join("")}</table>`:`<p>✔ Wszyscy uczniowie mają zaliczone odblokowane etapy.</p>`}
       <p class="mute">Uczniów w klasie: ${gr.length}. Uczniowie bez konta w grze nie są tu widoczni.</p></div>`}).join("");
   t.innerHTML=`<div class="karta"><p class="mute">Kto nie zaliczył odblokowanych etapów. Zaległe misje można robić w domu – w grze są oznaczone jako „zaległa – do zaliczenia”. Filtr oddziału jak w zakładce Uczniowie.</p></div>${bloki||`<div class="karta mute">Brak uczniów.</div>`}`;

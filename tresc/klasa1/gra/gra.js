@@ -216,7 +216,7 @@
         <div class="logo"><b>${esc(M().agencja)}</b><span>${esc(M().sprawa)} · ${esc(F.rozdzial)}</span></div>
         <div class="gracz" title="${S.xp} XP">
           <div class="mini">${awatar(S.awatar, 44)}</div>
-          <div><b>${esc(S.gracz ? S.gracz.n : "Gość")}</b>${S.gracz && S.gracz.k ? ` <small>${esc(S.gracz.k)}</small>` : ""}<br>
+          <div><b>${esc(S.gracz ? S.gracz.n : "Gość")}</b>${S.gracz && S.gracz.k ? ` <small>${esc(S.gracz.k)}${S.gracz.g ? " gr " + esc(S.gracz.g) : ""}</small>` : ""}<br>
           <span class="stopien">${esc(nazwaStopnia(st))}</span> <span class="xp">${S.xp} XP</span>
           <span class="pasek"><i style="width:${pas}%"></i></span></div>
         </div>
@@ -307,7 +307,7 @@
         if (r.stan) {
           try { const zs = JSON.parse(r.stan); if ((zs.xp || 0) >= (S.xp || 0)) S = Object.assign(NOWY(), zs); } catch (er) {}
         } else { S.motyw = null; S.wybralMotyw = 0; }
-        S.lokalny = false; S.gracz = { n: r.n || n, k: r.k, h };
+        S.lokalny = false; S.gracz = { n: r.n || n, k: r.k, g: r.g || "", h };
         oczysc(); S.xp = liczXP();
         ustawKlase(r.m, r.dm, r.od, r.kom);
         zapisz(); chmuraTeraz(); S.wybralMotyw ? mapa() : start();
@@ -369,11 +369,12 @@
       if (!r.ok) return;
       const moja = r.klasy.find((k) => k.k === S.gracz.k); if (!moja) return;
       const przed = JSON.stringify(S.klasa);
-      const zmiana = ustawKlase(moja.m, moja.dm, moja.od, moja.kom);
+      const ust = (r.grupy || []).find((x) => x.k === S.gracz.k && x.g === (S.gracz.g || "")) || moja;   // ustawienia grupy ucznia
+      const zmiana = ustawKlase(ust.m, ust.dm, ust.od, ust.kom);
       if (przed !== JSON.stringify(S.klasa)) {
         const nowy = F.etapy[odblokowaneDo()];
-        const pokaz = moja.od && S.odWidziany !== moja.od && !etapGotowy(nowy);
-        if (moja.od) S.odWidziany = moja.od;
+        const pokaz = ust.od && S.odWidziany !== ust.od && !etapGotowy(nowy);
+        if (ust.od) S.odWidziany = ust.od;
         zapisz(); mapa();
         if (pokaz) { dzwiek("awans"); scena([["s", `${nowy.typ === "test" ? "Czas na" : "Misja odblokowana:"} „${tytul(nowy)}”. ${nowy.typ === "test" ? "Hasło poda nauczyciel." : "Do dzieła!"}`]]); }
         return;
@@ -665,7 +666,7 @@
         <div class="duzy-awatar">${awatar(S.awatar, 160)}</div>
         <div><h2>${esc(S.gracz ? S.gracz.n : "Gość")}</h2>
           <p><span class="stopien">${esc(nazwaStopnia(st))}</span> · ${S.xp} XP${nast ? ` · do awansu: ${nast - S.xp} XP` : " · najwyższy stopień!"}</p>
-          <p class="mala">${S.lokalny ? "Postęp zapisany tylko na tym urządzeniu." : S.gracz && S.gracz.k ? `Klasa ${esc(S.gracz.k)} · postęp zapisany w chmurze.` : ""}</p>
+          <p class="mala">${S.lokalny ? "Postęp zapisany tylko na tym urządzeniu." : S.gracz && S.gracz.k ? `Klasa ${esc(S.gracz.k)}${S.gracz.g ? ", grupa " + esc(S.gracz.g) : ""} · postęp zapisany w chmurze.` : ""}</p>
           <p>${S.lokalny ? `<button class="drugi" data-polacz>☁ Połącz z kontem klasy</button>` : ""} <button class="link" data-wyloguj>Wyloguj</button></p>
         </div>
       </section>
