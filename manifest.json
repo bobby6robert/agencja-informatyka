@@ -1,7 +1,7 @@
 {
-  "wersja": 4,
-  "data": "2026-11-03 18:52",
-  "opis": "Przywrócono ranking w klasach 1 i 2",
+  "wersja": 5,
+  "data": "2026-11-04 09:00",
+  "opis": "Usprawnienia lekcji i sprawdzianów",
   "wersjaAplikacji": 1,
   "plikAplikacji": "aplikacja/Agencja Cyfrowych Detektywów.exe",
   "hashAplikacji": "39829879bb498d76dcb7c0050d91e465f23dfdd405ca15012aa5f473d9f02417",
@@ -73,7 +73,12 @@
   ]
 },
   "pliki": [
-    {"p":"tresc/klasa1/klasa1-informatyka-efekty.html","h":"d5b387c0412f23ad301921cc37a5db9b1222428ba80b8508c9b53f13c552e566","r":12366047},
+    {"p":"tresc/klasa1/gra/fabula.js","h":"b5963c6a6d52b345d5b7f564bdfd023f7130b4a81fcb8e264a90d35067111b7e","r":46335},
+    {"p":"tresc/klasa1/gra/gra.css","h":"81cefe0587f7a6ce0bfda93894db193ebaa1221c95fb5e27407075187beec7be","r":15130},
+    {"p":"tresc/klasa1/gra/gra.js","h":"3c806c48e74c9c033d6515e61f474ec22490d2174c2b256f77e9176effbe82bc","r":39933},
+    {"p":"tresc/klasa1/gra/index.html","h":"07c38d7af51523c344d8ad9e033713707fef60c9f7ca87a1dd4fb4bd955d372d","r":588},
+    {"p":"tresc/klasa1/gra/postacie.js","h":"57ef4b421dcca2ba95794ae1bbef5ea55e171cc6ea336eb9b41afdb6f8a40b5d","r":10180},
+    {"p":"tresc/klasa1/klasa1-informatyka-efekty.html","h":"7e629170f5cab2adbe78dc2e4b5876d1c8d69bc78106f1fe2e412030c1ca4c17","r":12366425},
     {"p":"tresc/klasa1/pliki-do-cwiczen/akcentowanie.pdf","h":"16ef44e0cec6207a27ddfe5b4e1ba06edc20b0d63f21afc9aca419ad6de321b9","r":75840},
     {"p":"tresc/klasa1/pliki-do-cwiczen/arkusz-kalkulacyjny/CZYTAJ-TO.txt","h":"89548fbc41ce1c9821868673334830908dfd5e30f04b4501cc95f16d033f85f2","r":907},
     {"p":"tresc/klasa1/pliki-do-cwiczen/arkusz-kalkulacyjny/od-wydawcy/auta.xlsx","h":"28ca7398b286a119cfb20648a884c061add43fc6ab11c6f542cb33d08364df32","r":46624},
@@ -131,7 +136,7 @@
     {"p":"tresc/klasa1/pliki-do-cwiczen/tapeta.jpg","h":"4c817cccdec65f990827ea1de2bcef8225006fc5731e5b0b4b0dbf7b9f1ce775","r":172343},
     {"p":"tresc/klasa1/pliki-do-cwiczen/wycieczka.jpg","h":"647e40a1087d98bb3712fcb153dde6eded84f306999c15e9d44d1b025b70288b","r":1003193},
     {"p":"tresc/klasa1/pliki-do-cwiczen/wystapienia.pdf","h":"37d41d34507f5761758cd323e2a9c7e65e62e0ce06944c3abf5b58fd7308dc41","r":46374},
-    {"p":"tresc/klasa1/sprawdziany.html","h":"efaf393dd47afd543b3b283aa9b7cb05e45743ee3430380b28ef72d7cbce71b6","r":46910},
+    {"p":"tresc/klasa1/sprawdziany.html","h":"04c1c510dea6db8ee4dd773a8ea0eb02cbe82f89d307b8bf48e98c29eee37610","r":47152},
     {"p":"tresc/klasa2/klasa2-informatyka-efekty.html","h":"f6dccd5df0125fadca0aeba5d28788488047b140ec5037e23050080f33a41fd7","r":3357893},
     {"p":"tresc/klasa2/pliki-do-cwiczen/README.txt","h":"84d46a39b8587eda6803de393b6b15616dd98ba12d6d57347cc314dc9c5aaad9","r":837},
     {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-1-tworzenie-tresci/biuro.jpg","h":"d94ed7a0fc5e1274fe7ed7ea5f26f49f0548b6e6add05733d952bcf373a3668a","r":302956},

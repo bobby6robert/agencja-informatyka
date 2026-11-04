@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Panel nauczyciela – Agencja</title>
+<style>
+:root{--tlo:#f4f6fb;--panel:#fff;--tekst:#14213d;--mute:#5b6478;--akc:#fca311;--nav:#14213d;--linia:#e2e6ef;--ok:#15803d;--zle:#b91c1c}
+@media (prefers-color-scheme:dark){:root{--tlo:#0e1628;--panel:#16213e;--tekst:#eef2f8;--mute:#a9b4c8;--linia:#2a3858}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--tlo);color:var(--tekst);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
+header{background:var(--nav);color:#fff;padding:14px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header b{color:var(--akc);text-transform:uppercase;letter-spacing:.05em}
+main{max-width:1200px;margin:0 auto;padding:16px}
+.karta{background:var(--panel);border:1px solid var(--linia);border-radius:12px;padding:16px;margin:12px 0}
+button,input,select{font:inherit}
+button{cursor:pointer;border-radius:8px;border:1px solid var(--linia);background:var(--panel);color:var(--tekst);padding:.45em .9em}
+.glowny{background:var(--akc);border:0;color:#111;font-weight:700}
+input,select{padding:.45em .6em;border:1px solid var(--linia);border-radius:8px;background:var(--panel);color:var(--tekst)}
+.zakladki{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.zakladki button[aria-pressed=true]{background:var(--nav);color:#fff;border-color:var(--nav)}
+.przewin{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:.45em .55em;border-bottom:1px solid var(--linia);text-align:left;vertical-align:top;white-space:nowrap}
+th{color:var(--mute);font-weight:600;position:sticky;top:0;background:var(--panel)}
+tr.klik{cursor:pointer}tr.klik:hover td{background:color-mix(in srgb,var(--akc) 12%,transparent)}
+.oc{display:inline-block;min-width:1.6em;text-align:center;font-weight:800;border-radius:6px;padding:0 .3em;background:color-mix(in srgb,var(--akc) 30%,transparent)}
+.mute{color:var(--mute);font-size:.85em}
+.blad{color:var(--zle)}
+.haslo{font-family:Consolas,monospace;font-size:1.3rem;font-weight:700;letter-spacing:.12em}
+.ukryte{filter:blur(6px);cursor:pointer}
+.szczeg{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.pasek{height:8px;background:var(--linia);border-radius:4px;overflow:hidden;min-width:80px}
+.pasek i{display:block;height:100%;background:var(--akc)}
+</style>
+</head>
+<body>
+<header><b>Agencja</b><span>Panel nauczyciela</span><span style="flex:1"></span><span id="stan" class="mute" style="color:#cbd5e1"></span></header>
+<main id="app"></main>
+<script src="../tresc/klasa1/gra/fabula.js"></script>
+<script>
+(function(){
+"use strict";
+const F=window.FABULA;
+let API="https://script.google.com/macros/s/AKfycbzGvnKlock74eu0ptTr8Dy7O7BKdnQBL2V8B9vFoSWcl80k3ZLd06R1tBz8m82dQPKySw/exec";
+try{const q=new URLSearchParams(location.search).get("api");if(q&&/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//.test(q))API=q}catch(e){}
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const app=$("#app");
+let D=null,haslo="",zak="uczniowie",filtr="";
+try{haslo=sessionStorage.getItem("agencja-panel")||""}catch(e){}
+
+async function api(a,d){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({},d,{a}))});const t=await r.text();try{return JSON.parse(t)}catch(e){throw new Error("stary")}}
+const stopien=xp=>{let i=0;F.progi.forEach((p,j)=>{if(xp>=p)i=j});return F.motywy.det.stopnie[i]};
+const data=s=>s?new Date(s).toLocaleString("pl-PL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"–";
+function stanUcznia(g){try{return JSON.parse(g.stan||"{}")}catch(e){return {}}}
+
+function logowanie(msg){
+  app.innerHTML=`<div class="karta" style="max-width:420px;margin:40px auto"><h2>Logowanie</h2>
+  <p class="mute">Hasło ustawiasz w arkuszu Google, karta „Ustawienia”, komórka B1.</p>
+  <form><p><input type="password" name="h" placeholder="Hasło nauczyciela" autocomplete="current-password" style="width:100%"></p>
+  <p><button class="glowny">Zaloguj</button></p><p class="blad">${esc(msg||"")}</p></form></div>`;
+  const f=$("form");f.h.focus();
+  f.onsubmit=e=>{e.preventDefault();haslo=f.h.value;wczytaj()};
+}
+async function wczytaj(){
+  $("#stan").textContent="Wczytuję…";
+  try{
+    const r=await api("panel",{haslo});
+    if(!r.ok){$("#stan").textContent="";return logowanie({haslo:"Złe hasło.",brakHasla:"Najpierw wpisz hasło w arkuszu (karta „Ustawienia”, komórka B1).",blokada:"Za dużo prób. Odczekaj 10 minut."}[r.e]||"Błąd logowania.")}
+    try{sessionStorage.setItem("agencja-panel",haslo)}catch(e){}
+    D=r;$("#stan").textContent="Odświeżono "+new Date().toLocaleTimeString("pl-PL");rysuj();
+  }catch(e){$("#stan").textContent="";logowanie(e.message==="stary"?"Skrypt w arkuszu nie jest jeszcze zaktualizowany (instrukcja w folderze DLA-NAUCZYCIELA).":"Brak połączenia z arkuszem.")}
+}
+
+function rysuj(){
+  const odd=[...new Set(D.gracze.map(g=>g.k))].sort();
+  app.innerHTML=`<div class="zakladki">${[["uczniowie","Uczniowie"],["klasy","Klasy i kody"],["wyniki","Wyniki testów"],["hasla","Hasła do testów"]].map(([k,n])=>`<button data-z="${k}" aria-pressed="${zak===k}">${n}</button>`).join("")}
+  <span style="flex:1"></span><button data-odsw>⟳ Odśwież</button><button data-wyl>Wyloguj</button></div><div id="tresc"></div>`;
+  $$("[data-z]").forEach(b=>b.onclick=()=>{zak=b.dataset.z;rysuj()});
+  $("[data-odsw]").onclick=wczytaj;
+  $("[data-wyl]").onclick=()=>{haslo="";try{sessionStorage.removeItem("agencja-panel")}catch(e){}D=null;logowanie()};
+  const t=$("#tresc");
+  if(zak==="uczniowie")uczniowie(t,odd);
+  if(zak==="klasy")klasy(t);
+  if(zak==="wyniki")wyniki(t);
+  if(zak==="hasla")hasla(t);
+}
+
+function komorka(e,s){
+  if(e.typ==="test"){const r=(s.testy||{})[e.id];return r?`${r.s}/${r.m} <span class="mute">(${r.proc}%)</span>`:"–"}
+  const r=(s.misje||{})[e.id];if(!r)return "–";
+  if(e.bezPoziomu)return `${r.proc}%`;
+  return `<span class="oc">${r.ocena}</span> <span class="mute">${esc(F.poziomy[r.poziom].n)} · ${r.proc}%${r.podp?` · 💡${r.podp}`:""}</span>`;
+}
+function uczniowie(t,odd){
+  const lista=D.gracze.filter(g=>!filtr||g.k===filtr).sort((a,b)=>a.k.localeCompare(b.k)||String(a.n).localeCompare(String(b.n),"pl"));
+  t.innerHTML=`<div class="karta"><p><label>Oddział: <select id="f"><option value="">wszystkie</option>${odd.map(k=>`<option ${k===filtr?"selected":""}>${esc(k)}</option>`).join("")}</select></label>
+  <button id="csv">⬇ Pobierz CSV (Excel)</button> <span class="mute">${lista.length} uczniów · kliknij wiersz, aby zobaczyć szczegóły</span></p>
+  <p class="mute">Ocena przy misji to propozycja wg poziomu (Rekrut do 4, Agent do 5, Elita do 6). 💡 = liczba podpowiedzi. Liczy się pierwsze podejście.</p>
+  <div class="przewin"><table><tr><th>Uczeń</th><th>Oddział</th><th>XP</th><th>Stopień</th>${F.etapy.map(e=>`<th>${esc(e.tytul.det)}</th>`).join("")}<th>Ostatnio</th></tr>
+  ${lista.map((g,i)=>{const s=stanUcznia(g);return `<tr class="klik" data-i="${D.gracze.indexOf(g)}"><td><b>${esc(g.n)}</b></td><td>${esc(g.k)}</td><td>${+g.xp||0}</td><td>${esc(stopien(+g.xp||0))}</td>${F.etapy.map(e=>`<td>${komorka(e,s)}</td>`).join("")}<td class="mute">${data(g.ost)}</td></tr>`}).join("")}
+  </table></div></div><div id="szczeg"></div>`;
+  $("#f").onchange=e=>{filtr=e.target.value;rysuj()};
+  $$("tr.klik",t).forEach(r=>r.onclick=()=>szczegoly(D.gracze[+r.dataset.i]));
+  $("#csv").onclick=()=>{
+    const wiersze=[["Uczeń","Oddział","XP",...F.etapy.flatMap(e=>e.typ==="test"?[e.tytul.det+" pkt",e.tytul.det+" max"]:e.bezPoziomu?[e.tytul.det+" %"]:[e.tytul.det+" poziom",e.tytul.det+" %",e.tytul.det+" ocena",e.tytul.det+" podpowiedzi"])]];
+    lista.forEach(g=>{const s=stanUcznia(g);wiersze.push([g.n,g.k,g.xp,...F.etapy.flatMap(e=>{if(e.typ==="test"){const r=(s.testy||{})[e.id];return r?[r.s,r.m]:["",""]}const r=(s.misje||{})[e.id];if(e.bezPoziomu)return [r?r.proc:""];return r?[F.poziomy[r.poziom].n,r.proc,r.ocena,r.podp]:["","","",""]})])});
+    const csv="﻿"+wiersze.map(w=>w.map(x=>`"${String(x==null?"":x).replace(/"/g,'""')}"`).join(";")).join("\r\n");
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=`agencja-wyniki${filtr?"-"+filtr:""}.csv`;a.click();
+  };
+}
+function szczegoly(g){
+  const s=stanUcznia(g),M=F.motywy[s.motyw||"det"]||F.motywy.det;
+  const b=$("#szczeg");
+  b.innerHTML=`<div class="karta"><h2>${esc(g.n)} <span class="mute">${esc(g.k)}</span></h2>
+  <div class="szczeg"><div><b>Klimat:</b> ${esc(M.nazwa)}<br><b>XP:</b> ${+g.xp||0} (${esc(stopien(+g.xp||0))})<br><b>Karty:</b> ${(s.karty||[]).length}/${Object.keys(F.karty).length}<br><b>Zagadki dodatkowe:</b> ${Object.keys(s.zagadki||{}).length}/3<br><b>Ostatnio:</b> ${data(g.ost)}</div>
+  <div>${F.etapy.map(e=>{const r=e.typ==="test"?(s.testy||{})[e.id]:(s.misje||{})[e.id];
+    return `<div><b>${esc(e.tytul.det)}:</b> ${r?(e.typ==="test"?`${r.s}/${r.m} (${r.proc}%), ${esc(r.test||"")}, ${data(r.data)}`:`${e.bezPoziomu?"":esc(F.poziomy[r.poziom].n)+", "}${r.pkt}/${r.max} pkt (${r.proc}%)${r.ocena?`, ocena ${r.ocena}`:""}, podpowiedzi: ${r.podp||0}${r.trening?`, treningi: ${r.trening}`:""}, ${data(r.data)}`):"<span class='mute'>nie rozpoczęto</span>"}</div>`}).join("")}</div></div></div>`;
+  b.scrollIntoView({behavior:"smooth"});
+}
+function klasy(t){
+  const sum={};D.gracze.forEach(g=>{sum[g.k]=sum[g.k]||{s:0,n:0};sum[g.k].s+=+g.xp||0;sum[g.k].n++});
+  t.innerHTML=`<div class="karta"><p class="mute">Kody i cele zmieniasz w arkuszu, karta „Klasy”. Uczeń dołącza do klasy, wpisując jej kod.</p><div class="przewin"><table><tr><th>Oddział</th><th>Kod klasy</th><th>Uczniów</th><th>Razem XP</th><th>Cel</th><th>Postęp celu</th><th>Średnio XP</th></tr>
+  ${D.klasy.map(k=>{const s=sum[k.k]||{s:0,n:0},p=Math.min(100,Math.round(s.s/k.cel*100));return `<tr><td><b>${esc(k.k)}</b></td><td class="haslo" style="font-size:1rem">${esc(k.kod)}</td><td>${s.n}</td><td>${s.s}</td><td>${k.cel}</td><td><div class="pasek"><i style="width:${p}%"></i></div><span class="mute">${p}%</span></td><td>${s.n?Math.round(s.s/s.n):0}</td></tr>`}).join("")}
+  </table></div></div>`;
+}
+function wyniki(t){
+  const w=D.wyniki.slice().reverse();
+  t.innerHTML=`<div class="karta"><p class="mute">Ostatnie wyniki kartkówek i sprawdzianów (te same co w karcie „Wyniki” arkusza). Uczeń wpisuje tu imię i nazwisko.</p><div class="przewin"><table><tr><th>Data</th><th>Uczeń</th><th>Klasa</th><th>Test</th><th>Wynik</th><th>Błędne pytania</th></tr>
+  ${w.map(r=>`<tr><td class="mute">${data(r.d)}</td><td>${esc(r.n)}</td><td>${esc(r.k)}</td><td>${esc(r.t)}</td><td><b>${r.s}/${r.m}</b> <span class="mute">(${r.m?Math.round(r.s/r.m*100):0}%)</span></td><td class="mute">${esc(r.z)}</td></tr>`).join("")||`<tr><td colspan="6" class="mute">Brak wyników.</td></tr>`}
+  </table></div></div>`;
+}
+function hasla(t){
+  t.innerHTML=`<div class="karta"><p class="mute">Kliknij hasło, aby je odsłonić (żeby nie było widać na rzutniku).</p><table><tr><th>Test</th><th>Hasło</th></tr>
+  ${D.hasla.map(r=>`<tr><td>${esc(r[0])}</td><td><span class="haslo ukryte" tabindex="0">${esc(r[1])}</span></td></tr>`).join("")||`<tr><td colspan="2" class="mute">Brak haseł – uruchom funkcję przygotuj() w skrypcie.</td></tr>`}</table></div>`;
+  $$(".ukryte",t).forEach(e=>e.onclick=e.onkeydown=()=>e.classList.toggle("ukryte"));
+}
+haslo?wczytaj():logowanie();
+})();
+</script>
+</body>
+</html>
