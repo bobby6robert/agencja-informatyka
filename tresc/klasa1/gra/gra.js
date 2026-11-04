@@ -33,6 +33,13 @@
   const nazwaStopnia = (i) => M().stopnie[i];
   const etapGotowy = (e) => (e.typ === "test" ? !!S.testy[e.id] : !!S.misje[e.id]);
   const POZ = ["rekrut", "agent", "elita"];
+  function oczysc() {   // usuwa wyniki etapów, których nie ma już w rozdziale
+    const ids = new Set(F.etapy.map((e) => e.id));
+    let zm = false;
+    Object.keys(S.misje || {}).forEach((k) => { if (!ids.has(k)) { delete S.misje[k]; zm = true; } });
+    Object.keys(S.testy || {}).forEach((k) => { if (!ids.has(k)) { delete S.testy[k]; zm = true; } });
+    return zm;
+  }
   /* XP liczone zawsze od nowa z wyników (te same zasady w skrypcie Google). */
   function liczXP(st = S) {
     let x = 0;
@@ -131,7 +138,7 @@
       if (r && r.e === "rev" && r.stan) {   // nauczyciel zmienił coś w panelu – przyjmij wersję z chmury
         const g = S.gracz, prefs = { motyw: S.motyw, dzwiek: S.dzwiek, klasa: S.klasa, wybralMotyw: S.wybralMotyw, komWidziany: S.komWidziany, widzialStart: S.widzialStart };
         try { S = Object.assign(NOWY(), JSON.parse(r.stan), prefs, { gracz: g, rev: r.rev }); } catch (e) {}
-        S.xp = liczXP();
+        oczysc(); S.xp = liczXP();
         try { localStorage.setItem(KLUCZ, JSON.stringify(S)); } catch (e) {}
         ustawChmure("ok");
         if ($("#widok") && !($(".zadanie") || $(".akta") || $(".nak-ramka") || $(".nakladka .poziomy"))) mapa();
@@ -301,6 +308,7 @@
           try { const zs = JSON.parse(r.stan); if ((zs.xp || 0) >= (S.xp || 0)) S = Object.assign(NOWY(), zs); } catch (er) {}
         } else { S.motyw = null; S.wybralMotyw = 0; }
         S.lokalny = false; S.gracz = { n: r.n || n, k: r.k, h };
+        oczysc(); S.xp = liczXP();
         ustawKlase(r.m, r.dm, r.od, r.kom);
         zapisz(); chmuraTeraz(); S.wybralMotyw ? mapa() : start();
       } catch (er) {
@@ -341,7 +349,7 @@
         return `<li class="etap ${ok ? "zrob" : dost ? "dost" : "zamk"} ${e.boss ? "boss" : ""}">
           <button data-i="${i}" ${dost || ok ? "" : "disabled"}>
             <span class="ik">${ok ? "✔" : dost ? ikona : "🔒"}</span>
-            <span class="tx"><b>${esc(tytul(e))}</b><small>${e.typ === "test" ? (e.boss ? "Finał rozdziału – sprawdzian" : "Kartkówka") : e.id === "prolog" ? "Prolog" : "Misja"}${info ? " · " + info : ""}</small></span>
+            <span class="tx"><b>${esc(tytul(e))}</b><small>${esc(e.lekcja || (e.typ === "test" ? (e.boss ? "Finał rozdziału – sprawdzian" : "Kartkówka") : e.id === "prolog" ? "Prolog" : "Misja"))}${info ? " · " + info : ""}</small></span>
           </button></li>`;
       }).join("")}</ol>`;
     $$(".sciezka button", w).forEach((b) => (b.onclick = () => { dzwiek("klik"); otworzEtap(F.etapy[+b.dataset.i]); }));
@@ -392,7 +400,7 @@
   function akta(e) {
     return new Promise((ok) => {
       const w = szkielet("mapa");
-      w.innerHTML = `<section class="karta akta"><h2>📂 ${esc(M().akta)}: ${esc(tytul(e))}</h2>
+      w.innerHTML = `<section class="karta akta"><h2>📂 ${esc(M().akta)}: ${esc(tytul(e))}</h2>${e.lekcja ? `<p class="mala">${esc(e.lekcja)}</p>` : ""}
         <p>Zanim zaczniesz, przejrzyj materiały z lekcji. Wszystko, czego potrzebujesz, jest w aktach.</p>
         <div class="lista-akt">${e.lekcje.map(([id, n]) => `<button class="drugi" data-l="${id}" data-n="${esc(n)}">📄 ${esc(n)}</button>`).join("")}</div>
         <p><button class="glowny" data-start>Rozpocznij zadania ▸</button> <button class="link" data-x>Wróć do mapy</button></p></section>`;
@@ -444,8 +452,8 @@
     S.xp = liczXP();
     const xp = S.xp - xpPrzed;
     const nowe = [];
-    if (pierwszy && e.karta && !S.karty.includes(e.karta)) { S.karty.push(e.karta); nowe.push(e.karta); }
-    if (["m1", "m2", "m3"].every((m) => S.zagadki[m]) && !S.karty.includes("c6")) { S.karty.push("c6"); nowe.push("c6"); }
+    if (pierwszy) [].concat(e.karta || []).forEach((k) => { if (!S.karty.includes(k)) { S.karty.push(k); nowe.push(k); } });
+    if (F.etapy.filter((x) => x.zagadka).every((x) => S.zagadki[x.id]) && !S.karty.includes("c6")) { S.karty.push("c6"); nowe.push("c6"); }
     zapisz();
     await podsumowanie({ e, poziom, suma: Math.round(suma), max, proc, podp, pierwszy, rodzaj, stara, xp, nowe, przed });
     mapa();
@@ -584,7 +592,7 @@
     await scena(e.koniec[S.motyw]);
     const przed = stopien(), xpPrzed = S.xp; S.xp = liczXP(); const xp = S.xp - xpPrzed;
     const nowe = [];
-    if (e.karta && !S.karty.includes(e.karta)) { S.karty.push(e.karta); nowe.push(e.karta); }
+    [].concat(e.karta || []).forEach((k) => { if (!S.karty.includes(k)) { S.karty.push(k); nowe.push(k); } });
     zapisz();
     if (e.boss) konfetti();
     await podsumowanie({ e, test: true, suma: wyn.s, max: wyn.m, proc: wyn.proc, pierwszy: true, xp, nowe, przed });
@@ -771,6 +779,7 @@
   }
 
   /* ---------- Start ---------- */
+  if (oczysc()) { S.xp = liczXP(); zapisz(); }
   S.xp = liczXP();
   if (!S.motyw || (!S.gracz && !S.lokalny) || !S.wybralMotyw) start(); else { mapa(); chmuraTeraz(); }
 })();

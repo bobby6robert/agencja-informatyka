@@ -113,54 +113,41 @@
       }
     },
     m2: {
-      tytul: { woj: "Intruz w sieci jednostki", kas: "Nielegalne urządzenie", mun: "Intruz na przejściu" },
+      tytul: { woj: "Pościg przez sieć", kas: "Śladem przemytu", mun: "Pościg w sieci" },
       wstep: {
         woj: [
           ["n", "Poprzednio: atak na sztab odparty, ale Kruk uciekł przez sieć, zostawiając podpis B0."],
-          ["p", "W sieci jednostki pracuje nieznane urządzenie. Jego adres MAC to nasz trop."],
-          ["s", "Rozpoznaj sprzęt sieciowy i rodzaje sieci. Potem zlokalizuj intruza."]
+          ["p", "W sieci jednostki pracuje nieznane urządzenie. Jego adres MAC to nasz pierwszy trop."],
+          ["s", "Zlokalizuj intruza, a potem idź za nim przez Internet: adresy IP, DNS, porty, tracert. Wykonać!"]
         ],
         kas: [
           ["n", "Poprzednio: kontrola systemu zakończona, ale Szmugler wyprowadził dane siecią, zostawiając podpis B0."],
           ["p", "W sieci urzędu pracuje urządzenie, którego nie ma w ewidencji. Jego adres MAC to nasz trop."],
-          ["s", "Poznaj urządzenia sieciowe i rodzaje sieci. Potem znajdź nielegalne urządzenie."]
+          ["s", "Znajdź nielegalne urządzenie, a potem prześledź, dokąd Szmugler przerzuca dane w Internecie."]
         ],
         mun: [
           ["n", "Poprzednio: system kontroli uratowany, ale Fałszerz uciekł przez sieć, zostawiając podpis B0."],
           ["p", "Hau! W sieci przejścia granicznego pracuje nieznane urządzenie. Jego adres MAC to trop."],
-          ["s", "Poznaj urządzenia i rodzaje sieci, a potem namierz intruza."]
+          ["s", "Namierz intruza, a potem ruszaj w pościg przez Internet: IP, DNS, porty, tracert."]
         ]
       },
       koniec: {
-        woj: [["p", "Zlokalizowany! Nieautoryzowany punkt dostępowy przy ogrodzeniu jednostki."], ["s", "Pusty. Kruk przekierował ruch do Internetu."], ["n", "W pamięci urządzenia zostaje fragment trasy."], ["s", "Zanim ruszymy dalej – odprawa przed akcją."]],
-        kas: [["p", "Mam je! Niezgłoszony punkt dostępowy w magazynie depozytowym."], ["s", "Pusty. Szmugler przerzucił ruch do Internetu."], ["n", "W pamięci urządzenia zostaje fragment trasy."], ["s", "Zanim pójdziemy dalej, czeka Cię egzamin kontrolny."]],
-        mun: [["p", "Hau! Mam go! Ukryty punkt dostępowy w budce przy szlabanie."], ["s", "Pusty. Fałszerz przeniósł się do Internetu."], ["n", "W pamięci urządzenia zostaje fragment trasy."], ["s", "Zanim pójdziemy dalej – przesłuchanie świadka."]]
+        woj: [["p", "Zlokalizowany! Nieautoryzowany punkt dostępowy przy ogrodzeniu jednostki. Pusty…"], ["p", "…ale trasa w jego pamięci prowadzi do serwera w Internecie. Port 443 aktywny."], ["s", "Cel namierzony. Przed akcją – odprawa. Potem starcie."]],
+        kas: [["p", "Mam je! Niezgłoszony punkt dostępowy w magazynie depozytowym. Pusty…"], ["p", "…ale w pamięci została trasa do serwera sklepu Szmuglera. Port 443 otwarty."], ["s", "Mamy adres. Zanim wejdziemy z kontrolą – egzamin kontrolny."]],
+        mun: [["p", "Hau! Ukryty punkt dostępowy w budce przy szlabanie. Pusty…"], ["p", "…ale trasa prowadzi do serwera Fałszerza w Internecie. Port 443 otwarty!"], ["s", "Zanim go zatrzymamy – przesłuchanie świadka."]]
       }
     },
     kart: {
       tytul: { woj: "Odprawa przed akcją", kas: "Egzamin kontrolny", mun: "Przesłuchanie świadka" },
       wstep: {
-        woj: [["n", "Odprawa przed akcją. Potrzebujesz hasła od pułkownika, czyli nauczyciela."], ["s", "Na odprawie nie ma miejsca na zgadywanie. Pokaż, co umiesz – to Twoja kartkówka."]],
+        woj: [["n", "Odprawa przed akcją. Potrzebujesz hasła od pułkownika, czyli nauczyciela."], ["s", "Na odprawie nie ma miejsca na zgadywanie. Pokaż, co umiesz z całego rozdziału – to Twoja kartkówka."]],
         kas: [["n", "Egzamin kontrolny. Potrzebujesz hasła od naczelnika, czyli nauczyciela."], ["s", "W kontroli liczy się dokładność. Pokaż, że znasz sprawę – to Twoja kartkówka."]],
         mun: [["n", "Przesłuchanie świadka. Potrzebujesz hasła od nadinspektora, czyli nauczyciela."], ["s", "Świadek odpowie tylko na dobrze zadane pytania. To Twoja kartkówka."]]
       },
       koniec: {
-        woj: [["s", "Odprawa zaliczona. Rozpoznanie potwierdza: Kruk działa z serwera w Internecie."]],
-        kas: [["s", "Egzamin zdany. Analiza przelewów wskazuje: Szmugler wynajął serwer w Internecie."]],
-        mun: [["s", "Zeznania się zgadzają. Fałszerz sprzedaje fałszywe dokumenty przez serwer w Internecie."]]
-      }
-    },
-    m3: {
-      tytul: { woj: "Namierzanie celu", kas: "Śladem przemytu", mun: "Pościg w sieci" },
-      wstep: {
-        woj: [["n", "Poprzednio: rozpoznanie potwierdziło, że Kruk działa z serwera w Internecie."], ["p", "Znamy nazwę domeny. DNS da nam adres IP, a ping i tracert pokażą drogę."], ["s", "Namierz serwer przeciwnika, żołnierzu."]],
-        kas: [["n", "Poprzednio: analiza przelewów wskazała, że Szmugler działa z serwera w Internecie."], ["p", "Znamy nazwę domeny jego sklepu. DNS da nam adres IP, a ping i tracert pokażą drogę."], ["s", "Ustal, gdzie stoi serwer Szmuglera."]],
-        mun: [["n", "Poprzednio: świadek potwierdził, że Fałszerz działa z serwera w Internecie."], ["p", "Hau! Znamy nazwę domeny. DNS da nam adres IP, a ping i tracert pokażą drogę."], ["s", "Namierz serwer Fałszerza."]]
-      },
-      koniec: {
-        woj: [["p", "Cel namierzony. Port 443 aktywny."], ["s", "Przygotuj się do starcia. Działamy o świcie."]],
-        kas: [["p", "Serwer ustalony. Port 443 otwarty – sklep działa."], ["s", "Przygotuj się. Wchodzimy z kontrolą."]],
-        mun: [["p", "Namierzony! Port 443 otwarty."], ["s", "Przygotuj się do zatrzymania. Wchodzimy rano."]]
+        woj: [["s", "Odprawa zaliczona. Rozpoznanie potwierdza: to serwer Kruka. Do akcji!"]],
+        kas: [["s", "Egzamin zdany. Analiza przelewów potwierdza: to sklep Szmuglera. Wchodzimy z kontrolą."]],
+        mun: [["s", "Zeznania się zgadzają: to serwer Fałszerza. Czas na zatrzymanie."]]
       }
     },
     boss: {

@@ -126,7 +126,7 @@ function szczegoly(g){
   const b=$("#szczeg");
   const proby=r=>r.proby&&r.proby.length>1?`<br><span class="mute">Podejścia: ${r.proby.map(p=>`${esc(F.poziomy[p.poziom].n)} ${p.proc}% → ${p.ocena}`).join("; ")}</span>`:"";
   b.innerHTML=`<div class="karta"><h2>${esc(g.n)} <span class="mute">${esc(g.k)}</span></h2>
-  <div class="szczeg"><div><b>Klimat:</b> ${esc(M.nazwa)}<br><b>XP:</b> ${+g.xp||0} (${esc(stopien(+g.xp||0))})<br><b>Karty:</b> ${(s.karty||[]).length}/${Object.keys(F.karty).length}<br><b>Zagadki dodatkowe:</b> ${Object.keys(s.zagadki||{}).length}/3<br><b>Wyzwania tygodnia:</b> ${Object.keys(s.wyzwania||{}).length}<br><b>Ostatnio:</b> ${data(g.ost)}
+  <div class="szczeg"><div><b>Klimat:</b> ${esc(M.nazwa)}<br><b>XP:</b> ${+g.xp||0} (${esc(stopien(+g.xp||0))})<br><b>Karty:</b> ${(s.karty||[]).length}/${Object.keys(F.karty).length}<br><b>Zagadki dodatkowe:</b> ${F.etapy.filter(e=>e.zagadka&&(s.zagadki||{})[e.id]).length}/${F.etapy.filter(e=>e.zagadka).length}<br><b>Wyzwania tygodnia:</b> ${Object.keys(s.wyzwania||{}).length}<br><b>Ostatnio:</b> ${data(g.ost)}
     <p style="margin-top:1em"><button data-pin>🔑 Resetuj PIN</button> <button data-usun style="color:var(--zle)">🗑 Usuń ucznia</button></p><p class="mute" data-st></p></div>
   <div>${F.etapy.map(e=>{const r=e.typ==="test"?(s.testy||{})[e.id]:(s.misje||{})[e.id];
     return `<div style="margin-bottom:.5em"><b>${esc(e.tytul.det)}:</b> ${r?(e.typ==="test"?`${r.s}/${r.m} (${r.proc}%), ocena ${ocenaTestu(r.s,r.m)}, ${esc(r.test||"")}, ${data(r.data)}`:`${e.bezPoziomu?"":esc(F.poziomy[r.poziom].n)+", "}${r.pkt}/${r.max} pkt (${r.proc}%)${r.ocena?`, ocena ${r.ocena}`:""}, podpowiedzi: ${r.podp||0}${r.trening?`, treningi: ${r.trening}`:""}, ${data(r.data)}${proby(r)}`)
