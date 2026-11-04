@@ -600,3 +600,31 @@ window.FABULA = {
     }
   ]
 };
+
+/* Skala ocen z kartkówek i sprawdzianów (procent → ocena), wg statutu szkoły. */
+window.FABULA.skalaTestow = [[100, "6"], [99, "6-"], [97, "5+"], [94, "5"], [90, "5-"], [84, "4+"], [78, "4"], [72, "4-"],
+  [67, "3+"], [61, "3"], [55, "3-"], [49, "2+"], [43, "2"], [36, "2-"], [30, "1+"], [0, "1"]];
+
+/* Wyzwania tygodnia – co tydzień inne (kolejność wg numeru tygodnia). Jedno podejście, maks. 30 XP. */
+window.FABULA.wyzwania = [
+  { typ: "wpisz", fab: "{wrog} zostawił w logu liczbę zapisaną dwójkowo: 1010.", q: "Ile to w systemie dziesiętnym?", ok: ["10"], ph: "liczba",
+    h: ["Kolejne cyfry od prawej znaczą 1, 2, 4, 8.", "Jedynki stoją na pozycjach 8 i 2.", "8 + 2 = ?"], why: "1010₂ = 8 + 2 = 10." },
+  { typ: "blad", fab: "{pomocnik} sprawdza listę adresów IP. Jeden nie może istnieć.", q: "Kliknij niepoprawny adres IPv4.",
+    el: ["10.0.0.1", "172.16.5.20", "10.0.300.1", "192.168.100.254"], a: 2,
+    h: ["Każda liczba w adresie IPv4 ma zakres 0–255.", "Sprawdź trzecią liczbę w każdym adresie.", "Szukaj liczby większej niż 255."], why: "300 > 255, więc 10.0.300.1 jest niepoprawny." },
+  { typ: "kolej", fab: "{szef} chce wiedzieć, co dzieje się po naciśnięciu przycisku zasilania.", q: "Ułóż etapy uruchamiania komputera.",
+    el: ["Włączenie zasilania", "UEFI/BIOS sprawdza sprzęt", "Uruchomienie programu rozruchowego", "Wczytanie jądra systemu operacyjnego", "Ekran logowania"],
+    h: ["Na początku działa oprogramowanie płyty głównej.", "Program rozruchowy wczytuje system.", "Logowanie jest na samym końcu."], why: "Zasilanie → UEFI/BIOS → program rozruchowy → jądro → logowanie." },
+  { typ: "wpisz", fab: "Przechwycona wiadomość zaszyfrowana szyfrem Cezara (przesunięcie o 3: A→D).", q: "Odszyfruj: VLHF",
+    ok: ["siec", "sieć"], ph: "słowo", h: ["Cofnij każdą literę o 3.", "V→S, L→I.", "To słowo z rozdziału o urządzeniach w …"], why: "VLHF → SIEC (sieć)." },
+  { typ: "wiele", fab: "{pomocnik} inwentaryzuje sprzęt. Wskaż urządzenia sieciowe.", q: "Zaznacz WSZYSTKIE urządzenia sieciowe.",
+    o: ["Router", "Przełącznik", "Punkt dostępowy", "Modem", "Zasilacz", "Karta graficzna"], a: [0, 1, 2, 3],
+    h: ["Urządzenie sieciowe przesyła dane między komputerami.", "Dwa elementy to części komputera, a nie sieci.", "Odrzuć zasilacz i kartę graficzną."], why: "Router, przełącznik, punkt dostępowy i modem to urządzenia sieciowe." },
+  { typ: "wpisz", fab: "W adresie MAC intruza pojawia się para 1F.", q: "Ile to w systemie dziesiętnym?", ok: ["31"], ph: "liczba",
+    h: ["F to 15.", "1F = 1 × 16 + F.", "16 + 15 = ?"], why: "1F₁₆ = 16 + 15 = 31." },
+  { typ: "para", fab: "{szef} rozpisuje usługi sieciowe użyte przez {wrog}.", q: "Połącz protokół z zastosowaniem.",
+    l: ["HTTP", "SMTP", "DNS", "DHCP"], r: ["Przesyłanie stron WWW", "Wysyłanie poczty", "Zamiana nazw na adresy IP", "Automatyczna konfiguracja karty sieciowej"],
+    h: ["DNS ma w nazwie „domain name”.", "DHCP przydziela adresy.", "SMTP = Simple Mail Transfer Protocol."], why: "HTTP – WWW, SMTP – poczta, DNS – nazwy, DHCP – konfiguracja." },
+  { typ: "wpisz", fab: "{pomocnik} liczy możliwe wartości w adresie IPv4.", q: "Ile różnych wartości może przyjąć jedna liczba (oktet) w adresie IPv4?", ok: ["256"], ph: "liczba",
+    h: ["Oktet ma 8 bitów.", "Zakres to 0–255.", "Policz razem z zerem."], why: "0–255 to 256 wartości (2⁸)." }
+];

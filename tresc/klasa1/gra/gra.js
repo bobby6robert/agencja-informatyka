@@ -16,7 +16,7 @@
   const app = $("#app");
 
   /* ---------- Stan ---------- */
-  const NOWY = () => ({ v: 1, motyw: null, gracz: null, lokalny: false, xp: 0, misje: {}, testy: {}, karty: [], zagadki: {},
+  const NOWY = () => ({ v: 1, motyw: null, gracz: null, lokalny: false, xp: 0, misje: {}, testy: {}, karty: [], zagadki: {}, wyzwania: {}, rev: 0,
     awatar: { skora: 0, wlosy: 0, glowa: "czapka", stroj: "bluza", dodatek: "brak", tlo: "granat" }, dzwiek: false, zm: 0 });
   let S;
   try { S = Object.assign(NOWY(), JSON.parse(localStorage.getItem(KLUCZ) || "{}")); } catch (e) { S = NOWY(); }
@@ -32,9 +32,37 @@
   const stopien = (xp = S.xp) => { let i = 0; F.progi.forEach((p, j) => { if (xp >= p) i = j; }); return i; };
   const nazwaStopnia = (i) => M().stopnie[i];
   const etapGotowy = (e) => (e.typ === "test" ? !!S.testy[e.id] : !!S.misje[e.id]);
+  const POZ = ["rekrut", "agent", "elita"];
+  /* XP liczone zawsze od nowa z wyników (te same zasady w skrypcie Google). */
+  function liczXP(st = S) {
+    let x = 0;
+    Object.values(st.misje || {}).forEach((m) => { x += +(m.xpMax != null ? m.xpMax : m.pkt) || 0; });
+    x += 15 * Object.keys(st.zagadki || {}).length;
+    Object.entries(st.testy || {}).forEach(([id, t]) => { x += Math.round((+t.s || 0) / (+t.m || 1) * (id === "boss" ? 200 : 80)); });
+    Object.values(st.wyzwania || {}).forEach((w) => { x += Math.round(+w.pkt || 0); });
+    return x;
+  }
+  function ocenaTestu(s, m) {
+    const p = Math.round((+s || 0) / (+m || 1) * 100);
+    for (const [prog, o] of F.skalaTestow) if (p >= prog - 1e-9) return o;
+    return "1";
+  }
+  const odblokowaneDo = () => {   // indeks ostatniego etapu odblokowanego przez nauczyciela
+    const od = S.klasa && S.klasa.od; if (!od) return F.etapy.length - 1;
+    const i = F.etapy.findIndex((e) => e.id === od); return i < 0 ? F.etapy.length - 1 : i;
+  };
+  const zamknietyPrzezSzefa = (i) => i > odblokowaneDo();
   function dostepny(i) {
+    if (zamknietyPrzezSzefa(i)) return false;
     for (let j = i - 1; j >= 0; j--) if (F.etapy[j].typ === "misja") return etapGotowy(F.etapy[j]);
     return true;
+  }
+  function tydzien(d = new Date()) {   // numer tygodnia ISO, np. 2026-W45
+    const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const dz = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dz);
+    const r0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+    const n = Math.ceil(((t - r0) / 86400000 + 1) / 7);
+    return { id: t.getUTCFullYear() + "-W" + String(n).padStart(2, "0"), n };
   }
   function ocena(poziom, proc) {
     const sk = F.poziomy[poziom].skala;
@@ -98,8 +126,26 @@
   async function chmuraTeraz() {
     if (!S.gracz || S.lokalny) return;
     try {
-      const r = await api("zapisz", { n: S.gracz.n, k: S.gracz.k, h: S.gracz.h, xp: S.xp, ile: ukonczone(), stan: JSON.stringify(S) });
-      ustawChmure(r && r.ok ? "ok" : "blad");
+      const r = await api("zapisz", { n: S.gracz.n, k: S.gracz.k, h: S.gracz.h, rev: S.rev || 0, xp: S.xp, ile: ukonczone(), stan: JSON.stringify(S) });
+      if (r && r.ok) return ustawChmure("ok");
+      if (r && r.e === "rev" && r.stan) {   // nauczyciel zmienił coś w panelu – przyjmij wersję z chmury
+        const g = S.gracz, prefs = { motyw: S.motyw, dzwiek: S.dzwiek, klasa: S.klasa, wybralMotyw: S.wybralMotyw, komWidziany: S.komWidziany, widzialStart: S.widzialStart };
+        try { S = Object.assign(NOWY(), JSON.parse(r.stan), prefs, { gracz: g, rev: r.rev }); } catch (e) {}
+        S.xp = liczXP();
+        try { localStorage.setItem(KLUCZ, JSON.stringify(S)); } catch (e) {}
+        ustawChmure("ok");
+        if ($("#widok") && !($(".zadanie") || $(".akta") || $(".nak-ramka") || $(".nakladka .poziomy"))) mapa();
+        return;
+      }
+      if (r && (r.e === "pin" || r.e === "brak")) {
+        const m = S.motyw, brak = r.e === "brak";
+        if (brak) { S = NOWY(); S.motyw = m; } else S.gracz = null;
+        try { localStorage.setItem(KLUCZ, JSON.stringify(S)); } catch (e) {}
+        start();
+        const bl = $(".blad"); if (bl) bl.textContent = brak ? "Twoje konto zostało usunięte przez nauczyciela. Załóż je ponownie." : "Nauczyciel zresetował Twój PIN. Zaloguj się i ustaw nowy PIN.";
+        return;
+      }
+      ustawChmure("blad");
     } catch (e) { ustawChmure("blad"); }
   }
   function ustawChmure(s) {
@@ -191,8 +237,8 @@
     const d = S.klasa && Array.isArray(S.klasa.dm) ? S.klasa.dm.filter((k) => F.motywy[k]) : [];
     return d.length ? d : Object.keys(F.motywy);
   }
-  function ustawKlase(m, dm) {   // ustawienia klimatów klasy z arkusza nauczyciela
-    S.klasa = { m: F.motywy[m] ? m : "", dm: Array.isArray(dm) ? dm : [] };
+  function ustawKlase(m, dm, od, kom) {   // ustawienia klasy z arkusza nauczyciela
+    S.klasa = { m: F.motywy[m] ? m : "", dm: Array.isArray(dm) ? dm : [], od: od || "", kom: kom || "" };
     const dz = dozwolone();
     if (!S.motyw || !dz.includes(S.motyw)) { S.motyw = dz.includes(S.klasa.m) ? S.klasa.m : dz[0]; return true; }
     return false;
@@ -211,7 +257,7 @@
         <p class="lead">Gra fabularna: ${esc(F.rozdzial)}. Zaloguj się kodem klasy, który poda nauczyciel.</p><div id="logowanie"></div></div>`;
       return logowanie();
     }
-    if (!S.motyw) ustawKlase(S.klasa && S.klasa.m, S.klasa && S.klasa.dm);
+    if (!S.motyw) { const k = S.klasa || {}; ustawKlase(k.m, k.dm, k.od, k.kom); }
     const dom = S.klasa && S.klasa.m && F.motywy[S.klasa.m];
     app.innerHTML = `<div class="start">
       <h1>Wybierz klimat przygody</h1>
@@ -255,7 +301,7 @@
           try { const zs = JSON.parse(r.stan); if ((zs.xp || 0) >= (S.xp || 0)) S = Object.assign(NOWY(), zs); } catch (er) {}
         } else { S.motyw = null; S.wybralMotyw = 0; }
         S.lokalny = false; S.gracz = { n: r.n || n, k: r.k, h };
-        ustawKlase(r.m, r.dm);
+        ustawKlase(r.m, r.dm, r.od, r.kom);
         zapisz(); chmuraTeraz(); S.wybralMotyw ? mapa() : start();
       } catch (er) {
         bl.innerHTML = er.stary
@@ -282,23 +328,28 @@
         <div><h1>${esc(M().sprawa)}</h1><p>${esc(F.rozdzial)}</p>
         ${ost ? `<button class="drugi" data-przypomnij>📜 Przypomnij, co się wydarzyło</button>` : ""}</div>
       </section>
+      ${S.klasa && S.klasa.kom ? `<section class="karta rozkaz"><div>${portret("s", S.motyw, 52)}</div><div><b>📨 Wiadomość od: ${esc(M().szef)}</b><p>${esc(S.klasa.kom)}</p></div></section>` : ""}
       <section id="cel-klasy"></section>
+      ${wyzwanieHTML()}
       <ol class="sciezka">${F.etapy.map((e, i) => {
         const ok = etapGotowy(e), dost = dostepny(i), wyn = e.typ === "test" ? S.testy[e.id] : S.misje[e.id];
         const ikona = e.boss ? "💀" : e.typ === "test" ? "🎙️" : e.id === "prolog" ? "📞" : "📁";
         let info = "";
-        if (wyn && e.typ === "misja") info = e.bezPoziomu ? `${wyn.proc}%` : `${F.poziomy[wyn.poziom].n} · ${wyn.proc}% · proponowana ocena: <b>${wyn.ocena}</b>`;
-        if (wyn && e.typ === "test") info = `${wyn.s}/${wyn.m} pkt (${wyn.proc}%)`;
+        if (wyn && e.typ === "misja") info = e.bezPoziomu ? `${wyn.proc}%` : `${F.poziomy[wyn.poziom].n} · ${wyn.proc}% · proponowana ocena: <b>${wyn.ocena}</b>${moznaPoprawic(e) ? " · można poprawić" : ""}`;
+        if (wyn && e.typ === "test") info = `${wyn.s}/${wyn.m} pkt (${wyn.proc}%) · proponowana ocena: <b>${ocenaTestu(wyn.s, wyn.m)}</b>`;
+        if (!ok && zamknietyPrzezSzefa(i)) info = `odblokuje ${esc(M().szef)}`;
         return `<li class="etap ${ok ? "zrob" : dost ? "dost" : "zamk"} ${e.boss ? "boss" : ""}">
-          <button data-i="${i}" ${dost ? "" : "disabled"}>
+          <button data-i="${i}" ${dost || ok ? "" : "disabled"}>
             <span class="ik">${ok ? "✔" : dost ? ikona : "🔒"}</span>
             <span class="tx"><b>${esc(tytul(e))}</b><small>${e.typ === "test" ? (e.boss ? "Finał rozdziału – sprawdzian" : "Kartkówka") : e.id === "prolog" ? "Prolog" : "Misja"}${info ? " · " + info : ""}</small></span>
           </button></li>`;
       }).join("")}</ol>`;
     $$(".sciezka button", w).forEach((b) => (b.onclick = () => { dzwiek("klik"); otworzEtap(F.etapy[+b.dataset.i]); }));
     const pz = $("[data-przypomnij]", w); if (pz) pz.onclick = () => scena(ost.koniec[S.motyw]);
+    const wz = $("[data-wyzwanie]", w); if (wz) wz.onclick = grajWyzwanie;
     celKlasy();
     if (!S.misje.prolog && !S.widzialStart) { S.widzialStart = 1; zapisz(); otworzEtap(F.etapy[0]); }
+    else if (S.klasa && S.klasa.kom && S.komWidziany !== S.klasa.kom) { S.komWidziany = S.klasa.kom; zapisz(); scena([["s", S.klasa.kom]]); }
   }
 
   async function celKlasy() {
@@ -308,8 +359,8 @@
       if (!r.ok) return;
       const moja = r.klasy.find((k) => k.k === S.gracz.k); if (!moja) return;
       const przed = JSON.stringify(S.klasa);
-      const zmiana = ustawKlase(moja.m, moja.dm);
-      if (przed !== JSON.stringify(S.klasa)) zapisz();
+      const zmiana = ustawKlase(moja.m, moja.dm, moja.od, moja.kom);
+      if (przed !== JSON.stringify(S.klasa)) { zapisz(); return mapa(); }
       if (zmiana) return mapa();
       const cel = moja.cel || 3000, pr = Math.min(100, Math.round(moja.suma / cel * 100));
       box.innerHTML = `<div class="karta cel"><b>Wspólny cel klasy ${esc(moja.k)}</b>
@@ -321,13 +372,17 @@
   function otworzEtap(e) { return e.typ === "test" ? grajTest(e) : grajMisje(e); }
 
   /* ---------- Misja ---------- */
+  const maxPoziom = (m) => (m && (m.maxPoziom || m.poziom)) || null;
+  const moznaPoprawic = (e) => { const m = S.misje[e.id]; return !!m && !e.bezPoziomu && POZ.indexOf(maxPoziom(m)) < POZ.length - 1; };
   function wyborPoziomu(e) {
     return new Promise((ok) => {
-      const poprz = S.misje[e.id];
+      const poprz = S.misje[e.id], mp = POZ.indexOf(maxPoziom(poprz));
       const o = okno(`<h2>${esc(tytul(e))}</h2>
-        ${poprz ? `<p class="info">Tę misję już ukończono (${esc(F.poziomy[poprz.poziom].n)}, ${poprz.proc}%). Kolejne podejście to trening: nie zmienia oceny ani XP.</p>` : `<p>Wybierz poziom. Zmienić go można tylko przed misją, nie w trakcie.</p>`}
-        <div class="poziomy">${Object.entries(F.poziomy).map(([k, p]) => `
-          <button class="poziom p-${k}" data-k="${k}"><b>${esc(p.n)}</b><span>${esc(p.opis)}</span><small>${p.pkt} pkt za zadanie</small></button>`).join("")}</div>
+        ${poprz ? `<p class="info">Twoja ocena: <b>${poprz.ocena}</b> (${esc(F.poziomy[poprz.poziom].n)}, ${poprz.proc}%).
+          ${mp < POZ.length - 1 ? "Możesz ją poprawić na <b>wyższym poziomie</b> – zostanie najwyższa ocena, a XP wzrośnie o różnicę." : "Grałeś już na najwyższym poziomie."}
+          Podejście na tym samym lub niższym poziomie to trening: nie zmienia oceny ani XP.</p>` : `<p>Wybierz poziom. Zmienić go można tylko przed misją, nie w trakcie.</p>`}
+        <div class="poziomy">${Object.entries(F.poziomy).map(([k, p], i) => `
+          <button class="poziom p-${k}" data-k="${k}"><b>${esc(p.n)}${poprz ? (i > mp ? " · poprawa" : " · trening") : ""}</b><span>${esc(p.opis)}</span><small>${p.pkt} pkt za zadanie</small></button>`).join("")}</div>
         <p><button class="drugi" data-x>Wróć</button></p>`, "nak-szeroka");
       $$(".poziom", o).forEach((b) => (b.onclick = () => { o.remove(); dzwiek("klik"); ok(b.dataset.k); }));
       $("[data-x]", o).onclick = () => { o.remove(); ok(null); };
@@ -362,6 +417,7 @@
     }
     const max = pkt * zad.length, proc = Math.round(suma / max * 100);
     const pierwszy = !S.misje[e.id];
+    const xpPrzed = liczXP();
     let zagadkaXP = 0;
     if (e.zagadka && !S.zagadki[e.id]) {
       const chce = await pytanie(`🧩 ${esc(M().pomocnik)}: „Mam dla Ciebie jeszcze jedną zagadkę. Chcesz spróbować? (+15 XP, nie wpływa na ocenę)”`, "Spróbuję", "Nie teraz");
@@ -372,19 +428,26 @@
     }
     await scena(e.koniec[S.motyw]);
     const przed = stopien();
-    let xp = zagadkaXP;
+    const rec = { poziom, pkt: Math.round(suma), max, proc, ocena: e.bezPoziomu ? null : ocena(poziom, proc), podp, data: new Date().toISOString() };
+    let rodzaj = "pierwszy", stara = null;
     if (pierwszy) {
-      S.misje[e.id] = { poziom, pkt: Math.round(suma), max, proc, ocena: e.bezPoziomu ? null : ocena(poziom, proc), podp, data: new Date().toISOString() };
-      xp += Math.round(suma);
+      S.misje[e.id] = Object.assign({}, rec, { maxPoziom: poziom, xpMax: rec.pkt, proby: [rec] });
     } else {
-      S.misje[e.id].trening = (S.misje[e.id].trening || 0) + 1;
+      const m = S.misje[e.id];
+      if (!m.proby) m.proby = [{ poziom: m.poziom, pkt: m.pkt, max: m.max, proc: m.proc, ocena: m.ocena, podp: m.podp, data: m.data }];
+      if (!e.bezPoziomu && POZ.indexOf(poziom) > POZ.indexOf(maxPoziom(m))) {
+        rodzaj = "poprawa"; stara = m.ocena;
+        m.proby.push(rec); m.maxPoziom = poziom; m.xpMax = Math.max(+(m.xpMax != null ? m.xpMax : m.pkt) || 0, rec.pkt);
+        if (rec.ocena > m.ocena || (rec.ocena === m.ocena && rec.proc > m.proc)) Object.assign(m, rec);
+      } else { rodzaj = "trening"; m.trening = (m.trening || 0) + 1; }
     }
-    S.xp += xp;
+    S.xp = liczXP();
+    const xp = S.xp - xpPrzed;
     const nowe = [];
     if (pierwszy && e.karta && !S.karty.includes(e.karta)) { S.karty.push(e.karta); nowe.push(e.karta); }
     if (["m1", "m2", "m3"].every((m) => S.zagadki[m]) && !S.karty.includes("c6")) { S.karty.push("c6"); nowe.push("c6"); }
     zapisz();
-    await podsumowanie({ e, poziom, suma: Math.round(suma), max, proc, podp, pierwszy, xp, nowe, przed });
+    await podsumowanie({ e, poziom, suma: Math.round(suma), max, proc, podp, pierwszy, rodzaj, stara, xp, nowe, przed });
     mapa();
   }
 
@@ -409,7 +472,7 @@
       const kolR = z.r ? tasuj(z.r.map((_, i) => i)) : null;
 
       w.innerHTML = `<section class="karta zadanie">
-        <div class="zad-gora"><span class="kropki">${bonus ? "🧩 Zagadka dodatkowa" : Array.from({ length: ile }, (_, i) => `<i class="${i < nr ? "b" : i === nr ? "a" : ""}"></i>`).join("")}</span>
+        <div class="zad-gora"><span class="kropki">${bonus ? (typeof bonus === "string" ? bonus : "🧩 Zagadka dodatkowa") : Array.from({ length: ile }, (_, i) => `<i class="${i < nr ? "b" : i === nr ? "a" : ""}"></i>`).join("")}</span>
         <span class="pkt">${bonus ? "" : `${Math.round(suma)} pkt`}</span></div>
         <p class="fab">${portret("s", S.motyw, 40)}<span>${esc(tok(z.fab))}</span></p>
         ${z.typ === "klucz" ? `<p class="praktyczne">🖥️ Zadanie praktyczne – wykonaj je na komputerze</p>` : ""}
@@ -420,7 +483,7 @@
         <div class="zad-p">
           <button class="drugi" data-podp>💡 Podpowiedź (−${koszt(1)}% pkt)</button>
           <button class="glowny" data-spr>Sprawdź</button>
-          <button class="link" data-x>Przerwij misję</button>
+          ${bonus === "🏅 Wyzwanie tygodnia" ? "" : `<button class="link" data-x>Przerwij misję</button>`}
         </div></section>`;
 
       function widget() {
@@ -455,7 +518,7 @@
         if (uzyte >= z.h.length || uzyte >= kary.length - 1) { bp.disabled = true; bp.textContent = "💡 Brak kolejnych podpowiedzi"; }
         else bp.textContent = `💡 Kolejna podpowiedź (łącznie −${koszt(uzyte + 1)}% pkt)`;
       };
-      $("[data-x]", w).onclick = async () => { if (await pytanie("Przerwać misję? Postęp w tej misji nie zostanie zapisany.", "Przerwij", "Graj dalej")) gotowe(null); };
+      if ($("[data-x]", w)) $("[data-x]", w).onclick = async () => { if (await pytanie("Przerwać misję? Postęp w tej misji nie zostanie zapisany.", "Przerwij", "Graj dalej")) gotowe(null); };
 
       $("[data-spr]", w).onclick = () => {
         if (sprawdzone) return;
@@ -488,7 +551,7 @@
   async function grajTest(e) {
     const poprz = S.testy[e.id];
     if (poprz) {
-      const t = await pytanie(`<b>${esc(tytul(e))}</b><br>Twój wynik: ${poprz.s}/${poprz.m} (${poprz.proc}%). Test można napisać tylko raz.`, "Obejrzyj scenę końcową", "Wróć");
+      const t = await pytanie(`<b>${esc(tytul(e))}</b><br>Twój wynik: ${poprz.s}/${poprz.m} (${poprz.proc}%), proponowana ocena: <b>${ocenaTestu(poprz.s, poprz.m)}</b>. Test można napisać tylko raz.`, "Obejrzyj scenę końcową", "Wróć");
       if (t) await scena(e.koniec[S.motyw]);
       return mapa();
     }
@@ -508,6 +571,7 @@
       const ifr = $("iframe", o);
       const sl = (m) => {
         if (m.source !== ifr.contentWindow || !m.data || m.data.agencja !== "wynik") return;
+        if (S.testy[e.id]) return;
         S.testy[e.id] = { test: m.data.id || id, s: +m.data.s || 0, m: +m.data.m || 1, data: new Date().toISOString() };
         S.testy[e.id].proc = Math.round(S.testy[e.id].s / S.testy[e.id].m * 100);
         zapisz();
@@ -518,8 +582,7 @@
     });
     if (!wyn) return mapa();
     await scena(e.koniec[S.motyw]);
-    const przed = stopien(), xp = Math.round(wyn.s / wyn.m * (e.boss ? 200 : 80));
-    S.xp += xp;
+    const przed = stopien(), xpPrzed = S.xp; S.xp = liczXP(); const xp = S.xp - xpPrzed;
     const nowe = [];
     if (e.karta && !S.karty.includes(e.karta)) { S.karty.push(e.karta); nowe.push(e.karta); }
     zapisz();
@@ -542,12 +605,15 @@
   function podsumowanie(d) {
     return new Promise((ok) => {
       const po = stopien(), awans = po > d.przed;
-      const oc = !d.test && !d.e.bezPoziomu ? ocena(d.poziom, d.proc) : null;
-      const o = okno(`<h2>${d.test ? "Wynik" : "Misja zakończona"}: ${esc(tytul(d.e))}</h2>
+      const oc = d.test ? ocenaTestu(d.suma, d.max) : !d.e.bezPoziomu ? ocena(d.poziom, d.proc) : null;
+      const zost = !d.test && S.misje[d.e.id] ? S.misje[d.e.id].ocena : oc;
+      const o = okno(`<h2>${d.test ? "Wynik" : d.e.id === "wyzwanie" ? "Wyzwanie zakończone" : "Misja zakończona"}: ${esc(tytul(d.e))}</h2>
         <div class="podsum">
           <div class="duza-liczba">${d.proc}%</div>
           <div>${d.test ? `${d.suma} / ${d.max} pkt` : `${d.suma} / ${d.max} pkt${d.e.bezPoziomu ? "" : ` · poziom ${esc(F.poziomy[d.poziom].n)}`}${d.podp ? ` · podpowiedzi: ${d.podp}` : ""}`}
-          ${oc != null ? (d.pierwszy ? `<br>Proponowana ocena: <b class="ocena">${oc}</b> <small>(ostatecznie decyduje nauczyciel)</small>` : `<br><small>Trening – ocena z pierwszego podejścia się nie zmienia.</small>`) : ""}
+          ${oc == null ? "" : d.test || d.rodzaj === "pierwszy" ? `<br>Proponowana ocena: <b class="ocena">${oc}</b> <small>(ostatecznie decyduje nauczyciel)</small>`
+            : d.rodzaj === "poprawa" ? `<br>Poprawa: ${oc} (wcześniej ${d.stara}). Zostaje wyższa: <b class="ocena">${zost}</b>`
+            : `<br><small>Trening – ocena się nie zmienia (zostaje ${zost}). Poprawa jest możliwa tylko na wyższym poziomie.</small>`}
           <br><b>+${d.xp} XP</b></div>
         </div>
         ${awans ? `<div class="awans">⭐ Awans! Nowy stopień: <b>${esc(nazwaStopnia(po))}</b>${odblokowane(d.przed, po).length ? `<br><small>Odblokowano: ${esc(odblokowane(d.przed, po).join(", "))}</small>` : ""}</div>` : ""}
@@ -597,11 +663,15 @@
       </section>
       <section class="karta"><h2>Moje wyniki</h2><table class="tabela"><tr><th>Etap</th><th>Poziom</th><th>Wynik</th><th>Proponowana ocena</th></tr>
         ${F.etapy.map((e) => { const m = e.typ === "test" ? S.testy[e.id] : S.misje[e.id];
-          return `<tr><td>${esc(tytul(e))}</td><td>${m && m.poziom && !e.bezPoziomu ? esc(F.poziomy[m.poziom].n) : e.typ === "test" ? (e.boss ? "Sprawdzian" : "Kartkówka") : "–"}</td><td>${m ? (e.typ === "test" ? `${m.s}/${m.m} (${m.proc}%)` : `${m.proc}%`) : "–"}</td><td>${m && m.ocena ? `<b>${m.ocena}</b>` : "–"}</td></tr>`; }).join("")}
-      </table></section>`;
+          return `<tr><td>${esc(tytul(e))}</td><td>${m && m.poziom && !e.bezPoziomu ? esc(F.poziomy[m.poziom].n) : e.typ === "test" ? (e.boss ? "Sprawdzian" : "Kartkówka") : "–"}</td><td>${m ? (e.typ === "test" ? `${m.s}/${m.m} (${m.proc}%)` : `${m.proc}%`) : "–"}</td><td>${m && m.ocena ? `<b>${m.ocena}</b>${m.proby && m.proby.length > 1 ? " <small>(po poprawie)</small>" : ""}` : m && e.typ === "test" ? `<b>${ocenaTestu(m.s, m.m)}</b>` : "–"}</td></tr>`; }).join("")}
+      </table></section>
+      <section class="karta"><h2>🎓 Dyplom</h2>${F.etapy.every(etapGotowy)
+        ? `<p>Rozdział ukończony! Pobierz dyplom z wynikami.</p><p><button class="glowny" data-dyplom>Pobierz dyplom (PNG)</button></p>`
+        : `<p class="mala">Dyplom odblokujesz po ukończeniu wszystkich etapów rozdziału (${ukonczone()}/${F.etapy.length}).</p>`}</section>`;
     $$("[data-s]", w).forEach((b) => (b.onclick = () => {
       const s = b.dataset.s; S.awatar[s] = s === "skora" || s === "wlosy" ? +b.dataset.v : b.dataset.v; zapisz(); dzwiek("klik"); agent();
     }));
+    const dy = $("[data-dyplom]", w); if (dy) dy.onclick = dyplom;
     const pl = $("[data-polacz]", w); if (pl) pl.onclick = () => { S.lokalny = false; S.gracz = null; zapisz(); start(); };
     $("[data-wyloguj]", w).onclick = async () => {
       if (!(await pytanie(S.lokalny ? "Wylogować? Postęp gry bez konta zostanie usunięty z tego urządzenia." : "Wylogować z tego urządzenia? Postęp zostaje w chmurze.", "Wyloguj", "Anuluj"))) return;
@@ -610,12 +680,72 @@
     };
   }
 
+  /* ---------- Wyzwanie tygodnia ---------- */
+  function wyzwanieDzis() { const t = tydzien(); return { t, z: F.wyzwania[t.n % F.wyzwania.length] }; }
+  function wyzwanieHTML() {
+    if (!F.wyzwania || !F.wyzwania.length) return "";
+    const { t } = wyzwanieDzis(), w = (S.wyzwania || {})[t.id];
+    return `<section class="karta wyzwanie"><div><b>🏅 Wyzwanie tygodnia</b><br><small>${w ? `Wykonane: ${Math.round(w.pkt)} / 30 pkt. Nowe wyzwanie w poniedziałek.` : "Jedno podejście, do 30 XP. Osobny ranking tygodnia."}</small></div>
+      ${w ? "" : `<button class="glowny" data-wyzwanie>Podejmij ▸</button>`}</section>`;
+  }
+  async function grajWyzwanie() {
+    const { t, z } = wyzwanieDzis();
+    if ((S.wyzwania || {})[t.id]) return;
+    if (!(await pytanie("🏅 Wyzwanie tygodnia: masz <b>jedno podejście</b>. Podpowiedzi obniżają punkty. Zaczynamy?", "Zaczynam", "Później"))) return;
+    const przed = stopien(), xpPrzed = liczXP();
+    S.wyzwania = S.wyzwania || {};
+    S.wyzwania[t.id] = { pkt: 0, t: Date.now() };   // zapis przed startem: odświeżenie strony nie da drugiej szansy
+    zapisz();
+    const r = await zadanie(null, z, 0, 1, 30, 0, "🏅 Wyzwanie tygodnia");
+    S.wyzwania[t.id] = { pkt: r ? Math.round(r.pkt) : 0, t: Date.now() };
+    S.xp = liczXP(); zapisz();
+    await podsumowanie({ e: { id: "wyzwanie", tytul: { det: "Wyzwanie tygodnia" }, bezPoziomu: true }, suma: S.wyzwania[t.id].pkt, max: 30,
+      proc: Math.round(S.wyzwania[t.id].pkt / 30 * 100), pierwszy: true, rodzaj: "pierwszy", xp: S.xp - xpPrzed, nowe: [], przed });
+    mapa();
+  }
+
+  /* ---------- Dyplom (PNG) ---------- */
+  async function dyplom() {
+    const W = 1600, H = 1130, c = document.createElement("canvas"); c.width = W; c.height = H;
+    const x = c.getContext("2d"), st = getComputedStyle(document.body);
+    const akc = st.getPropertyValue("--akc").trim() || "#fca311", tlo = st.getPropertyValue("--panel").trim() || "#16213e";
+    x.fillStyle = tlo; x.fillRect(0, 0, W, H);
+    x.strokeStyle = akc; x.lineWidth = 14; x.strokeRect(30, 30, W - 60, H - 60); x.lineWidth = 3; x.strokeRect(58, 58, W - 116, H - 116);
+    const img = await new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null);
+      i.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(awatar(S.awatar, 320).replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ')); });
+    if (img) x.drawImage(img, 110, 250, 320, 320);
+    const sr = W / 2 + 120;
+    x.textAlign = "center";
+    x.font = "bold 92px Georgia, serif"; x.fillStyle = akc; x.fillText("DYPLOM", sr, 190);
+    x.fillStyle = "#e8edf5"; x.font = "34px Segoe UI, sans-serif"; x.fillText(M().agencja + " · " + M().sprawa, sr, 250);
+    x.font = "30px Segoe UI, sans-serif"; x.fillText("przyznaje", sr, 320);
+    x.font = "bold 72px Segoe UI, sans-serif"; x.fillStyle = "#fff"; x.fillText((S.gracz && S.gracz.n) || "Agent", sr, 405);
+    x.font = "34px Segoe UI, sans-serif"; x.fillStyle = "#e8edf5";
+    x.fillText(`klasa ${(S.gracz && S.gracz.k) || "–"} · stopień: ${nazwaStopnia(stopien())} · ${S.xp} XP`, sr, 465);
+    x.fillText(`za ukończenie: ${F.rozdzial}`, sr, 520);
+    x.textAlign = "left"; x.font = "28px Segoe UI, sans-serif"; let y = 640;
+    F.etapy.forEach((e) => {
+      const m = e.typ === "test" ? S.testy[e.id] : S.misje[e.id]; if (!m) return;
+      const oc = e.typ === "test" ? ocenaTestu(m.s, m.m) : m.ocena;
+      x.fillStyle = "#e8edf5"; x.fillText(tytul(e), 520, y);
+      x.fillStyle = akc; x.fillText(`${m.proc}%${oc ? " · ocena " + oc : ""}${m.poziom && !e.bezPoziomu ? " · " + F.poziomy[m.poziom].n : ""}`, 1080, y); y += 46;
+    });
+    x.fillStyle = "#e8edf5"; x.fillText(`${M().kolekcja}: ${S.karty.length}/${Object.keys(F.karty).length}`, 520, y + 10);
+    x.textAlign = "center"; x.font = "26px Segoe UI, sans-serif";
+    x.fillText(new Date().toLocaleDateString("pl-PL"), 270, 1010);
+    x.beginPath(); x.moveTo(1120, 990); x.lineTo(1460, 990); x.strokeStyle = "#e8edf5"; x.lineWidth = 2; x.stroke();
+    x.fillText(M().szef, 1290, 1030);
+    const a = document.createElement("a"); a.download = "dyplom-" + ((S.gracz && S.gracz.n) || "agent").replace(/[^a-z0-9ąćęłńóśźż]+/gi, "-") + ".png";
+    a.href = c.toDataURL("image/png"); document.body.appendChild(a); a.click(); a.remove();
+  }
+
   /* ---------- Ranking ---------- */
   async function ranking(zakladka = "klasa") {
     const w = szkielet("ranking");
     w.innerHTML = `<section class="karta"><div class="zakladki">
       <button data-z="klasa" aria-pressed="${zakladka === "klasa"}">Moja klasa</button>
-      <button data-z="klasy" aria-pressed="${zakladka === "klasy"}">Rywalizacja klas</button></div><div id="rk"><p>Wczytuję…</p></div></section>`;
+      <button data-z="klasy" aria-pressed="${zakladka === "klasy"}">Rywalizacja klas</button>
+      <button data-z="wyzwanie" aria-pressed="${zakladka === "wyzwanie"}">Wyzwanie tygodnia</button></div><div id="rk"><p>Wczytuję…</p></div></section>`;
     $$("[data-z]", w).forEach((b) => (b.onclick = () => ranking(b.dataset.z)));
     const box = $("#rk", w);
     if (S.lokalny || !S.gracz || !S.gracz.k) { box.innerHTML = `<p>Ranking działa po zalogowaniu kodem klasy (zapis w chmurze).</p>`; return; }
@@ -625,6 +755,11 @@
         if (!r.ok) throw 0;
         box.innerHTML = `<table class="tabela"><tr><th>#</th><th>Agent</th><th>Stopień</th><th>XP</th></tr>${r.gracze.map((g, i) =>
           `<tr class="${g.n === S.gracz.n ? "ja" : ""}"><td>${i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</td><td>${esc(g.n)}</td><td>${esc(nazwaStopnia(stopien(g.xp)))}</td><td>${g.xp}</td></tr>`).join("")}</table>`;
+      } else if (zakladka === "wyzwanie") {
+        const t = tydzien(), r = await api("wyzwanie", { k: S.gracz.k, t: t.id });
+        if (!r.ok) throw 0;
+        box.innerHTML = `<p class="mala">Tydzień ${esc(t.id)}. Liczą się punkty, przy remisie – kto pierwszy.</p>${r.lista.length ? `<table class="tabela"><tr><th>#</th><th>Agent</th><th>Punkty</th></tr>${r.lista.map((g, i) =>
+          `<tr class="${g.n === S.gracz.n ? "ja" : ""}"><td>${i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</td><td>${esc(g.n)}</td><td>${g.pkt}</td></tr>`).join("")}</table>` : "<p>Nikt jeszcze nie podjął wyzwania w tym tygodniu. Bądź pierwszy!</p>"}`;
       } else {
         const r = await api("klasy", {});
         if (!r.ok) throw 0;
@@ -636,5 +771,6 @@
   }
 
   /* ---------- Start ---------- */
+  S.xp = liczXP();
   if (!S.motyw || (!S.gracz && !S.lokalny) || !S.wybralMotyw) start(); else { mapa(); chmuraTeraz(); }
 })();

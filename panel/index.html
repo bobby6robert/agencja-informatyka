@@ -89,25 +89,34 @@ function rysuj(){
   if(zak==="hasla")hasla(t);
 }
 
+function ocenaTestu(sk,mx){const p=Math.round((+sk||0)/(+mx||1)*100);for(const [g,o] of F.skalaTestow)if(p>=g-1e-9)return o;return "1"}
 function komorka(e,s){
-  if(e.typ==="test"){const r=(s.testy||{})[e.id];return r?`${r.s}/${r.m} <span class="mute">(${r.proc}%)</span>`:"–"}
+  if(e.typ==="test"){const r=(s.testy||{})[e.id];return r?`<span class="oc">${ocenaTestu(r.s,r.m)}</span> <span class="mute">${r.s}/${r.m} · ${r.proc}%</span>`:"–"}
   const r=(s.misje||{})[e.id];if(!r)return "–";
   if(e.bezPoziomu)return `${r.proc}%`;
-  return `<span class="oc">${r.ocena}</span> <span class="mute">${esc(F.poziomy[r.poziom].n)} · ${r.proc}%${r.podp?` · 💡${r.podp}`:""}</span>`;
+  const pop=r.proby&&r.proby.length>1?` · popr. ×${r.proby.length-1}`:"";
+  return `<span class="oc">${r.ocena}</span> <span class="mute">${esc(F.poziomy[r.poziom].n)} · ${r.proc}%${r.podp?` · 💡${r.podp}`:""}${pop}</span>`;
+}
+async function akcja(a,d,st){
+  if(st)st.textContent="Zapisuję…";
+  try{const r=await api(a,Object.assign({haslo},d));
+    if(r.ok){if(st)st.textContent="✔ gotowe";return r}
+    if(st)st.textContent=r.e==="akcja"?"Zaktualizuj skrypt w arkuszu.":r.e==="zmiana"?"Arkusz się zmienił – odśwież panel.":"Błąd: "+r.e;return null}
+  catch(e){if(st)st.textContent=e.message==="stary"?"Zaktualizuj skrypt w arkuszu.":"Brak połączenia.";return null}
 }
 function uczniowie(t,odd){
   const lista=D.gracze.filter(g=>!filtr||g.k===filtr).sort((a,b)=>a.k.localeCompare(b.k)||String(a.n).localeCompare(String(b.n),"pl"));
   t.innerHTML=`<div class="karta"><p><label>Oddział: <select id="f"><option value="">wszystkie</option>${odd.map(k=>`<option ${k===filtr?"selected":""}>${esc(k)}</option>`).join("")}</select></label>
   <button id="csv">⬇ Pobierz CSV (Excel)</button> <span class="mute">${lista.length} uczniów · kliknij wiersz, aby zobaczyć szczegóły</span></p>
-  <p class="mute">Ocena przy misji to propozycja wg poziomu (Rekrut do 4, Agent do 5, Elita do 6). 💡 = liczba podpowiedzi. Liczy się pierwsze podejście.</p>
+  <p class="mute">Ocena przy misji to propozycja wg poziomu (Rekrut do 4, Agent do 5, Elita do 6); po poprawie na wyższym poziomie zostaje najwyższa. Kartkówka i sprawdzian wg skali szkolnej. 💡 = liczba podpowiedzi.</p>
   <div class="przewin"><table><tr><th>Uczeń</th><th>Oddział</th><th>XP</th><th>Stopień</th>${F.etapy.map(e=>`<th>${esc(e.tytul.det)}</th>`).join("")}<th>Ostatnio</th></tr>
   ${lista.map((g,i)=>{const s=stanUcznia(g);return `<tr class="klik" data-i="${D.gracze.indexOf(g)}"><td><b>${esc(g.n)}</b></td><td>${esc(g.k)}</td><td>${+g.xp||0}</td><td>${esc(stopien(+g.xp||0))}</td>${F.etapy.map(e=>`<td>${komorka(e,s)}</td>`).join("")}<td class="mute">${data(g.ost)}</td></tr>`}).join("")}
   </table></div></div><div id="szczeg"></div>`;
   $("#f").onchange=e=>{filtr=e.target.value;rysuj()};
   $$("tr.klik",t).forEach(r=>r.onclick=()=>szczegoly(D.gracze[+r.dataset.i]));
   $("#csv").onclick=()=>{
-    const wiersze=[["Uczeń","Oddział","XP",...F.etapy.flatMap(e=>e.typ==="test"?[e.tytul.det+" pkt",e.tytul.det+" max"]:e.bezPoziomu?[e.tytul.det+" %"]:[e.tytul.det+" poziom",e.tytul.det+" %",e.tytul.det+" ocena",e.tytul.det+" podpowiedzi"])]];
-    lista.forEach(g=>{const s=stanUcznia(g);wiersze.push([g.n,g.k,g.xp,...F.etapy.flatMap(e=>{if(e.typ==="test"){const r=(s.testy||{})[e.id];return r?[r.s,r.m]:["",""]}const r=(s.misje||{})[e.id];if(e.bezPoziomu)return [r?r.proc:""];return r?[F.poziomy[r.poziom].n,r.proc,r.ocena,r.podp]:["","","",""]})])});
+    const wiersze=[["Uczeń","Oddział","XP",...F.etapy.flatMap(e=>e.typ==="test"?[e.tytul.det+" pkt",e.tytul.det+" max",e.tytul.det+" ocena"]:e.bezPoziomu?[e.tytul.det+" %"]:[e.tytul.det+" poziom",e.tytul.det+" %",e.tytul.det+" ocena",e.tytul.det+" podpowiedzi"])]];
+    lista.forEach(g=>{const s=stanUcznia(g);wiersze.push([g.n,g.k,g.xp,...F.etapy.flatMap(e=>{if(e.typ==="test"){const r=(s.testy||{})[e.id];return r?[r.s,r.m,ocenaTestu(r.s,r.m)]:["","",""]}const r=(s.misje||{})[e.id];if(e.bezPoziomu)return [r?r.proc:""];return r?[F.poziomy[r.poziom].n,r.proc,r.ocena,r.podp]:["","","",""]})])});
     const csv="﻿"+wiersze.map(w=>w.map(x=>`"${String(x==null?"":x).replace(/"/g,'""')}"`).join(";")).join("\r\n");
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=`agencja-wyniki${filtr?"-"+filtr:""}.csv`;a.click();
   };
@@ -115,24 +124,41 @@ function uczniowie(t,odd){
 function szczegoly(g){
   const s=stanUcznia(g),M=F.motywy[s.motyw||"det"]||F.motywy.det;
   const b=$("#szczeg");
+  const proby=r=>r.proby&&r.proby.length>1?`<br><span class="mute">Podejścia: ${r.proby.map(p=>`${esc(F.poziomy[p.poziom].n)} ${p.proc}% → ${p.ocena}`).join("; ")}</span>`:"";
   b.innerHTML=`<div class="karta"><h2>${esc(g.n)} <span class="mute">${esc(g.k)}</span></h2>
-  <div class="szczeg"><div><b>Klimat:</b> ${esc(M.nazwa)}<br><b>XP:</b> ${+g.xp||0} (${esc(stopien(+g.xp||0))})<br><b>Karty:</b> ${(s.karty||[]).length}/${Object.keys(F.karty).length}<br><b>Zagadki dodatkowe:</b> ${Object.keys(s.zagadki||{}).length}/3<br><b>Ostatnio:</b> ${data(g.ost)}</div>
+  <div class="szczeg"><div><b>Klimat:</b> ${esc(M.nazwa)}<br><b>XP:</b> ${+g.xp||0} (${esc(stopien(+g.xp||0))})<br><b>Karty:</b> ${(s.karty||[]).length}/${Object.keys(F.karty).length}<br><b>Zagadki dodatkowe:</b> ${Object.keys(s.zagadki||{}).length}/3<br><b>Wyzwania tygodnia:</b> ${Object.keys(s.wyzwania||{}).length}<br><b>Ostatnio:</b> ${data(g.ost)}
+    <p style="margin-top:1em"><button data-pin>🔑 Resetuj PIN</button> <button data-usun style="color:var(--zle)">🗑 Usuń ucznia</button></p><p class="mute" data-st></p></div>
   <div>${F.etapy.map(e=>{const r=e.typ==="test"?(s.testy||{})[e.id]:(s.misje||{})[e.id];
-    return `<div><b>${esc(e.tytul.det)}:</b> ${r?(e.typ==="test"?`${r.s}/${r.m} (${r.proc}%), ${esc(r.test||"")}, ${data(r.data)}`:`${e.bezPoziomu?"":esc(F.poziomy[r.poziom].n)+", "}${r.pkt}/${r.max} pkt (${r.proc}%)${r.ocena?`, ocena ${r.ocena}`:""}, podpowiedzi: ${r.podp||0}${r.trening?`, treningi: ${r.trening}`:""}, ${data(r.data)}`):"<span class='mute'>nie rozpoczęto</span>"}</div>`}).join("")}</div></div></div>`;
+    return `<div style="margin-bottom:.5em"><b>${esc(e.tytul.det)}:</b> ${r?(e.typ==="test"?`${r.s}/${r.m} (${r.proc}%), ocena ${ocenaTestu(r.s,r.m)}, ${esc(r.test||"")}, ${data(r.data)}`:`${e.bezPoziomu?"":esc(F.poziomy[r.poziom].n)+", "}${r.pkt}/${r.max} pkt (${r.proc}%)${r.ocena?`, ocena ${r.ocena}`:""}, podpowiedzi: ${r.podp||0}${r.trening?`, treningi: ${r.trening}`:""}, ${data(r.data)}${proby(r)}`)
+      +` <button data-reset="${e.id}" title="Usuń wynik – uczeń zrobi etap od nowa">✕ usuń wynik</button>`:"<span class='mute'>nie rozpoczęto</span>"}</div>`}).join("")}</div></div></div>`;
+  const st=$("[data-st]",b);
+  $("[data-pin]",b).onclick=async()=>{if(!confirm(`Zresetować PIN ucznia ${g.n}? Przy następnym logowaniu ustawi nowy PIN, postęp zostaje.`))return;
+    if(await akcja("resetPin",{n:g.n,k:g.k},st))st.textContent="✔ PIN zresetowany. Uczeń loguje się z nowym PIN-em."};
+  $("[data-usun]",b).onclick=async()=>{if(!confirm(`Usunąć ucznia ${g.n} (${g.k}) razem z całym postępem? Tego nie da się cofnąć.`))return;
+    if(await akcja("usunGracza",{n:g.n,k:g.k},st)){D.gracze.splice(D.gracze.indexOf(g),1);rysuj()}};
+  $$("[data-reset]",b).forEach(x=>x.onclick=async()=>{const e=F.etapy.find(y=>y.id===x.dataset.reset);
+    if(!confirm(`Usunąć wynik „${e.tytul.det}” ucznia ${g.n}? Uczeń zrobi ten etap od nowa, XP zostanie przeliczone.`))return;
+    if(await akcja("resetEtapu",{n:g.n,k:g.k,etap:e.id},st)){await wczytaj();const g2=D.gracze.find(y=>y.n===g.n&&y.k===g.k);if(g2)szczegoly(g2)}});
   b.scrollIntoView({behavior:"smooth"});
 }
 function klasy(t){
   const sum={};D.gracze.forEach(g=>{sum[g.k]=sum[g.k]||{s:0,n:0};sum[g.k].s+=+g.xp||0;sum[g.k].n++});
   const MK=Object.keys(F.motywy);
   t.innerHTML=`<div class="karta"><p class="mute">Uczeń dołącza do klasy, wpisując jej kod. <b>Klimat domyślny</b> ustawia się uczniowi na start, a <b>klimaty włączone</b> to te, między którymi może się przełączać. Zmiany zapisuje przycisk przy klasie. Kody zmieniasz w arkuszu, karta „Klasy”.</p>
-  <div class="przewin"><table><tr><th>Oddział</th><th>Kod klasy</th><th>Uczniów</th><th>Wspólny cel</th><th>Klimat domyślny</th><th>Klimaty włączone</th><th></th></tr>
+  <div class="przewin"><table><tr><th>Oddział</th><th>Kod klasy</th><th>Uczniów</th><th>Wspólny cel</th><th>Klimat domyślny</th><th>Klimaty włączone</th><th>Odblokowane do</th><th>Komunikat dla klasy</th><th></th></tr>
   ${D.klasy.map((k,i)=>{const s=sum[k.k]||{s:0,n:0},p=Math.min(100,Math.round(s.s/k.cel*100)),dm=k.dm&&k.dm.length?k.dm:MK;
     return `<tr data-k="${i}"><td><b>${esc(k.k)}</b></td><td class="haslo" style="font-size:1rem">${esc(k.kod)}</td><td>${s.n}<br><span class="mute">śr. ${s.n?Math.round(s.s/s.n):0} XP</span></td>
     <td><input type="number" min="100" step="100" value="${k.cel}" data-cel style="width:6.5em"><div class="pasek" style="margin-top:4px"><i style="width:${p}%"></i></div><span class="mute">${s.s} XP (${p}%)</span></td>
     <td><select data-m>${MK.map(m=>`<option value="${m}" ${(k.m||"det")===m?"selected":""}>${esc(F.motywy[m].nazwa)}</option>`).join("")}</select></td>
     <td style="white-space:nowrap">${MK.map(m=>`<label style="display:block;margin:0 0 .15em"><input type="checkbox" data-dm="${m}" ${dm.includes(m)?"checked":""}> ${esc(F.motywy[m].nazwa)}</label>`).join("")}</td>
+    <td><select data-od><option value="">wszystko</option>${F.etapy.map(e=>`<option value="${e.id}" ${k.od===e.id?"selected":""}>${esc(e.tytul.det)}</option>`).join("")}</select></td>
+    <td><textarea data-kom rows="3" maxlength="500" style="width:15em;font:inherit;font-size:.85rem" placeholder="np. Jutro kartkówka!">${esc(k.kom||"")}</textarea></td>
     <td><button class="glowny" data-zap>Zapisz</button><div class="mute" data-st></div></td></tr>`}).join("")}
-  </table></div></div>`;
+  </table></div></div>
+  <div class="karta"><b>Komunikat do wszystkich klas</b><p class="mute">Zastępuje komunikaty wszystkich klas. Pusty = usuwa komunikaty. Uczeń zobaczy go jako wiadomość od Twojej postaci.</p>
+  <p><textarea id="komW" rows="2" maxlength="500" style="width:100%;font:inherit"></textarea></p><p><button class="glowny" id="komWb">Wyślij do wszystkich</button> <span class="mute" id="komWs"></span></p></div>`;
+  $("#komWb").onclick=async()=>{const kom=$("#komW").value.trim();if(!confirm(kom?"Wysłać ten komunikat do wszystkich klas?":"Usunąć komunikaty wszystkich klas?"))return;
+    if(await akcja("komunikatWszystkim",{kom},$("#komWs"))){D.klasy.forEach(k=>k.kom=kom);rysuj()}};
   $$("tr[data-k]",t).forEach(tr=>{
     const k=D.klasy[+tr.dataset.k],st=$("[data-st]",tr);
     $("[data-m]",tr).onchange=e=>{const c=$(`[data-dm="${e.target.value}"]`,tr);if(c)c.checked=true};
@@ -140,19 +166,18 @@ function klasy(t){
       const m=$("[data-m]",tr).value,wl=$$("[data-dm]",tr).filter(c=>c.checked).map(c=>c.dataset.dm);
       if(!wl.length){st.textContent="Włącz co najmniej jeden klimat.";return}
       if(!wl.includes(m)){st.textContent="Klimat domyślny musi być włączony.";return}
-      const dm=wl.length===MK.length?[]:wl,cel=+$("[data-cel]",tr).value||k.cel;
-      st.textContent="Zapisuję…";
-      try{const r=await api("ustawKlase",{haslo,k:k.k,m,dm,cel});
-        if(r.ok){k.m=m;k.dm=dm;k.cel=cel;st.textContent="✔ zapisano"}else st.textContent=r.e==="akcja"?"Zaktualizuj skrypt w arkuszu.":"Błąd: "+r.e}
-      catch(e){st.textContent=e.message==="stary"?"Zaktualizuj skrypt w arkuszu.":"Brak połączenia."}
+      const dm=wl.length===MK.length?[]:wl,cel=+$("[data-cel]",tr).value||k.cel,od=$("[data-od]",tr).value,kom=$("[data-kom]",tr).value.trim();
+      if(await akcja("ustawKlase",{k:k.k,m,dm,cel,od,kom},st)){k.m=m;k.dm=dm;k.cel=cel;k.od=od;k.kom=kom}
     };
   });
 }
 function wyniki(t){
   const w=D.wyniki.slice().reverse();
-  t.innerHTML=`<div class="karta"><p class="mute">Ostatnie wyniki kartkówek i sprawdzianów (te same co w karcie „Wyniki” arkusza). Uczeń wpisuje tu imię i nazwisko.</p><div class="przewin"><table><tr><th>Data</th><th>Uczeń</th><th>Klasa</th><th>Test</th><th>Wynik</th><th>Błędne pytania</th></tr>
-  ${w.map(r=>`<tr><td class="mute">${data(r.d)}</td><td>${esc(r.n)}</td><td>${esc(r.k)}</td><td>${esc(r.t)}</td><td><b>${r.s}/${r.m}</b> <span class="mute">(${r.m?Math.round(r.s/r.m*100):0}%)</span></td><td class="mute">${esc(r.z)}</td></tr>`).join("")||`<tr><td colspan="6" class="mute">Brak wyników.</td></tr>`}
+  t.innerHTML=`<div class="karta"><p class="mute">Ostatnie wyniki kartkówek i sprawdzianów (te same co w karcie „Wyniki” arkusza). Uczeń wpisuje tu imię i nazwisko. Ocena wg skali szkolnej.</p><div class="przewin"><table><tr><th>Data</th><th>Uczeń</th><th>Klasa</th><th>Test</th><th>Wynik</th><th>Ocena</th><th>Błędne pytania</th><th></th></tr>
+  ${w.map((r,i)=>`<tr><td class="mute">${data(r.d)}</td><td>${esc(r.n)}</td><td>${esc(r.k)}</td><td>${esc(r.t)}</td><td><b>${r.s}/${r.m}</b> <span class="mute">(${r.m?Math.round(r.s/r.m*100):0}%)</span></td><td><span class="oc">${ocenaTestu(r.s,r.m)}</span></td><td class="mute">${esc(r.z)}</td><td><button data-uw="${i}" title="Usuń ten wpis">🗑</button> <span class="mute" data-st></span></td></tr>`).join("")||`<tr><td colspan="8" class="mute">Brak wyników.</td></tr>`}
   </table></div></div>`;
+  $$("[data-uw]",t).forEach(b=>b.onclick=async()=>{const r=w[+b.dataset.uw];if(!confirm(`Usunąć wpis: ${r.n}, ${r.t}?`))return;
+    if(await akcja("usunWynik",{wiersz:r.w,n:r.n,t:r.t},b.nextElementSibling))await wczytaj()});
 }
 function hasla(t){
   t.innerHTML=`<div class="karta"><p class="mute">Kliknij hasło, aby je odsłonić (żeby nie było widać na rzutniku).</p><table><tr><th>Test</th><th>Hasło</th></tr>
