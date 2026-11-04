@@ -39,6 +39,7 @@ tr.klik{cursor:pointer}tr.klik:hover td{background:color-mix(in srgb,var(--akc) 
 <header><b>Agencja</b><span>Panel nauczyciela</span><span style="flex:1"></span><span id="stan" class="mute" style="color:#cbd5e1"></span></header>
 <main id="app"></main>
 <script src="../tresc/klasa1/gra/fabula.js"></script>
+<script src="../tresc/klasa1/gra/fabula-mundur.js"></script>
 <script>
 (function(){
 "use strict";
@@ -122,9 +123,30 @@ function szczegoly(g){
 }
 function klasy(t){
   const sum={};D.gracze.forEach(g=>{sum[g.k]=sum[g.k]||{s:0,n:0};sum[g.k].s+=+g.xp||0;sum[g.k].n++});
-  t.innerHTML=`<div class="karta"><p class="mute">Kody i cele zmieniasz w arkuszu, karta „Klasy”. Uczeń dołącza do klasy, wpisując jej kod.</p><div class="przewin"><table><tr><th>Oddział</th><th>Kod klasy</th><th>Uczniów</th><th>Razem XP</th><th>Cel</th><th>Postęp celu</th><th>Średnio XP</th></tr>
-  ${D.klasy.map(k=>{const s=sum[k.k]||{s:0,n:0},p=Math.min(100,Math.round(s.s/k.cel*100));return `<tr><td><b>${esc(k.k)}</b></td><td class="haslo" style="font-size:1rem">${esc(k.kod)}</td><td>${s.n}</td><td>${s.s}</td><td>${k.cel}</td><td><div class="pasek"><i style="width:${p}%"></i></div><span class="mute">${p}%</span></td><td>${s.n?Math.round(s.s/s.n):0}</td></tr>`}).join("")}
+  const MK=Object.keys(F.motywy);
+  t.innerHTML=`<div class="karta"><p class="mute">Uczeń dołącza do klasy, wpisując jej kod. <b>Klimat domyślny</b> ustawia się uczniowi na start, a <b>klimaty włączone</b> to te, między którymi może się przełączać. Zmiany zapisuje przycisk przy klasie. Kody zmieniasz w arkuszu, karta „Klasy”.</p>
+  <div class="przewin"><table><tr><th>Oddział</th><th>Kod klasy</th><th>Uczniów</th><th>Wspólny cel</th><th>Klimat domyślny</th><th>Klimaty włączone</th><th></th></tr>
+  ${D.klasy.map((k,i)=>{const s=sum[k.k]||{s:0,n:0},p=Math.min(100,Math.round(s.s/k.cel*100)),dm=k.dm&&k.dm.length?k.dm:MK;
+    return `<tr data-k="${i}"><td><b>${esc(k.k)}</b></td><td class="haslo" style="font-size:1rem">${esc(k.kod)}</td><td>${s.n}<br><span class="mute">śr. ${s.n?Math.round(s.s/s.n):0} XP</span></td>
+    <td><input type="number" min="100" step="100" value="${k.cel}" data-cel style="width:6.5em"><div class="pasek" style="margin-top:4px"><i style="width:${p}%"></i></div><span class="mute">${s.s} XP (${p}%)</span></td>
+    <td><select data-m>${MK.map(m=>`<option value="${m}" ${(k.m||"det")===m?"selected":""}>${esc(F.motywy[m].nazwa)}</option>`).join("")}</select></td>
+    <td style="white-space:nowrap">${MK.map(m=>`<label style="display:block;margin:0 0 .15em"><input type="checkbox" data-dm="${m}" ${dm.includes(m)?"checked":""}> ${esc(F.motywy[m].nazwa)}</label>`).join("")}</td>
+    <td><button class="glowny" data-zap>Zapisz</button><div class="mute" data-st></div></td></tr>`}).join("")}
   </table></div></div>`;
+  $$("tr[data-k]",t).forEach(tr=>{
+    const k=D.klasy[+tr.dataset.k],st=$("[data-st]",tr);
+    $("[data-m]",tr).onchange=e=>{const c=$(`[data-dm="${e.target.value}"]`,tr);if(c)c.checked=true};
+    $("[data-zap]",tr).onclick=async()=>{
+      const m=$("[data-m]",tr).value,wl=$$("[data-dm]",tr).filter(c=>c.checked).map(c=>c.dataset.dm);
+      if(!wl.length){st.textContent="Włącz co najmniej jeden klimat.";return}
+      if(!wl.includes(m)){st.textContent="Klimat domyślny musi być włączony.";return}
+      const dm=wl.length===MK.length?[]:wl,cel=+$("[data-cel]",tr).value||k.cel;
+      st.textContent="Zapisuję…";
+      try{const r=await api("ustawKlase",{haslo,k:k.k,m,dm,cel});
+        if(r.ok){k.m=m;k.dm=dm;k.cel=cel;st.textContent="✔ zapisano"}else st.textContent=r.e==="akcja"?"Zaktualizuj skrypt w arkuszu.":"Błąd: "+r.e}
+      catch(e){st.textContent=e.message==="stary"?"Zaktualizuj skrypt w arkuszu.":"Brak połączenia."}
+    };
+  });
 }
 function wyniki(t){
   const w=D.wyniki.slice().reverse();

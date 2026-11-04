@@ -169,7 +169,7 @@
         </div>
         <div class="przyciski">
           <span id="chmura" class="chmura"></span>
-          <button class="ikona" data-motyw title="Zmień klimat fabuły" aria-label="Zmień klimat fabuły">🎭</button>
+          ${dozwolone().length > 1 ? `<button class="ikona" data-motyw title="Zmień klimat fabuły" aria-label="Zmień klimat fabuły">🎭</button>` : ""}
           <button class="ikona" data-dzwiek title="Dźwięk" aria-label="Dźwięk">${S.dzwiek ? "🔊" : "🔇"}</button>
         </div>
       </header>
@@ -180,15 +180,25 @@
       </nav>
       <main id="widok"></main>`;
     $$("nav.dol button").forEach((b) => (b.onclick = () => { dzwiek("klik"); ({ mapa, agent, ranking })[b.dataset.w](); }));
-    $("[data-motyw]").onclick = wyborMotywu;
+    if ($("[data-motyw]")) $("[data-motyw]").onclick = wyborMotywu;
     $("[data-dzwiek]").onclick = () => { S.dzwiek = !S.dzwiek; zapisz(); $("[data-dzwiek]").textContent = S.dzwiek ? "🔊" : "🔇"; dzwiek("ok"); };
     ustawChmure(chmuraStan);
     return $("#widok");
   }
 
   /* ---------- Start: wybór klimatu i logowanie ---------- */
+  function dozwolone() {
+    const d = S.klasa && Array.isArray(S.klasa.dm) ? S.klasa.dm.filter((k) => F.motywy[k]) : [];
+    return d.length ? d : Object.keys(F.motywy);
+  }
+  function ustawKlase(m, dm) {   // ustawienia klimatów klasy z arkusza nauczyciela
+    S.klasa = { m: F.motywy[m] ? m : "", dm: Array.isArray(dm) ? dm : [] };
+    const dz = dozwolone();
+    if (!S.motyw || !dz.includes(S.motyw)) { S.motyw = dz.includes(S.klasa.m) ? S.klasa.m : dz[0]; return true; }
+    return false;
+  }
   function kartyMotywow(wybrany) {
-    return Object.entries(F.motywy).map(([k, m]) => `
+    return dozwolone().map((k) => [k, F.motywy[k]]).map(([k, m]) => `
       <button class="motyw m-${k}" data-k="${k}" aria-pressed="${wybrany === k}">
         <div class="trio">${portret("s", k, 64)}${portret("p", k, 64)}${portret("w", k, 64)}</div>
         <b>${esc(m.nazwa)}</b><span>${esc(m.sprawa)}</span><small>${esc(m.opis)}</small>
@@ -196,18 +206,25 @@
   }
   function start() {
     document.body.dataset.m = S.motyw || "det";
+    if (!S.gracz && !S.lokalny) {
+      app.innerHTML = `<div class="start"><h1>Informatyka · klasa ${F.klasa}</h1>
+        <p class="lead">Gra fabularna: ${esc(F.rozdzial)}. Zaloguj się kodem klasy, który poda nauczyciel.</p><div id="logowanie"></div></div>`;
+      return logowanie();
+    }
+    if (!S.motyw) ustawKlase(S.klasa && S.klasa.m, S.klasa && S.klasa.dm);
+    const dom = S.klasa && S.klasa.m && F.motywy[S.klasa.m];
     app.innerHTML = `<div class="start">
-      <h1>Agencja · Rozdział 1</h1>
-      <p class="lead">Wybierz klimat swojej przygody. Zadania są te same, zmienia się historia. Klimat możesz zmienić w każdej chwili.</p>
+      <h1>Wybierz klimat przygody</h1>
+      <p class="lead">Zadania są te same, zmienia się historia, postacie i stopnie.${dom ? ` Dla Twojej klasy nauczyciel ustawił: <b>${esc(dom.nazwa)}</b>.` : ""} Klimat możesz później zmienić.</p>
       <div class="motywy">${kartyMotywow(S.motyw)}</div>
-      <div id="logowanie"></div></div>`;
+      <p style="text-align:center;margin-top:20px"><button class="glowny" data-zaczynamy>Zaczynamy ▸</button></p></div>`;
     $$(".motyw", app).forEach((b) => (b.onclick = () => { S.motyw = b.dataset.k; zapisz(); dzwiek("klik"); start(); }));
-    if (S.motyw) logowanie();
+    $("[data-zaczynamy]", app).onclick = () => { S.wybralMotyw = 1; zapisz(); dzwiek("ok"); mapa(); };
   }
   function logowanie() {
     const box = $("#logowanie");
     box.innerHTML = `<form class="karta login" autocomplete="off">
-      <h2>Dołącz do: ${esc(M().agencja)}</h2>
+      <h2>Logowanie</h2>
       <label>Imię i pierwsza litera nazwiska<input name="n" maxlength="16" placeholder="np. Ola K." required></label>
       <label>Kod klasy (poda nauczyciel)<input name="kod" maxlength="12" placeholder="np. 1A-XXXX" required style="text-transform:uppercase"></label>
       <label>PIN – 4 cyfry. Zapamiętaj go!<input name="pin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="••••" required type="password"></label>
@@ -219,7 +236,7 @@
     const f = $("form", box), bl = $(".blad", box);
     $("[data-lok]", box).onclick = () => {
       const n = f.n.value.trim();
-      S.lokalny = true; S.gracz = n ? { n: n.slice(0, 16) } : null; zapisz(); prologJesliTrzeba();
+      S.lokalny = true; S.gracz = n ? { n: n.slice(0, 16) } : null; S.klasa = null; zapisz(); start();
     };
     f.onsubmit = async (e) => {
       e.preventDefault();
@@ -234,12 +251,12 @@
           bl.textContent = { kod: "Nieznany kod klasy. Sprawdź go u nauczyciela.", pin: "Zły PIN dla tej osoby w tej klasie.", blokada: "Za dużo prób. Odczekaj 10 minut.", nick: "Nieprawidłowe imię." }[r.e] || "Nie udało się zalogować.";
           return;
         }
-        const motyw = S.motyw;
         if (r.stan) {
           try { const zs = JSON.parse(r.stan); if ((zs.xp || 0) >= (S.xp || 0)) S = Object.assign(NOWY(), zs); } catch (er) {}
-        }
-        S.motyw = motyw; S.lokalny = false; S.gracz = { n: r.n || n, k: r.k, h };
-        zapisz(); chmuraTeraz(); prologJesliTrzeba();
+        } else { S.motyw = null; S.wybralMotyw = 0; }
+        S.lokalny = false; S.gracz = { n: r.n || n, k: r.k, h };
+        ustawKlase(r.m, r.dm);
+        zapisz(); chmuraTeraz(); S.wybralMotyw ? mapa() : start();
       } catch (er) {
         bl.innerHTML = er.stary
           ? "Zapis w chmurze nie jest jeszcze włączony (nauczyciel musi zaktualizować skrypt). Możesz grać bez konta – postęp zostanie na tym urządzeniu."
@@ -247,7 +264,6 @@
       }
     };
   }
-  async function prologJesliTrzeba() { mapa(); }
 
   function wyborMotywu() {
     const o = okno(`<h2>Wybierz klimat fabuły</h2><p class="mala">Punkty, odznaki i karty zostają. Zmienia się historia, postacie i wygląd.</p><div class="motywy">${kartyMotywow(S.motyw)}</div><p><button class="drugi" data-x>Zamknij</button></p>`, "nak-szeroka");
@@ -257,7 +273,7 @@
 
   /* ---------- Mapa sprawy ---------- */
   function mapa() {
-    if (!S.motyw || (!S.gracz && !S.lokalny)) return start();
+    if (!S.motyw || (!S.gracz && !S.lokalny) || !S.wybralMotyw) return start();
     const w = szkielet("mapa");
     const ost = [...F.etapy].reverse().find(etapGotowy);
     w.innerHTML = `
@@ -291,6 +307,10 @@
       const r = await api("klasy", {});
       if (!r.ok) return;
       const moja = r.klasy.find((k) => k.k === S.gracz.k); if (!moja) return;
+      const przed = JSON.stringify(S.klasa);
+      const zmiana = ustawKlase(moja.m, moja.dm);
+      if (przed !== JSON.stringify(S.klasa)) zapisz();
+      if (zmiana) return mapa();
       const cel = moja.cel || 3000, pr = Math.min(100, Math.round(moja.suma / cel * 100));
       box.innerHTML = `<div class="karta cel"><b>Wspólny cel klasy ${esc(moja.k)}</b>
         <div class="duzy-pasek"><i style="width:${pr}%"></i><span>${moja.suma} / ${cel} XP</span></div>
@@ -616,5 +636,5 @@
   }
 
   /* ---------- Start ---------- */
-  if (!S.motyw || (!S.gracz && !S.lokalny)) start(); else { mapa(); chmuraTeraz(); }
+  if (!S.motyw || (!S.gracz && !S.lokalny) || !S.wybralMotyw) start(); else { mapa(); chmuraTeraz(); }
 })();
