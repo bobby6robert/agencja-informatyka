@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Prowadzenie lekcji – Agencja</title>
+<link rel="stylesheet" href="../tresc/klasa1/gra/gra.css">
+<style>
+#app{max-width:none;padding:0}
+.pasekG{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 16px;background:var(--panel);border-bottom:1px solid color-mix(in srgb,var(--tekst) 12%,transparent)}
+.pasekG b{color:var(--akc)}
+.pasekG select{font:inherit;padding:.4em;border-radius:8px;background:var(--tlo);color:var(--tekst);border:1px solid color-mix(in srgb,var(--tekst) 25%,transparent)}
+.kroki{display:flex;gap:6px;flex-wrap:wrap}
+.kroki button{background:var(--panel2);border:0;border-radius:999px;padding:.45em 1em;font-weight:600}
+.kroki button[aria-pressed=true]{background:var(--akc);color:#111}
+.ekran{padding:24px clamp(16px,4vw,60px);min-height:calc(100vh - 64px)}
+.duzy{font-size:clamp(1.1rem,1.6vw,1.6rem)}
+.duzy h1{font-size:clamp(2rem,4vw,3.4rem);margin:.1em 0}
+.temat{color:var(--akc2);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.odprawa{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:28px;align-items:start}
+.scenaP .dymek{margin:14px 0}
+.scenaP .chmurka{font-size:clamp(1.05rem,1.5vw,1.45rem);max-width:none}
+.scenaP .narrator{font-size:clamp(1rem,1.4vw,1.35rem);max-width:none}
+.scenaP .dymek{animation:wskocz .35s cubic-bezier(.2,1.4,.4,1)}
+.misjaInfo{background:var(--panel);border:2px solid var(--akc);border-radius:16px;padding:20px}
+.misjaInfo ul{margin:.4em 0 .8em;padding-left:1.2em}
+.poz3{display:grid;gap:8px;margin-top:10px}
+.poz3 div{background:var(--panel2);border-radius:10px;padding:8px 12px}
+.ramkaT{display:flex;flex-direction:column;height:calc(100vh - 64px)}
+.ramkaT .nawT{display:flex;gap:8px;align-items:center;padding:8px 16px;background:var(--panel2);flex-wrap:wrap}
+.ramkaT .nawT b{flex:1}
+.ramkaT iframe{flex:1;border:0;width:100%;background:#fff}
+.ostrz{background:#7c2d12;color:#fff;padding:10px 14px;border-radius:10px;font-weight:700;margin-bottom:14px}
+.liczniki{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 16px}
+.liczniki div{background:var(--panel);border-radius:12px;padding:10px 16px;min-width:140px}
+.liczniki b{display:block;font-size:2rem;color:var(--akc)}
+.tabela td,.tabela th{white-space:nowrap}
+.st-ok{color:#86efac;font-weight:700}.st-tr{color:#fde68a;font-weight:700}.st-nie{color:var(--mute)}
+.trudne li{margin:.3em 0}
+.haslo-duze{font-family:Consolas,monospace;font-size:clamp(3rem,10vw,8rem);font-weight:800;letter-spacing:.15em;color:var(--akc);text-align:center;margin:.2em 0}
+.login{max-width:440px;margin:60px auto}
+.ranking-duzy .tabela{font-size:clamp(1rem,1.5vw,1.4rem)}
+@media (max-width:900px){.odprawa{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-m="det">
+<div id="app"></div>
+<script src="../tresc/klasa1/gra/fabula.js"></script>
+<script src="../tresc/klasa1/gra/fabula-mundur.js"></script>
+<script src="../tresc/klasa1/gra/postacie.js"></script>
+<script>
+(function(){
+"use strict";
+const F=window.FABULA, BAZA="../tresc/klasa1/gra/";
+let API="https://script.google.com/macros/s/AKfycbzGvnKlock74eu0ptTr8Dy7O7BKdnQBL2V8B9vFoSWcl80k3ZLd06R1tBz8m82dQPKySw/exec";
+try{const q=new URLSearchParams(location.search).get("api");if(q&&/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//.test(q))API=q}catch(e){}
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const app=$("#app");
+async function api(a,d){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({},d,{a}))});const t=await r.text();try{return JSON.parse(t)}catch(e){throw new Error("stary")}}
+let haslo="",D=null,klasa=null,etapI=1,krok="odprawa",timer=null;
+try{haslo=sessionStorage.getItem("agencja-panel")||"";const z=JSON.parse(sessionStorage.getItem("agencja-prow")||"{}");if(z.k)klasa=z.k;if(z.e!=null)etapI=z.e}catch(e){}
+const zapamietaj=()=>{try{sessionStorage.setItem("agencja-prow",JSON.stringify({k:klasa,e:etapI}))}catch(e){}};
+
+const K=()=>D&&D.klasy.find(k=>k.k===klasa);
+const motyw=()=>{const k=K();return k&&F.motywy[k.m]?k.m:"det"};
+const M=()=>F.motywy[motyw()];
+const tok=t=>String(t).replace(/\{(\w+)\}/g,(w,k)=>M()[k]!=null?M()[k]:w);
+const E=()=>F.etapy[etapI];
+const tytul=e=>e.tytul[motyw()]||e.tytul.det;
+const odIdx=k=>{if(!k||!k.od)return F.etapy.length-1;const i=F.etapy.findIndex(e=>e.id===k.od);return i<0?F.etapy.length-1:i};
+const stan=g=>{try{return JSON.parse(g.stan||"{}")}catch(e){return {}}};
+function ocenaTestu(sk,mx){const p=Math.round((+sk||0)/(+mx||1)*100);for(const [g,o] of F.skalaTestow)if(p>=g)return o;return "1"}
+function nazwaTestu(id){const m=/^k(\d)(\d)([abk])$/.exec(id);if(!m)return id;return `Klasa ${m[1]} · Rozdział ${m[2]} · ${m[3]==="k"?"kartkówka":"sprawdzian "+m[3].toUpperCase()}`}
+
+/* ---------- logowanie ---------- */
+function logowanie(msg){
+  document.body.dataset.m="det";
+  app.innerHTML=`<form class="karta login"><h2>Prowadzenie lekcji</h2><p class="mala">Zaloguj się hasłem do panelu nauczyciela.</p>
+    <p><input type="password" name="h" placeholder="Hasło nauczyciela" style="width:100%;padding:.6em;border-radius:10px;font:inherit" autocomplete="current-password"></p>
+    <p><button class="glowny">Zaloguj</button></p><p class="blad">${esc(msg||"")}</p></form>`;
+  const f=$("form");f.h.focus();f.onsubmit=e=>{e.preventDefault();haslo=f.h.value;wczytaj(true)};
+}
+async function wczytaj(pierwszy){
+  try{
+    const r=await api("panel",{haslo});
+    if(!r.ok){if(pierwszy)return logowanie({haslo:"Złe hasło.",brakHasla:"Najpierw ustaw hasło w arkuszu (Ustawienia, B1).",blokada:"Za dużo prób. Odczekaj 10 minut."}[r.e]||"Błąd logowania.");return}
+    try{sessionStorage.setItem("agencja-panel",haslo)}catch(e){}
+    D=r;if(!K())klasa=(D.klasy[0]||{}).k||null;
+    if(pierwszy)rysuj();else if(krok==="podglad")podglad();
+  }catch(e){if(pierwszy)logowanie(e.message==="stary"?"Zaktualizuj skrypt w arkuszu.":"Brak połączenia z arkuszem.")}
+}
+
+/* ---------- szkielet ---------- */
+function kroki(){
+  const e=E();
+  return e.typ==="test"
+    ?[["odprawa","1. Scena"],["haslo","2. Hasło do testu"],["podglad","3. Wyniki na żywo"],["koniec","4. Zakończenie"]]
+    :[["odprawa","1. Odprawa"],["teoria","2. Teoria"],["podglad","3. Misja – podgląd na żywo"],["koniec","4. Zakończenie"]];
+}
+function rysuj(){
+  clearInterval(timer);timer=null;
+  document.body.dataset.m=motyw();
+  const k=K(),oi=odIdx(k),e=E();
+  const odbl=etapI<=oi, stanOdb=!k?"":!k.od?"wszystkie etapy odblokowane":`odblokowane do: ${esc(F.etapy[oi].lekcja||tytul(F.etapy[oi]))}`;
+  app.innerHTML=`<div class="pasekG">
+    <b>Prowadzenie lekcji</b>
+    <select id="selK" aria-label="Klasa">${D.klasy.map(x=>`<option ${x.k===klasa?"selected":""}>${esc(x.k)}</option>`).join("")}</select>
+    <select id="selE" aria-label="Lekcja">${F.etapy.map((x,i)=>`<option value="${i}" ${i===etapI?"selected":""}>${esc(x.lekcja||x.id)} – ${esc(tytul(x))}</option>`).join("")}</select>
+    <div class="kroki">${kroki().map(([id,n])=>`<button data-k="${id}" aria-pressed="${krok===id}">${n}</button>`).join("")}</div>
+    <span style="flex:1"></span>
+    <span class="mala">${stanOdb}</span>
+    ${odbl&&k&&k.od?`<span class="st-ok">✔ odblokowane</span>`:`<button class="glowny" id="odblokuj">🔓 Odblokuj: ${esc(tytul(e))}</button>`}
+    <button class="drugi" id="pelny" title="Pełny ekran">⛶</button>
+  </div><div id="ekran"></div>`;
+  $("#selK").onchange=ev=>{klasa=ev.target.value;zapamietaj();rysuj()};
+  $("#selE").onchange=ev=>{etapI=+ev.target.value;krok="odprawa";zapamietaj();rysuj()};
+  $$(".kroki button").forEach(b=>b.onclick=()=>{krok=b.dataset.k;rysuj()});
+  $("#pelny").onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})};
+  const ob=$("#odblokuj");if(ob)ob.onclick=odblokuj;
+  ({odprawa,teoria,podglad,koniec,haslo:hasloTestu})[krok]();
+}
+
+async function odblokuj(){
+  const k=K(),e=E();if(!k)return;
+  const oi=odIdx(k);
+  if(!k.od&&!confirm(`Klasa ${k.k} ma teraz odblokowane wszystkie etapy. Po kliknięciu uczniowie będą mieli dostęp tylko do etapów do „${tytul(e)}” włącznie (kolejne odblokujesz na następnych lekcjach). Kontynuować?`))return;
+  if(k.od&&etapI<=oi)return;
+  const b=$("#odblokuj");b.disabled=true;b.textContent="Odblokowuję…";
+  try{const r=await api("ustawKlase",{haslo,k:k.k,m:k.m,dm:k.dm||[],cel:k.cel,od:e.id});
+    if(r.ok){k.od=e.id;if(krok!=="podglad"&&krok!=="haslo")krok=e.typ==="test"?"haslo":"podglad";rysuj()}
+    else{b.disabled=false;b.textContent=r.e==="zajety"?"Arkusz zajęty – kliknij ponownie":"Błąd: "+r.e}}
+  catch(er){b.disabled=false;b.textContent="Brak połączenia – kliknij ponownie"}
+}
+
+/* ---------- 1. odprawa ---------- */
+function scenaHTML(linie){
+  const imie=k=>k==="s"?M().szef:k==="p"?M().pomocnik:k==="w"?M().wrog:"";
+  return linie.map(([kto,t],i)=>`<div class="dymek kto-${kto}" data-n="${i}" ${i?'hidden':''}>${kto==="n"?`<div class="narrator"><span>${esc(tok(t))}</span></div>`:`<div class="portret">${portret(kto,motyw(),96)}</div><div class="chmurka"><b>${esc(imie(kto))}</b><span>${esc(tok(t))}</span></div>`}</div>`).join("");
+}
+function odprawa(){
+  const e=E(),w=$("#ekran");
+  const linie=e.wstep[motyw()]||e.wstep.det;
+  let info="";
+  if(e.typ==="misja"){
+    const zad=e.bezPoziomu?e.zadania.wszystkie:null;
+    info=`<div class="misjaInfo"><div class="temat">Misja na dziś</div><h2 style="margin:.2em 0">${esc(tytul(e))}</h2>
+      ${e.bezPoziomu?`<p>${zad.length} zadania – rozgrzewka bez oceny.</p>`:`<p>Wybierasz poziom przed misją. Liczy się najwyższa ocena – poprawa tylko na wyższym poziomie.</p>
+      <div class="poz3">${Object.entries(F.poziomy).map(([k,p])=>`<div><b>${esc(p.n)}</b> · ${e.zadania[k].length} zadań · ocena do ${p.max}</div>`).join("")}</div>`}
+      <p style="margin-top:12px"><b>Co trzeba umieć:</b></p><ul>${e.lekcje.map(([,n])=>`<li>${esc(n)}</li>`).join("")}</ul>
+      <p class="mala">Podpowiedzi ${esc(M().pomocnik)} kosztują: −10% / −25% / −50% punktów za zadanie.</p></div>`;
+  } else {
+    info=`<div class="misjaInfo"><div class="temat">${e.boss?"Sprawdzian":"Kartkówka"}</div><h2 style="margin:.2em 0">${esc(tytul(e))}</h2>
+      <p>Test z całego rozdziału. Hasło poda ${esc(M().szef)}. ${e.boss?"Grupy A i B.":""}</p><p>Wpisz imię i nazwisko oraz klasę. Test piszesz tylko raz.</p></div>`;
+  }
+  w.innerHTML=`<div class="ekran duzy"><div class="temat">${esc(e.lekcja||"")}</div><h1>${esc(M().sprawa)}</h1>
+    <div class="odprawa"><div class="scenaP">${scenaHTML(linie)}<p><button class="glowny" id="dalej">Dalej ▸</button></p></div>${info}</div></div>`;
+  let n=0;const dal=$("#dalej");
+  dal.onclick=()=>{n++;const d=$(`.dymek[data-n="${n}"]`);if(d){d.hidden=false;d.scrollIntoView({block:"nearest",behavior:"smooth"})}
+    if(n>=linie.length-1){dal.textContent=e.typ==="test"?"Hasło do testu ▸":"Teoria ▸";dal.onclick=()=>{krok=e.typ==="test"?"haslo":"teoria";rysuj()}}};
+  if(linie.length<2){dal.textContent=e.typ==="test"?"Hasło do testu ▸":"Teoria ▸";dal.onclick=()=>{krok=e.typ==="test"?"haslo":"teoria";rysuj()}}
+}
+
+/* ---------- 2. teoria ---------- */
+function teoria(){
+  const e=E(),w=$("#ekran");let i=0;
+  const url=id=>`${BAZA}${F.lekcje}#${id}`;
+  w.innerHTML=`<div class="ramkaT"><div class="nawT"><button class="drugi" id="pop">◂ Poprzednia część</button><b id="tytT"></b>
+    <button class="drugi" id="zoomM" title="Mniejszy tekst">A−</button><button class="drugi" id="zoomP" title="Większy tekst">A+</button>
+    <button class="drugi" id="nast">Następna część ▸</button><button class="glowny" id="doMisji">Koniec teorii – do misji ▸</button></div>
+    <iframe id="ifT" title="Teoria"></iframe></div>`;
+  const ifr=$("#ifT");let zoom=1;
+  const prezentacja=()=>{try{const d=ifr.contentDocument;if(!d||!d.body)return;
+    if(!d.getElementById("trybPrez")){const st=d.createElement("style");st.id="trybPrez";st.textContent="header,nav{display:none!important}.layout{grid-template-columns:1fr!important;min-height:100vh!important}main{max-width:none!important;padding:1.5rem 3rem!important}";d.head.appendChild(st);
+      const bt=d.getElementById("bTeacher");if(bt&&bt.getAttribute("aria-pressed")!=="true")bt.click()}
+    d.body.style.zoom=zoom}catch(er){}};
+  const pokaz=()=>{const [id,n]=e.lekcje[i];$("#tytT").textContent=`${n} (${i+1}/${e.lekcje.length})`;
+    if(!ifr.src)ifr.src=url(id);else ifr.contentWindow.location.hash="#"+id;
+    $("#pop").disabled=i===0;$("#nast").disabled=i===e.lekcje.length-1;setTimeout(prezentacja,150)};
+  ifr.onload=prezentacja;
+  $("#pop").onclick=()=>{if(i>0){i--;pokaz()}};$("#nast").onclick=()=>{if(i<e.lekcje.length-1){i++;pokaz()}};
+  $("#zoomP").onclick=()=>{zoom=Math.min(2,zoom+.1);prezentacja()};$("#zoomM").onclick=()=>{zoom=Math.max(.6,zoom-.1);prezentacja()};
+  $("#doMisji").onclick=()=>{krok="podglad";rysuj()};
+  pokaz();
+}
+
+/* ---------- 3. podgląd na żywo ---------- */
+function podglad(){
+  const e=E(),w=$("#ekran"),k=K();if(!w)return;
+  const uczniowie=D.gracze.filter(g=>g.k===klasa).map(g=>({g,s:stan(g)})).sort((a,b)=>String(a.g.n).localeCompare(String(b.g.n),"pl"));
+  const teraz=Date.now();
+  const wiersze=uczniowie.map(({g,s})=>{
+    if(e.typ==="test"){const t=(s.testy||{})[e.id];return {g,ok:!!t,html:t?`<td class="st-ok">✔ napisany</td><td>${esc(t.test||"")}</td><td>${t.s}/${t.m} (${t.proc}%)</td><td><span class="oc">${ocenaTestu(t.s,t.m)}</span></td><td></td><td>${t.data?new Date(t.data).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"}):""}</td>`:`<td class="st-nie">– jeszcze nie</td><td></td><td></td><td></td><td></td><td></td>`}}
+    const m=(s.misje||{})[e.id],tr=s.trwa&&s.trwa.id===e.id&&teraz-s.trwa.t<3600e3;
+    if(m)return {g,ok:true,html:`<td class="st-ok">✔ ukończona${m.proby&&m.proby.length>1?" (poprawa)":""}</td><td>${e.bezPoziomu?"–":esc(F.poziomy[m.poziom].n)}</td><td>${m.proc}%</td><td>${m.ocena?`<span class="oc">${m.ocena}</span>`:"–"}</td><td>${m.podp||0}</td><td>${m.data?new Date(m.data).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"}):""}</td>`};
+    if(tr)return {g,tr:true,html:`<td class="st-tr">⏳ w trakcie</td><td>${esc((F.poziomy[s.trwa.poziom]||{}).n||"")}</td><td></td><td></td><td></td><td>od ${new Date(s.trwa.t).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"})}</td>`};
+    return {g,html:`<td class="st-nie">– nie zaczął</td><td></td><td></td><td></td><td></td><td></td>`};
+  });
+  const ile=wiersze.filter(x=>x.ok).length,trw=wiersze.filter(x=>x.tr).length;
+  // najtrudniejsze zadania (pierwsze podejście)
+  let trudne="";
+  if(e.typ==="misja"){
+    const st={};
+    uczniowie.forEach(({s})=>{const m=(s.misje||{})[e.id];const p=m&&(m.proby?m.proby[0]:m);if(!p||!p.zad)return;
+      p.zad.forEach((z,i)=>{const kl=p.poziom+"|"+i;st[kl]=st[kl]||{zle:0,n:0,podp:0};st[kl].n++;if(!z[0])st[kl].zle++;st[kl].podp+=z[1]||0})});
+    const lista=Object.entries(st).map(([kl,v])=>{const [poz,i]=kl.split("|");const zz=e.bezPoziomu?e.zadania.wszystkie:e.zadania[poz];return {poz,i:+i,q:zz&&zz[+i]?tok(zz[+i].q):"",...v}})
+      .filter(x=>x.zle||x.podp).sort((a,b)=>b.zle/b.n-a.zle/a.n||b.podp-a.podp).slice(0,6);
+    trudne=`<div class="karta"><h3>Zadania sprawiające kłopot (pierwsze podejście)</h3>${lista.length?`<ul class="trudne">${lista.map(x=>`<li><b>${Math.round(x.zle/x.n*100)}% błędnych</b> (${x.zle}/${x.n}${x.podp?`, podpowiedzi: ${x.podp}`:""}) · ${e.bezPoziomu?"":esc(F.poziomy[x.poz].n)+", "}zad. ${x.i+1}: ${esc(x.q)}</li>`).join("")}</ul>`:`<p class="mala">Na razie brak błędów albo brak wyników.</p>`}</div>`;
+  }
+  w.innerHTML=`<div class="ekran"><div class="ostrz">⚠ Ten ekran zawiera wyniki uczniów – wyłącz demonstrację Veyon, zanim go otworzysz.</div>
+    <h2>${esc(tytul(e))} · klasa ${esc(klasa)}</h2>
+    ${odIdx(k)<etapI||!k||!k.od&&false?"":""}
+    <div class="liczniki"><div><b>${ile}/${uczniowie.length}</b>${e.typ==="test"?"napisało":"ukończyło"}</div>${e.typ==="misja"?`<div><b>${trw}</b>w trakcie</div>`:""}<div><b>${uczniowie.length-ile-trw}</b>nie zaczęło</div></div>
+    <div class="karta"><div class="przewin" style="overflow-x:auto"><table class="tabela"><tr><th>Uczeń</th><th>Stan</th><th>${e.typ==="test"?"Test":"Poziom"}</th><th>Wynik</th><th>Ocena</th><th>${e.typ==="test"?"":"💡"}</th><th>Godzina</th></tr>
+    ${wiersze.map(x=>`<tr><td><b>${esc(x.g.n)}</b></td>${x.html}</tr>`).join("")||`<tr><td colspan="7" class="mala">Brak uczniów w tej klasie.</td></tr>`}</table></div>
+    <p class="mala">Odświeża się co 15 sekund. ${new Date().toLocaleTimeString("pl-PL")}</p></div>${trudne}</div>`;
+  if(!timer)timer=setInterval(()=>{if(krok==="podglad")wczytaj(false)},15000);
+}
+
+/* ---------- hasło do testu ---------- */
+function hasloTestu(){
+  const e=E(),w=$("#ekran"),ids=[].concat(e.test);
+  const h=ids.map(id=>{const n=nazwaTestu(id),r=(D.hasla||[]).find(x=>String(x[0]).trim()===n);return {id,n,h:r?r[1]:null}});
+  w.innerHTML=`<div class="ekran duzy" style="text-align:center"><div class="temat">${esc(e.lekcja||"")}</div><h1>${esc(tytul(e))}</h1>
+    <p>Otwórz w grze etap „${esc(tytul(e))}”${ids.length>1?" i wybierz swoją grupę":""}. Wpisz hasło:</p>
+    <div id="hasla">${h.map((x,i)=>`<div style="margin:20px 0">${ids.length>1?`<div class="temat">Grupa ${"AB"[i]}</div>`:""}<div class="haslo-duze" data-h="${i}">••••••</div></div>`).join("")}</div>
+    <p><button class="glowny" id="pokazH">👁 Pokaż hasło</button></p>
+    <p class="mala">Hasła są w arkuszu (karta „Hasła”).${h.some(x=>!x.h)?" Nie znaleziono hasła dla: "+h.filter(x=>!x.h).map(x=>esc(x.n)).join(", ")+".":""}</p></div>`;
+  $("#pokazH").onclick=()=>{h.forEach((x,i)=>{$(`[data-h="${i}"]`).textContent=x.h||"?"});$("#pokazH").remove()};
+}
+
+/* ---------- 4. zakończenie ---------- */
+function koniec(){
+  const e=E(),w=$("#ekran"),linie=e.koniec[motyw()]||e.koniec.det;
+  const top=D.gracze.filter(g=>g.k===klasa).sort((a,b)=>(+b.xp||0)-(+a.xp||0)).slice(0,10);
+  const stopien=xp=>{let i=0;F.progi.forEach((p,j)=>{if(xp>=p)i=j});return M().stopnie[i]};
+  w.innerHTML=`<div class="ekran duzy"><div class="temat">${esc(e.lekcja||"")}</div><h1>${esc(tytul(e))} – zakończenie</h1>
+    <div class="odprawa"><div class="scenaP">${scenaHTML(linie)}<p><button class="glowny" id="dalej">Dalej ▸</button></p></div>
+    <div class="ranking-duzy misjaInfo"><div class="temat">Ranking klasy ${esc(klasa)}</div>
+    <table class="tabela"><tr><th>#</th><th>Agent</th><th>Stopień</th><th>XP</th></tr>${top.map((g,i)=>`<tr><td>${i<3?["🥇","🥈","🥉"][i]:i+1}</td><td>${esc(g.n)}</td><td>${esc(stopien(+g.xp||0))}</td><td>${+g.xp||0}</td></tr>`).join("")}</table></div></div></div>`;
+  let n=0;const dal=$("#dalej");
+  dal.onclick=()=>{n++;const d=$(`.dymek[data-n="${n}"]`);if(d)d.hidden=false;if(n>=linie.length-1)dal.remove()};
+  if(linie.length<2)dal.remove();
+}
+
+haslo?wczytaj(true):logowanie();
+})();
+</script>
+</body>
+</html>

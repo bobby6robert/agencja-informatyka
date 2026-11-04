@@ -77,8 +77,8 @@ async function wczytaj(){
 
 function rysuj(){
   const odd=[...new Set(D.gracze.map(g=>g.k))].sort();
-  app.innerHTML=`<div class="zakladki">${[["uczniowie","Uczniowie"],["klasy","Klasy i kody"],["wyniki","Wyniki testów"],["hasla","Hasła do testów"]].map(([k,n])=>`<button data-z="${k}" aria-pressed="${zak===k}">${n}</button>`).join("")}
-  <span style="flex:1"></span><button data-odsw>⟳ Odśwież</button><button data-wyl>Wyloguj</button></div><div id="tresc"></div>`;
+  app.innerHTML=`<div class="zakladki">${[["uczniowie","Uczniowie"],["zalegle","Zaległości"],["klasy","Klasy i kody"],["wyniki","Wyniki testów"],["hasla","Hasła do testów"]].map(([k,n])=>`<button data-z="${k}" aria-pressed="${zak===k}">${n}</button>`).join("")}
+  <span style="flex:1"></span><a href="../prowadzenie/${location.search}" target="_blank" rel="noopener" style="align-self:center;margin-right:8px">🎓 Prowadzenie lekcji ↗</a><button data-odsw>⟳ Odśwież</button><button data-wyl>Wyloguj</button></div><div id="tresc"></div>`;
   $$("[data-z]").forEach(b=>b.onclick=()=>{zak=b.dataset.z;rysuj()});
   $("[data-odsw]").onclick=wczytaj;
   $("[data-wyl]").onclick=()=>{haslo="";try{sessionStorage.removeItem("agencja-panel")}catch(e){}D=null;logowanie()};
@@ -87,6 +87,7 @@ function rysuj(){
   if(zak==="klasy")klasy(t);
   if(zak==="wyniki")wyniki(t);
   if(zak==="hasla")hasla(t);
+  if(zak==="zalegle")zalegle(t);
 }
 
 function ocenaTestu(sk,mx){const p=Math.round((+sk||0)/(+mx||1)*100);for(const [g,o] of F.skalaTestow)if(p>=g-1e-9)return o;return "1"}
@@ -178,6 +179,20 @@ function wyniki(t){
   </table></div></div>`;
   $$("[data-uw]",t).forEach(b=>b.onclick=async()=>{const r=w[+b.dataset.uw];if(!confirm(`Usunąć wpis: ${r.n}, ${r.t}?`))return;
     if(await akcja("usunWynik",{wiersz:r.w,n:r.n,t:r.t},b.nextElementSibling))await wczytaj()});
+}
+function zalegle(t){
+  const odI=k=>{if(!k.od)return -1;return F.etapy.findIndex(e=>e.id===k.od)};
+  const bloki=D.klasy.filter(k=>!filtr||k.k===filtr).map(k=>{
+    const oi=odI(k),gr=D.gracze.filter(g=>g.k===k.k);
+    if(!gr.length)return "";
+    if(oi<0)return `<div class="karta"><h3>${esc(k.k)}</h3><p class="mute">Wszystkie etapy są odblokowane – zaległości liczę, gdy zaczniesz odblokowywać misje w „Prowadzeniu lekcji” (albo ustawisz „Odblokowane do” w zakładce Klasy).</p></div>`;
+    const etapy=F.etapy.slice(0,oi+1);
+    const wiersze=gr.map(g=>{const s=stanUcznia(g);const brak=etapy.filter(e=>!(e.typ==="test"?(s.testy||{})[e.id]:(s.misje||{})[e.id]));return {g,brak}}).filter(x=>x.brak.length)
+      .sort((a,b)=>b.brak.length-a.brak.length||String(a.g.n).localeCompare(String(b.g.n),"pl"));
+    return `<div class="karta"><h3>${esc(k.k)} <span class="mute">· odblokowane do: ${esc(F.etapy[oi].lekcja||F.etapy[oi].tytul.det)}</span></h3>
+      ${wiersze.length?`<table><tr><th>Uczeń</th><th>Do zaliczenia</th></tr>${wiersze.map(x=>`<tr><td><b>${esc(x.g.n)}</b></td><td style="white-space:normal">${x.brak.map(e=>`<span class="oc" style="background:color-mix(in srgb,var(--zle) 18%,transparent);margin:0 .3em .2em 0;display:inline-block">${esc(e.lekcja||e.tytul.det)}${e===F.etapy[oi]?" (bieżąca)":""}</span>`).join("")}</td></tr>`).join("")}</table>`:`<p>✔ Wszyscy uczniowie mają zaliczone odblokowane etapy.</p>`}
+      <p class="mute">Uczniów w klasie: ${gr.length}. Uczniowie bez konta w grze nie są tu widoczni.</p></div>`}).join("");
+  t.innerHTML=`<div class="karta"><p class="mute">Kto nie zaliczył odblokowanych etapów. Zaległe misje można robić w domu – w grze są oznaczone jako „zaległa – do zaliczenia”. Filtr oddziału jak w zakładce Uczniowie.</p></div>${bloki||`<div class="karta mute">Brak uczniów.</div>`}`;
 }
 function hasla(t){
   t.innerHTML=`<div class="karta"><p class="mute">Kliknij hasło, aby je odsłonić (żeby nie było widać na rzutniku).</p><table><tr><th>Test</th><th>Hasło</th></tr>

@@ -346,7 +346,9 @@
         if (wyn && e.typ === "misja") info = e.bezPoziomu ? `${wyn.proc}%` : `${F.poziomy[wyn.poziom].n} · ${wyn.proc}% · proponowana ocena: <b>${wyn.ocena}</b>${moznaPoprawic(e) ? " · można poprawić" : ""}`;
         if (wyn && e.typ === "test") info = `${wyn.s}/${wyn.m} pkt (${wyn.proc}%) · proponowana ocena: <b>${ocenaTestu(wyn.s, wyn.m)}</b>`;
         if (!ok && zamknietyPrzezSzefa(i)) info = `odblokuje ${esc(M().szef)}`;
-        return `<li class="etap ${ok ? "zrob" : dost ? "dost" : "zamk"} ${e.boss ? "boss" : ""}">
+        const zaleg = !ok && S.klasa && S.klasa.od && i < odblokowaneDo();
+        if (zaleg) info = `<b class="zaleg-t">⚠ zaległa – do zaliczenia</b>`;
+        return `<li class="etap ${ok ? "zrob" : dost ? "dost" : "zamk"} ${e.boss ? "boss" : ""} ${zaleg ? "zaleg" : ""}">
           <button data-i="${i}" ${dost || ok ? "" : "disabled"}>
             <span class="ik">${ok ? "✔" : dost ? ikona : "🔒"}</span>
             <span class="tx"><b>${esc(tytul(e))}</b><small>${esc(e.lekcja || (e.typ === "test" ? (e.boss ? "Finał rozdziału – sprawdzian" : "Kartkówka") : e.id === "prolog" ? "Prolog" : "Misja"))}${info ? " · " + info : ""}</small></span>
@@ -368,7 +370,14 @@
       const moja = r.klasy.find((k) => k.k === S.gracz.k); if (!moja) return;
       const przed = JSON.stringify(S.klasa);
       const zmiana = ustawKlase(moja.m, moja.dm, moja.od, moja.kom);
-      if (przed !== JSON.stringify(S.klasa)) { zapisz(); return mapa(); }
+      if (przed !== JSON.stringify(S.klasa)) {
+        const nowy = F.etapy[odblokowaneDo()];
+        const pokaz = moja.od && S.odWidziany !== moja.od && !etapGotowy(nowy);
+        if (moja.od) S.odWidziany = moja.od;
+        zapisz(); mapa();
+        if (pokaz) { dzwiek("awans"); scena([["s", `${nowy.typ === "test" ? "Czas na" : "Misja odblokowana:"} „${tytul(nowy)}”. ${nowy.typ === "test" ? "Hasło poda nauczyciel." : "Do dzieła!"}`]]); }
+        return;
+      }
       if (zmiana) return mapa();
       const cel = moja.cel || 3000, pr = Math.min(100, Math.round(moja.suma / cel * 100));
       box.innerHTML = `<div class="karta cel"><b>Wspólny cel klasy ${esc(moja.k)}</b>
@@ -415,14 +424,17 @@
     if (!e.bezPoziomu) { poziom = await wyborPoziomu(e); if (!poziom) return mapa(); }
     await scena(e.wstep[S.motyw]);
     if (!(await akta(e))) return mapa();
+    S.trwa = { id: e.id, poziom, t: Date.now() }; zapisz();
     const zad = e.bezPoziomu ? e.zadania.wszystkie : e.zadania[poziom];
     const pkt = e.bezPoziomu ? 10 : F.poziomy[poziom].pkt;
     let suma = 0, podp = 0;
+    const wyniki = [];
     for (let i = 0; i < zad.length; i++) {
       const r = await zadanie(e, zad[i], i, zad.length, pkt, suma);
-      if (r === null) return mapa();
-      suma += r.pkt; podp += r.podp;
+      if (r === null) { delete S.trwa; zapisz(); return mapa(); }
+      suma += r.pkt; podp += r.podp; wyniki.push([r.pkt > 0 ? 1 : 0, r.podp]);
     }
+    delete S.trwa;
     const max = pkt * zad.length, proc = Math.round(suma / max * 100);
     const pierwszy = !S.misje[e.id];
     const xpPrzed = liczXP();
@@ -436,7 +448,7 @@
     }
     await scena(e.koniec[S.motyw]);
     const przed = stopien();
-    const rec = { poziom, pkt: Math.round(suma), max, proc, ocena: e.bezPoziomu ? null : ocena(poziom, proc), podp, data: new Date().toISOString() };
+    const rec = { poziom, pkt: Math.round(suma), max, proc, ocena: e.bezPoziomu ? null : ocena(poziom, proc), podp, zad: wyniki, data: new Date().toISOString() };
     let rodzaj = "pierwszy", stara = null;
     if (pierwszy) {
       S.misje[e.id] = Object.assign({}, rec, { maxPoziom: poziom, xpMax: rec.pkt, proby: [rec] });
@@ -779,6 +791,9 @@
   }
 
   /* ---------- Start ---------- */
+  setInterval(() => {
+    if (!document.hidden && $("#cel-klasy") && !$(".nakladka") && !$(".zadanie") && !$(".akta")) celKlasy();
+  }, 20000);
   if (oczysc()) { S.xp = liczXP(); zapisz(); }
   S.xp = liczXP();
   if (!S.motyw || (!S.gracz && !S.lokalny) || !S.wybralMotyw) start(); else { mapa(); chmuraTeraz(); }

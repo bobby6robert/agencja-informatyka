@@ -1,6 +1,6 @@
 {
-  "wersja": 10,
-  "data": "2026-11-04 11:12",
+  "wersja": 11,
+  "data": "2026-11-04 12:01",
   "opis": "Usprawnienia materiałów",
   "wersjaAplikacji": 1,
   "plikAplikacji": "aplikacja/Agencja Cyfrowych Detektywów.exe",
@@ -75,8 +75,8 @@
   "pliki": [
     {"p":"tresc/klasa1/gra/fabula.js","h":"ed3ebe22edd58f287e4e78684f311e2e5098ab98180c57f056afccf415daf7ec","r":46687},
     {"p":"tresc/klasa1/gra/fabula-mundur.js","h":"52a0fd0d75208d6dd2d5dafc0638a25560169005b755107e4e85c6a0afb4449a","r":13330},
-    {"p":"tresc/klasa1/gra/gra.css","h":"fe979057723f935f620d767b7b62aa431c792e81ce74fc9e03ab77bdfb4a13ed","r":16196},
-    {"p":"tresc/klasa1/gra/gra.js","h":"a52d51de60a633e63bc57511ee5a26ff9df0e8b0d555c753f911ffef8b2be005","r":52935},
+    {"p":"tresc/klasa1/gra/gra.css","h":"90eb3383620f81552675ad1cb0061e2ca4aabf9a49d2c7830e08f91319fa6abe","r":16115},
+    {"p":"tresc/klasa1/gra/gra.js","h":"9f4910081a772cda6accb0380ab2e5469f7d793d1984247ac01fded5747d0181","r":53848},
     {"p":"tresc/klasa1/gra/index.html","h":"b171302385921ae5f4bc5a97b437d2417f894a4dcd53f52522ada9555e415723","r":647},
     {"p":"tresc/klasa1/gra/postacie.js","h":"359506eae22b3d1c0171833f65f4b3636bb91ddd754955ab05a5fc885abbd634","r":15344},
     {"p":"tresc/klasa1/klasa1-informatyka-efekty.html","h":"7e629170f5cab2adbe78dc2e4b5876d1c8d69bc78106f1fe2e412030c1ca4c17","r":12366425},
