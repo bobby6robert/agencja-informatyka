@@ -96,8 +96,8 @@ async function wczytaj(pierwszy){
 function kroki(){
   const e=E();
   return e.typ==="test"
-    ?[["odprawa","1. Scena"],["haslo","2. Hasło do testu"],["podglad","3. Wyniki na żywo"],["koniec","4. Zakończenie"]]
-    :[["odprawa","1. Odprawa"],["teoria","2. Teoria"],["podglad","3. Misja – podgląd na żywo"],["koniec","4. Zakończenie"]];
+    ?[["odprawa","1. Scena"],["haslo","2. Hasło do testu"],["podglad","3. Wyniki na żywo"],["koniec","4. Ranking"]]
+    :[["odprawa","1. Odprawa"],["teoria","2. Teoria"],["podglad","3. Misja – podgląd na żywo"],["koniec","4. Ranking"]];
 }
 function rysuj(){
   clearInterval(timer);timer=null;
@@ -134,32 +134,25 @@ async function odblokuj(){
   catch(er){b.disabled=false;b.textContent="Brak połączenia – kliknij ponownie"}
 }
 
-/* ---------- 1. odprawa ---------- */
-function scenaHTML(linie){
-  const imie=k=>k==="s"?M().szef:k==="p"?M().pomocnik:k==="w"?M().wrog:"";
-  return linie.map(([kto,t],i)=>`<div class="dymek kto-${kto}" data-n="${i}" ${i?'hidden':''}>${kto==="n"?`<div class="narrator"><span>${esc(tok(t))}</span></div>`:`<div class="portret">${portret(kto,motyw(),96)}</div><div class="chmurka"><b>${esc(imie(kto))}</b><span>${esc(tok(t))}</span></div>`}</div>`).join("");
-}
+/* ---------- 1. odprawa (bez fabuły – sceny uczniowie zobaczą w swojej misji) ---------- */
 function odprawa(){
   const e=E(),w=$("#ekran");
-  const linie=e.wstep[motyw()]||e.wstep.det;
-  let info="";
+  let srodek="";
   if(e.typ==="misja"){
-    const zad=e.bezPoziomu?e.zadania.wszystkie:null;
-    info=`<div class="misjaInfo"><div class="temat">Misja na dziś</div><h2 style="margin:.2em 0">${esc(tytul(e))}</h2>
-      ${e.bezPoziomu?`<p>${zad.length} zadania – rozgrzewka bez oceny.</p>`:`<p>Wybierasz poziom przed misją. Liczy się najwyższa ocena – poprawa tylko na wyższym poziomie.</p>
-      <div class="poz3">${Object.entries(F.poziomy).map(([k,p])=>`<div><b>${esc(p.n)}</b> · ${e.zadania[k].length} zadań · ocena do ${p.max}</div>`).join("")}</div>`}
-      <p style="margin-top:12px"><b>Co trzeba umieć:</b></p><ul>${e.lekcje.map(([,n])=>`<li>${esc(n)}</li>`).join("")}</ul>
-      <p class="mala">Podpowiedzi ${esc(M().pomocnik)} kosztują: −10% / −25% / −50% punktów za zadanie.</p></div>`;
+    srodek=e.bezPoziomu?`<div class="misjaInfo"><p>${e.zadania.wszystkie.length} zadania na rozgrzewkę – bez oceny.</p></div>`
+      :`<div class="poz3 duzy">${Object.entries(F.poziomy).map(([k,p])=>`<div><b>${esc(p.n)}</b> · ${e.zadania[k].length} zadań · ocena do <b>${p.max}</b></div>`).join("")}</div>
+       <p class="mala" style="margin-top:12px">Poziom wybierasz przed misją. Poprawa tylko na wyższym poziomie – zostaje najwyższa ocena. Podpowiedzi ${esc(M().pomocnik)}: −10% / −25% / −50% punktów za zadanie.</p>`;
   } else {
-    info=`<div class="misjaInfo"><div class="temat">${e.boss?"Sprawdzian":"Kartkówka"}</div><h2 style="margin:.2em 0">${esc(tytul(e))}</h2>
-      <p>Test z całego rozdziału. Hasło poda ${esc(M().szef)}. ${e.boss?"Grupy A i B.":""}</p><p>Wpisz imię i nazwisko oraz klasę. Test piszesz tylko raz.</p></div>`;
+    srodek=`<div class="misjaInfo duzy"><p>Test z całego rozdziału${e.boss?" – grupy A i B":""}. Hasło poda nauczyciel.</p><p>Wpisz imię i nazwisko oraz klasę. Test piszesz tylko raz.</p></div>`;
   }
-  w.innerHTML=`<div class="ekran duzy"><div class="temat">${esc(e.lekcja||"")}</div><h1>${esc(M().sprawa)}</h1>
-    <div class="odprawa"><div class="scenaP">${scenaHTML(linie)}<p><button class="glowny" id="dalej">Dalej ▸</button></p></div>${info}</div></div>`;
-  let n=0;const dal=$("#dalej");
-  dal.onclick=()=>{n++;const d=$(`.dymek[data-n="${n}"]`);if(d){d.hidden=false;d.scrollIntoView({block:"nearest",behavior:"smooth"})}
-    if(n>=linie.length-1){dal.textContent=e.typ==="test"?"Hasło do testu ▸":"Teoria ▸";dal.onclick=()=>{krok=e.typ==="test"?"haslo":"teoria";rysuj()}}};
-  if(linie.length<2){dal.textContent=e.typ==="test"?"Hasło do testu ▸":"Teoria ▸";dal.onclick=()=>{krok=e.typ==="test"?"haslo":"teoria";rysuj()}}
+  w.innerHTML=`<div class="ekran duzy"><div class="temat">${esc(e.lekcja||"")}</div>
+    <h1>${esc(tytul(e))}</h1><p class="mala">${esc(M().sprawa)} · ${esc(M().agencja)}</p>
+    <div class="odprawa" style="margin-top:20px">
+      <div>${e.lekcje?`<div class="misjaInfo"><div class="temat">Co trzeba umieć</div><ul>${e.lekcje.map(([,n])=>`<li>${esc(n)}</li>`).join("")}</ul></div>`:""}</div>
+      <div><div class="temat" style="margin-bottom:8px">${e.typ==="misja"?"Misja na dziś":e.boss?"Sprawdzian":"Kartkówka"}</div>${srodek}</div>
+    </div>
+    <p style="margin-top:24px"><button class="glowny" id="dalej">${e.typ==="test"?"Hasło do testu ▸":"Teoria ▸"}</button></p></div>`;
+  $("#dalej").onclick=()=>{krok=e.typ==="test"?"haslo":"teoria";rysuj()};
 }
 
 /* ---------- 2. teoria ---------- */
@@ -230,18 +223,14 @@ function hasloTestu(){
   $("#pokazH").onclick=()=>{h.forEach((x,i)=>{$(`[data-h="${i}"]`).textContent=x.h||"?"});$("#pokazH").remove()};
 }
 
-/* ---------- 4. zakończenie ---------- */
+/* ---------- 4. zakończenie: ranking klasy ---------- */
 function koniec(){
-  const e=E(),w=$("#ekran"),linie=e.koniec[motyw()]||e.koniec.det;
-  const top=D.gracze.filter(g=>g.k===klasa).sort((a,b)=>(+b.xp||0)-(+a.xp||0)).slice(0,10);
+  const e=E(),w=$("#ekran");
+  const top=D.gracze.filter(g=>g.k===klasa).sort((a,b)=>(+b.xp||0)-(+a.xp||0)).slice(0,15);
   const stopien=xp=>{let i=0;F.progi.forEach((p,j)=>{if(xp>=p)i=j});return M().stopnie[i]};
-  w.innerHTML=`<div class="ekran duzy"><div class="temat">${esc(e.lekcja||"")}</div><h1>${esc(tytul(e))} – zakończenie</h1>
-    <div class="odprawa"><div class="scenaP">${scenaHTML(linie)}<p><button class="glowny" id="dalej">Dalej ▸</button></p></div>
-    <div class="ranking-duzy misjaInfo"><div class="temat">Ranking klasy ${esc(klasa)}</div>
-    <table class="tabela"><tr><th>#</th><th>Agent</th><th>Stopień</th><th>XP</th></tr>${top.map((g,i)=>`<tr><td>${i<3?["🥇","🥈","🥉"][i]:i+1}</td><td>${esc(g.n)}</td><td>${esc(stopien(+g.xp||0))}</td><td>${+g.xp||0}</td></tr>`).join("")}</table></div></div></div>`;
-  let n=0;const dal=$("#dalej");
-  dal.onclick=()=>{n++;const d=$(`.dymek[data-n="${n}"]`);if(d)d.hidden=false;if(n>=linie.length-1)dal.remove()};
-  if(linie.length<2)dal.remove();
+  w.innerHTML=`<div class="ekran duzy"><div class="temat">${esc(e.lekcja||"")}</div><h1>Ranking klasy ${esc(klasa)}</h1>
+    <div class="ranking-duzy misjaInfo" style="max-width:900px">
+    <table class="tabela"><tr><th>#</th><th>Agent</th><th>Stopień</th><th>XP</th></tr>${top.map((g,i)=>`<tr><td>${i<3?["🥇","🥈","🥉"][i]:i+1}</td><td>${esc(g.n)}</td><td>${esc(stopien(+g.xp||0))}</td><td>${+g.xp||0}</td></tr>`).join("")||`<tr><td colspan="4" class="mala">Brak wyników.</td></tr>`}</table></div></div>`;
 }
 
 haslo?wczytaj(true):logowanie();

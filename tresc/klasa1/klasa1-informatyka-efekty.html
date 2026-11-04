@@ -2518,6 +2518,7 @@ function init(){const M=window.MIS||{};LESSONS.forEach(l=>{if(M[l.id]){l.mis=M[l
 init();
 })();
 </script>
+<script>/* agencja-bez-punktow: punkty, odznaki, ranking i misje liczy gra (tresc/klasa1/gra) – lekcje to sam materiał */(function(){try{var st=document.createElement("style");st.textContent="#hud,#misnick,#misrank{display:none!important}";document.head.appendChild(st);window.wowReward=null;LESSONS.forEach(function(l){delete l.mis});if(state.tab==="mis")state.tab="teoria";render()}catch(e){}})();</script>
 <script>/* agencja-hash: #k5 otwiera od razu wskazana lekcje (link z gry) */(function(){function go(){var m=/^#(k\d+|s\d+)$/.exec(location.hash);if(!m||typeof LESSONS==="undefined"||!LESSONS.some(function(l){return l.id===m[1]}))return;state.lesson=m[1];state.tab="teoria";state.slide=0;try{render();scrollTo(0,0)}catch(e){}}go();addEventListener("hashchange",go)})();</script>
 </body>
 </html>
