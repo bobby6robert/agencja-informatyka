@@ -30,12 +30,11 @@ async function dec(b64,pw){
   const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:150000,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["decrypt"]);
   return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv},key,ct)));
 }
-let curI=-1;
 function home(){
   app.innerHTML=`<h1>Sprawdziany z informatyki</h1><p>Wybierz sprawdzian lub kartkówkę. Hasło poda nauczyciel.</p>`+TESTS.map((t,i)=>`<button class="t" data-i="${i}">${t[1]}</button>`).join("");
   app.querySelectorAll(".t").forEach(b=>b.onclick=()=>ask(+b.dataset.i));
 }
-function ask(i){curI=i;
+function ask(i){
   app.innerHTML=`<h1>${TESTS[i][1]}</h1><p>Wpisz hasło od nauczyciela.</p><p><input id="pw" type="password" autocomplete="off" aria-label="Hasło"> <button class="p" id="go">Odblokuj</button> <button id="bk">Wróć</button></p><p class="msg" id="msg" aria-live="polite"></p>`;
   $("#bk").onclick=home;
   const go=async()=>{
@@ -58,18 +57,19 @@ function run(d,name,kl){
     result(d,name,qs,ans,kl);
   };
 }
+const SKALA=[[0, "1", "niedostateczny"], [30, "1+", "niedostateczny z plusem"], [36, "2-", "dopuszczający z minusem"], [43, "2", "dopuszczający"], [49, "2+", "dopuszczający z plusem"], [55, "3-", "dostateczny z minusem"], [61, "3", "dostateczny"], [67, "3+", "dostateczny z plusem"], [72, "4-", "dobry z minusem"], [78, "4", "dobry"], [84, "4+", "dobry z plusem"], [90, "5-", "bardzo dobry z minusem"], [94, "5", "bardzo dobry"], [97, "5+", "bardzo dobry z plusem"], [99, "6-", "celujący z minusem"], [100, "6", "celujący"]];
+function ocena(p){let r=SKALA[0];for(const x of SKALA)if(p>=x[0])r=x;return r}
 function result(d,name,qs,ans,kl){
   let sc=0;const bad=[];
   const body=qs.map((q,qi)=>{
     const a=ans[qi].slice().sort().join(),c=q.a.slice().sort().join(),ok=a===c;if(ok)sc++;else bad.push(qi+1);
     return `<div class="q"><p>${qi+1}. ${esc(q.q)} <span class="${ok?"good":"bad"}">${ok?"Dobrze":"Źle"}</span></p>`+q.ord.map(oi=>{const isC=q.a.includes(oi),isS=ans[qi].includes(oi);return `<div class="o ${isC?"ok":(isS?"no":"")}"><span>${isC?"✔ ":(isS?"✘ ":"· ")}${esc(q.o[oi])}</span></div>`}).join("")+`<p class="mute">${esc(q.why)}</p></div>`;
   }).join("");
-  const pct=Math.round(sc/qs.length*100),now=new Date().toLocaleString("pl-PL");
+  const pct=Math.round(sc/qs.length*100),now=new Date().toLocaleString("pl-PL");const gr=ocena(pct);
   const RURL="https://script.google.com/macros/s/AKfycbzGvnKlock74eu0ptTr8Dy7O7BKdnQBL2V8B9vFoSWcl80k3ZLd06R1tBz8m82dQPKySw/exec";let sent="";
-  try{fetch(RURL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({t:"test",n:name,k:kl,x:d.title,s:sc,m:qs.length,w:bad.join(", ")})});sent=" Wynik wysłano do nauczyciela."}catch(e){sent=" Nie udało się wysłać wyniku – pokaż ten ekran nauczycielowi."}
-  try{if(parent!==window)parent.postMessage({agencja:"wynik",id:curI>=0?TESTS[curI][0]:"",s:sc,m:qs.length},"*")}catch(e){}
-  app.innerHTML=`<h1>Wynik</h1><div class="r"><b>${esc(name)}</b> (${esc(kl||"")})<br>${esc(d.title)}<br>Wynik: <b>${sc} / ${qs.length}</b> (${pct}%)<br><span class="mute">${now}. Pokaż ten ekran nauczycielowi.${sent}</span></div>`+body+`<p><button id="bk">Zakończ</button></p>`;
+  try{fetch(RURL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({t:"test",n:name,k:kl,x:d.title,s:sc,m:qs.length,w:bad.join(", "),g:gr[1]})});sent=" Wynik wysłano do nauczyciela."}catch(e){sent=" Nie udało się wysłać wyniku – pokaż ten ekran nauczycielowi."}
+  app.innerHTML=`<h1>Wynik</h1><div class="r"><b>${esc(name)}</b> (${esc(kl||"")})<br>${esc(d.title)}<br>Wynik: <b>${sc} / ${qs.length}</b> (${pct}%)<br>Ocena: <b>${gr[1]}</b> (${gr[2]})<br><span class="mute">${now}. Pokaż ten ekran nauczycielowi.${sent}</span></div>`+body+`<p><button id="bk">Zakończ</button></p>`;
   $("#bk").onclick=home;
 }
-(function(){const h=location.hash.slice(1),i=TESTS.findIndex(t=>t[0]===h);if(i>=0)ask(i);else home()})();
+home();
 </script></body></html>
