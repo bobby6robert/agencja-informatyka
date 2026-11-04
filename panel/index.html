@@ -101,7 +101,7 @@ async function akcja(a,d,st){
   if(st)st.textContent="Zapisuję…";
   try{const r=await api(a,Object.assign({haslo},d));
     if(r.ok){if(st)st.textContent="✔ gotowe";return r}
-    if(st)st.textContent=r.e==="akcja"?"Zaktualizuj skrypt w arkuszu.":r.e==="zmiana"?"Arkusz się zmienił – odśwież panel.":"Błąd: "+r.e;return null}
+    if(st)st.textContent=r.e==="akcja"?"Zaktualizuj skrypt w arkuszu.":r.e==="zmiana"?"Arkusz się zmienił – odśwież panel.":r.e==="zajety"?"Arkusz zajęty – spróbuj ponownie za chwilę.":"Błąd: "+r.e;return null}
   catch(e){if(st)st.textContent=e.message==="stary"?"Zaktualizuj skrypt w arkuszu.":"Brak połączenia.";return null}
 }
 function uczniowie(t,odd){

@@ -294,7 +294,7 @@
         const h = await sha("agencja|" + n.toLowerCase() + "|" + pin);
         const r = await api("login", { n, kod, h });
         if (!r.ok) {
-          bl.textContent = { kod: "Nieznany kod klasy. Sprawdź go u nauczyciela.", pin: "Zły PIN dla tej osoby w tej klasie.", blokada: "Za dużo prób. Odczekaj 10 minut.", nick: "Nieprawidłowe imię." }[r.e] || "Nie udało się zalogować.";
+          bl.textContent = { kod: "Nieznany kod klasy. Sprawdź go u nauczyciela.", pin: "Zły PIN dla tej osoby w tej klasie.", blokada: "Za dużo prób. Odczekaj 10 minut.", nick: "Nieprawidłowe imię.", zajety: "Centrala jest zajęta. Spróbuj ponownie za chwilę." }[r.e] || "Nie udało się zalogować.";
           return;
         }
         if (r.stan) {
