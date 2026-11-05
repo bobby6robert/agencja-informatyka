@@ -111,13 +111,15 @@ function uczniowie(t,odd){
   const lista=D.gracze.filter(g=>!filtr||g.k===filtr).sort((a,b)=>a.k.localeCompare(b.k)||String(a.n).localeCompare(String(b.n),"pl"));
   t.innerHTML=`<div class="karta"><p><label>Oddział: <select id="f"><option value="">wszystkie</option>${odd.map(k=>`<option ${k===filtr?"selected":""}>${esc(k)}</option>`).join("")}</select></label>
   <button id="csv">⬇ Pobierz CSV (Excel)</button> <span class="mute">${lista.length} uczniów · kliknij wiersz, aby zobaczyć szczegóły</span></p>
-  ${(()=>{const bez=lista.filter(g=>!g.g&&D.klasy.some(k=>k.k===g.k&&k.g));return bez.length?`<p class="blad" style="font-weight:700">⚠ ${bez.length} uczniów bez przypisanej grupy – odblokowania z „Prowadzenia lekcji” ich nie obejmują. Wybierz grupę w kolumnie „Grupa”.</p>`:""})()}
+  ${(()=>{const bez=lista.filter(g=>!g.g&&D.klasy.some(k=>k.k===g.k&&k.g));return bez.length?`<p class="blad" style="font-weight:700">⚠ ${bez.length} uczniów bez przypisanej grupy – odblokowania z „Prowadzenia lekcji” ich nie obejmują. Wybierz grupę w kolumnie „Grupa” albo <button id="autoGr">🪄 Przypisz grupy wg planu lekcji</button></p>`:""})()}
+  <div id="autoBox"></div>
   <p class="mute">Ocena przy misji to propozycja wg poziomu (Rekrut do 4, Agent do 5, Elita do 6); po poprawie na wyższym poziomie zostaje najwyższa. Kartkówka i sprawdzian wg skali szkolnej. 💡 = liczba podpowiedzi.</p>
   <div class="przewin"><table><tr><th>Uczeń</th><th>Oddział</th><th>Grupa</th><th>XP</th><th>Stopień</th>${F.etapy.map(e=>`<th>${esc(e.tytul.det)}</th>`).join("")}<th>Ostatnio</th></tr>
   ${lista.map((g,i)=>{const s=stanUcznia(g);return `<tr class="klik" data-i="${D.gracze.indexOf(g)}"><td><b>${esc(g.n)}</b></td><td>${esc(g.k)}</td><td>${(()=>{const gr=[...new Set(D.klasy.filter(k=>k.k===g.k&&k.g).map(k=>k.g))].sort();return gr.length?`<select data-grupa="${D.gracze.indexOf(g)}" title="Grupa ucznia" style="${g.g?"":"border-color:var(--zle);color:var(--zle)"}"><option value="" ${g.g?"":"selected"}>brak!</option>${gr.map(x=>`<option ${x===String(g.g||"")?"selected":""}>${esc(x)}</option>`).join("")}</select>`:esc(g.g||"–")})()}</td><td>${+g.xp||0}</td><td>${esc(stopien(+g.xp||0))}</td>${F.etapy.map(e=>`<td>${komorka(e,s)}</td>`).join("")}<td class="mute">${data(g.ost)}</td></tr>`}).join("")}
   </table></div></div><div id="szczeg"></div>`;
   $("#f").onchange=e=>{filtr=e.target.value;rysuj()};
   $$("tr.klik",t).forEach(r=>r.onclick=e=>{if(e.target.closest("select"))return;szczegoly(D.gracze[+r.dataset.i])});
+  const ag=$("#autoGr",t);if(ag)ag.onclick=()=>autoGrupy(lista);
   $$("[data-grupa]",t).forEach(sel=>{sel.onclick=e=>e.stopPropagation();sel.onchange=async()=>{const g=D.gracze[+sel.dataset.grupa];
     if(await akcja("ustawGrupe",{n:g.n,k:g.k,g:sel.value},null)){g.g=sel.value;sel.style.cssText=sel.value?"":"border-color:var(--zle);color:var(--zle)"}else{alert("Nie udało się zapisać grupy (zaktualizuj skrypt w arkuszu albo spróbuj ponownie).");sel.value=g.g||""}}});
   $("#csv").onclick=()=>{
@@ -125,6 +127,63 @@ function uczniowie(t,odd){
     lista.forEach(g=>{const s=stanUcznia(g);wiersze.push([g.n,g.k,g.xp,...F.etapy.flatMap(e=>{if(e.typ==="test"){const r=(s.testy||{})[e.id];return r?[r.s,r.m,ocenaTestu(r.s,r.m)]:["","",""]}const r=(s.misje||{})[e.id];if(e.bezPoziomu)return [r?r.proc:""];return r?[F.poziomy[r.poziom].n,r.proc,r.ocena,r.podp]:["","","",""]})])});
     const csv="﻿"+wiersze.map(w=>w.map(x=>`"${String(x==null?"":x).replace(/"/g,'""')}"`).join(";")).join("\r\n");
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=`agencja-wyniki${filtr?"-"+filtr:""}.csv`;a.click();
+  };
+}
+const grPlanu=t=>{const m=/^(\d)([a-z]+?)l?(\d)\/(\d)$/i.exec(String(t||"").trim());return m?{k:(m[1]+m[2]).toUpperCase(),g:m[3]}:null};
+const minut=t=>{const m=/(\d{1,2}):(\d{2})/.exec(t);return m?+m[1]*60+ +m[2]:0};
+function czasyUcznia(s){   // momenty aktywności ucznia zapisane w postępie
+  const t=[];
+  Object.values(s.misje||{}).forEach(m=>{(m.proby||[m]).forEach(p=>{if(p.data)t.push(p.data)})});
+  Object.values(s.testy||{}).forEach(x=>{if(x.data)t.push(x.data)});
+  if(s.trwa&&s.trwa.t)t.push(new Date(s.trwa.t).toISOString());
+  return t.map(x=>new Date(x)).filter(d=>!isNaN(d));
+}
+function wykryjGrupe(g,s){
+  const glosy={},lekcje=[];
+  czasyUcznia(s).forEach(d=>{
+    const dz=d.getDay(),min=d.getHours()*60+d.getMinutes();
+    (D.plan||[]).forEach(p=>{const gr=grPlanu(p.gr);if(!gr||gr.k!==g.k||p.d!==dz)return;
+      const [od,doo]=p.godz.split(/[–-]/).map(minut);
+      if(min>=od-10&&min<=doo+15){glosy[gr.g]=(glosy[gr.g]||0)+1;lekcje.push(`${["","pn","wt","śr","czw","pt"][dz]} ${p.godz}`)}});
+  });
+  const naj=Object.entries(glosy).sort((a,b)=>b[1]-a[1])[0];
+  return {g:naj?naj[0]:"",lekcje:[...new Set(lekcje)]};
+}
+function nadmiarowe(s,kl){   // etapy zrobione ponad odblokowanie grupy
+  if(!kl||!kl.od)return [];
+  const oi=F.etapy.findIndex(e=>e.id===kl.od);
+  return F.etapy.filter((e,i)=>i>oi&&(e.typ==="test"?(s.testy||{})[e.id]:(s.misje||{})[e.id]));
+}
+function autoGrupy(lista){
+  const box=$("#autoBox"),bez=lista.filter(g=>!g.g&&D.klasy.some(k=>k.k===g.k&&k.g));
+  const wiersze=bez.map(g=>{const s=stanUcznia(g),w=wykryjGrupe(g,s);return {g,s,w}});
+  const grupy=k=>[...new Set(D.klasy.filter(x=>x.k===k&&x.g).map(x=>x.g))].sort();
+  box.innerHTML=`<div class="karta"><h3>Przypisanie grup wg planu lekcji</h3>
+    <p class="mute">Grupa wykryta z godzin, w których uczeń robił misje, porównanych z planem. Zaznaczone etapy zostaną usunięte, bo uczeń zrobił je, zanim były odblokowane dla jego grupy (zrobi je ponownie po odblokowaniu). Sprawdź i popraw przed zastosowaniem.</p>
+    <div class="przewin"><table><tr><th>Uczeń</th><th>Aktywność w czasie lekcji</th><th>Grupa</th><th>Usuń wyniki (zrobione przed odblokowaniem)</th></tr>
+    ${wiersze.map((x,i)=>`<tr data-r="${i}"><td><b>${esc(x.g.n)}</b> <span class="mute">${esc(x.g.k)}</span></td>
+      <td class="mute" style="white-space:normal">${x.w.lekcje.length?esc(x.w.lekcje.join(", ")):"nie rozpoznano – wybierz ręcznie"}</td>
+      <td><select data-ag>${`<option value="">–</option>`+grupy(x.g.k).map(v=>`<option ${v===x.w.g?"selected":""}>${esc(v)}</option>`).join("")}</select></td>
+      <td data-nad style="white-space:normal"></td></tr>`).join("")}</table></div>
+    <p><button class="glowny" id="agZast">Zastosuj</button> <button id="agAnul">Anuluj</button> <span class="mute" id="agSt"></span></p></div>`;
+  const nad=tr=>{const x=wiersze[+tr.dataset.r],v=$("[data-ag]",tr).value,kl=D.klasy.find(k=>k.k===x.g.k&&k.g===v);
+    const n=nadmiarowe(x.s,kl);$("[data-nad]",tr).innerHTML=n.length?n.map(e=>`<label style="display:block"><input type="checkbox" data-del="${e.id}" checked> ${esc(e.lekcja||e.tytul.det)}</label>`).join(""):`<span class="mute">${v?"nic":"wybierz grupę"}</span>`};
+  $$("tr[data-r]",box).forEach(tr=>{nad(tr);$("[data-ag]",tr).onchange=()=>nad(tr)});
+  $("#agAnul").onclick=()=>{box.innerHTML=""};
+  $("#agZast").onclick=async()=>{
+    const zad=$$("tr[data-r]",box).map(tr=>({x:wiersze[+tr.dataset.r],g:$("[data-ag]",tr).value,del:$$("[data-del]:checked",tr).map(c=>c.dataset.del)})).filter(z=>z.g);
+    if(!zad.length){$("#agSt").textContent="Nie wybrano żadnej grupy.";return}
+    const ileDel=zad.reduce((a,z)=>a+z.del.length,0);
+    if(!confirm(`Przypisać grupy ${zad.length} uczniom${ileDel?` i usunąć ${ileDel} wyników etapów`:""}?`))return;
+    $("#agZast").disabled=true;let ok=0,bl=0;
+    for(const z of zad){
+      $("#agSt").textContent=`Zapisuję… ${ok+bl+1}/${zad.length}`;
+      const r1=await akcja("ustawGrupe",{n:z.x.g.n,k:z.x.g.k,g:z.g},null);
+      let r2=true;for(const id of z.del){if(!(await akcja("resetEtapu",{n:z.x.g.n,k:z.x.g.k,etap:id},null)))r2=false}
+      r1&&r2?ok++:bl++;
+    }
+    $("#agSt").textContent=`✔ Gotowe: ${ok}${bl?`, błędy: ${bl} (spróbuj ponownie)`:""}. Odświeżam…`;
+    await wczytaj();
   };
 }
 function szczegoly(g){
