@@ -301,7 +301,7 @@
         const h = await sha("agencja|" + n.toLowerCase() + "|" + pin);
         const r = await api("login", { n, kod, h });
         if (!r.ok) {
-          bl.textContent = { kod: "Nieznany kod klasy. Sprawdź go u nauczyciela.", pin: "Zły PIN dla tej osoby w tej klasie.", blokada: "Za dużo prób. Odczekaj 10 minut.", nick: "Nieprawidłowe imię.", zajety: "Centrala jest zajęta. Spróbuj ponownie za chwilę." }[r.e] || "Nie udało się zalogować.";
+          bl.textContent = { kod: "Nieznany kod klasy. Sprawdź go u nauczyciela.", pin: "Zły PIN dla tej osoby w tej klasie.", blokada: "Za dużo prób. Odczekaj 10 minut.", nick: "Nieprawidłowe imię.", grupa: "To kod całej klasy. Wpisz kod swojej grupy – poda go nauczyciel.", zajety: "Centrala jest zajęta. Spróbuj ponownie za chwilę." }[r.e] || "Nie udało się zalogować.";
           return;
         }
         if (r.stan) {
@@ -365,9 +365,10 @@
   async function celKlasy() {
     const box = $("#cel-klasy"); if (!box || !S.gracz || S.lokalny || !S.gracz.k) return;
     try {
-      const r = await api("klasy", {});
+      const r = await api("klasy", { n: S.gracz.n, k: S.gracz.k });
       if (!r.ok) return;
       const moja = r.klasy.find((k) => k.k === S.gracz.k); if (!moja) return;
+      if (r.ja != null && r.ja !== (S.gracz.g || "")) { S.gracz.g = r.ja; S.klasa = null; }   // nauczyciel przypisał grupę w panelu
       const przed = JSON.stringify(S.klasa);
       const ust = (r.grupy || []).find((x) => x.k === S.gracz.k && x.g === (S.gracz.g || "")) || moja;   // ustawienia grupy ucznia
       const zmiana = ustawKlase(ust.m, ust.dm, ust.od, ust.kom);

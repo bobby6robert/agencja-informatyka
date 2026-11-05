@@ -136,6 +136,7 @@ function rysuj(){
     <select id="selE" aria-label="Lekcja">${F.etapy.map((x,i)=>`<option value="${i}" ${i===etapI?"selected":""}>${esc(x.lekcja||x.id)} – ${esc(tytul(x))}</option>`).join("")}</select>
     <div class="kroki">${kroki().map(([id,n])=>`<button data-k="${id}" aria-pressed="${krok===id}">${n}</button>`).join("")}</div>
     <span style="flex:1"></span>
+    ${(()=>{const bez=k&&k.g?D.gracze.filter(g=>g.k===k.k&&!g.g).length:0;return bez?`<span class="blad" style="font-weight:700" title="Przypisz grupy w panelu (Uczniowie → kolumna Grupa)">⚠ ${bez} uczniów ${esc(k.k)} bez grupy</span>`:""})()}
     <span class="mala">${stanOdb}</span>
     ${odbl&&k&&k.od?`<span class="st-ok">✔ odblokowane</span>`:`<button class="glowny" id="odblokuj">🔓 Odblokuj: ${esc(tytul(e))}</button>`}
     <button class="drugi" id="pelny" title="Pełny ekran">⛶</button>
