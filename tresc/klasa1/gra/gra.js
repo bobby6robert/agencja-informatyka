@@ -288,8 +288,9 @@
     const box = $("#logowanie");
     box.innerHTML = `<form class="karta login" autocomplete="off">
       <h2>Logowanie</h2>
+      <div class="lekcja-teraz"></div>
       <label>Imię i pierwsza litera nazwiska<input name="n" maxlength="16" placeholder="np. Ola K." required></label>
-      <label>Kod klasy (poda nauczyciel)<input name="kod" maxlength="12" placeholder="np. 1A-XXXX" required style="text-transform:uppercase"></label>
+      <label class="pole-kod">Kod klasy (poda nauczyciel)<input name="kod" maxlength="12" placeholder="np. 1A-XXXX" required style="text-transform:uppercase"></label>
       <label>PIN – 4 cyfry. Zapamiętaj go!<input name="pin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="••••" required type="password"></label>
       <p class="mala">Ten sam formularz służy do logowania na innym komputerze lub telefonie. Postęp zapisuje się w chmurze nauczyciela.</p>
       <p><button class="glowny" type="submit">Wchodzę do gry ▸</button></p>
@@ -297,6 +298,14 @@
       <p><button type="button" class="link" data-lok>Graj bez konta (postęp tylko na tym urządzeniu)</button></p>
     </form>`;
     const f = $("form", box), bl = $(".blad", box);
+    let teraz = null;   // grupa, która według planu ma teraz lekcję – wtedy kod klasy nie jest potrzebny
+    api("teraz", {}).then((r) => {
+      if (!r || !r.k || String(r.k).charAt(0) !== String(F.klasa) || !document.body.contains(f)) return;
+      teraz = r;
+      $(".lekcja-teraz", box).innerHTML = `<p class="info">📚 Trwa lekcja: <b>${esc(r.k)}${r.g ? " gr " + esc(r.g) : ""}</b>. Kodu klasy nie trzeba wpisywać.
+        <br><small>Jeśli nie jesteś z tej grupy, wpisz kod od nauczyciela.</small></p>`;
+      f.kod.required = false; f.kod.placeholder = "nie trzeba – trwa lekcja";
+    }).catch(() => {});
     $("[data-lok]", box).onclick = () => {
       const n = f.n.value.trim();
       S.lokalny = true; S.gracz = n ? { n: n.slice(0, 16) } : null; S.klasa = null; zapisz(); start();
@@ -309,9 +318,9 @@
       bl.textContent = "Łączę z centralą…";
       try {
         const h = await sha("agencja|" + n.toLowerCase() + "|" + pin);
-        const r = await api("login", { n, kod, h });
+        const r = await api("login", !kod && teraz ? { n, h, teraz: 1, kl: F.klasa } : { n, kod, h });
         if (!r.ok) {
-          bl.textContent = { kod: "Nieznany kod klasy. Sprawdź go u nauczyciela.", pin: "Zły PIN dla tej osoby w tej klasie.", blokada: "Za dużo prób. Odczekaj 10 minut.", nick: "Nieprawidłowe imię.", grupa: "To kod całej klasy. Wpisz kod swojej grupy – poda go nauczyciel.", zajety: "Centrala jest zajęta. Spróbuj ponownie za chwilę." }[r.e] || "Nie udało się zalogować.";
+          bl.textContent = { kod: "Nieznany kod klasy. Sprawdź go u nauczyciela.", pin: "Zły PIN dla tej osoby w tej klasie.", blokada: "Za dużo prób. Odczekaj 10 minut.", nick: "Nieprawidłowe imię.", grupa: "To kod całej klasy. Wpisz kod swojej grupy – poda go nauczyciel.", brakLekcji: "Lekcja już się skończyła. Wpisz kod klasy od nauczyciela.", zajety: "Centrala jest zajęta. Spróbuj ponownie za chwilę." }[r.e] || "Nie udało się zalogować.";
           return;
         }
         if (r.stan) {
