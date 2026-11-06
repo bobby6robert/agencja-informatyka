@@ -1468,6 +1468,8 @@ function teczka(l){if(l._tz||l.slides.length<1)return;l._tz=1;const bits=[];
  l.slides.unshift({h:"🗂️ Teczka sprawy – najważniejsze w skrócie",html:`<p>Zanim zagłębisz się w pełną teorię, przeczytaj kluczowe informacje do tej sprawy:</p>${bits.length?`<ul>${bits.slice(0,5).map(x=>`<li>${E(x)}</li>`).join("")}</ul>`:""}<p><b>Plan śledztwa (slajdy):</b> ${heads.map(E).join(" → ")}.</p>${l.mis?`<div class="note"><b>Cel:</b> po teorii czeka na ciebie misja „${E(l.mis.title)}”.</div>`:""}`})}
 function init(){const M=window.MIS||{};LESSONS.forEach(l=>{if(M[l.id]){l.mis=M[l.id];teczka(l)}});drawNick();try{render()}catch(e){}}
 init();
+/* agencja-hash: #l5 otwiera od razu wskazaną lekcję (link z gry) */
+(function(){function go(){const m=/^#([ls]\d+)$/.exec(location.hash);if(!m||!LESSONS.some(l=>l.id===m[1]))return;state.lesson=m[1];state.tab="teoria";state.slide=0;try{render();scrollTo(0,0)}catch(e){}}go();addEventListener("hashchange",go)})();
 })();
 </script>
 </body>

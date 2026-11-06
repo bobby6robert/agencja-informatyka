@@ -33,6 +33,16 @@
   const nazwaStopnia = (i) => M().stopnie[i];
   const etapGotowy = (e) => (e.typ === "test" ? !!S.testy[e.id] : !!S.misje[e.id]);
   const POZ = ["rekrut", "agent", "elita"];
+  const czyProlog = (e) => /(^|-)prolog$/.test(e.id);
+  const rozdzialEtapu = (e) => e.r || 1;
+  const R = (nr) => F.rozdzialy.find((r) => r.nr === nr) || F.rozdzialy[0];
+  const etapyRozdzialu = (nr) => F.etapy.filter((e) => rozdzialEtapu(e) === nr);
+  function rozdzialAkt() {   // rozdział, w którym uczeń teraz gra: pierwszy z dostępnym, nieukończonym etapem
+    const i = F.etapy.findIndex((e, j) => !etapGotowy(e) && dostepny(j));
+    if (i >= 0) return R(rozdzialEtapu(F.etapy[i]));
+    const ost = [...F.etapy].reverse().find(etapGotowy);
+    return R(ost ? rozdzialEtapu(ost) : 1);
+  }
   function oczysc() {   // usuwa wyniki etapów, których nie ma już w rozdziale
     const ids = new Set(F.etapy.map((e) => e.id));
     let zm = false;
@@ -45,7 +55,7 @@
     let x = 0;
     Object.values(st.misje || {}).forEach((m) => { x += +(m.xpMax != null ? m.xpMax : m.pkt) || 0; });
     x += 15 * Object.keys(st.zagadki || {}).length;
-    Object.entries(st.testy || {}).forEach(([id, t]) => { x += Math.round((+t.s || 0) / (+t.m || 1) * (id === "boss" ? 200 : 80)); });
+    Object.entries(st.testy || {}).forEach(([id, t]) => { x += Math.round((+t.s || 0) / (+t.m || 1) * (/(^|-)boss$/.test(id) ? 200 : 80)); });
     Object.values(st.wyzwania || {}).forEach((w) => { x += Math.round(+w.pkt || 0); });
     return x;
   }
@@ -213,7 +223,7 @@
     const pas = nast ? Math.round((S.xp - F.progi[st]) / (nast - F.progi[st]) * 100) : 100;
     app.innerHTML = `
       <header class="gora">
-        <div class="logo"><b>${esc(M().agencja)}</b><span>${esc(M().sprawa)} · ${esc(F.rozdzial)}</span></div>
+        <div class="logo"><b>${esc(M().agencja)}</b><span>${esc(M().sprawa)} · ${esc(rozdzialAkt().nazwa)}</span></div>
         <div class="gracz" title="${S.xp} XP">
           <div class="mini">${awatar(S.awatar, 44)}</div>
           <div><b>${esc(S.gracz ? S.gracz.n : "Gość")}</b>${S.gracz && S.gracz.k ? ` <small>${esc(S.gracz.k)}${S.gracz.g ? " gr " + esc(S.gracz.g) : ""}</small>` : ""}<br>
@@ -261,7 +271,7 @@
     document.body.dataset.m = S.motyw || "det";
     if (!S.gracz && !S.lokalny) {
       app.innerHTML = `<div class="start"><h1>Informatyka · klasa ${F.klasa}</h1>
-        <p class="lead">Gra fabularna: ${esc(F.rozdzial)}. Zaloguj się kodem klasy, który poda nauczyciel.</p><div id="logowanie"></div></div>`;
+        <p class="lead">Gra fabularna: ${esc(rozdzialAkt().nazwa)}. Zaloguj się kodem klasy, który poda nauczyciel.</p><div id="logowanie"></div></div>`;
       return logowanie();
     }
     if (!S.motyw) { const k = S.klasa || {}; ustawKlase(k.m, k.dm, k.od, k.kom); }
@@ -333,33 +343,41 @@
     w.innerHTML = `
       <section class="karta naglowek-sprawy">
         <div class="trio">${portret("s", S.motyw, 56)}${portret("p", S.motyw, 56)}${portret("w", S.motyw, 56)}</div>
-        <div><h1>${esc(M().sprawa)}</h1><p>${esc(F.rozdzial)}</p>
+        <div><h1>${esc(M().sprawa)}</h1><p>${esc(rozdzialAkt().nazwa)}</p>
         ${ost ? `<button class="drugi" data-przypomnij>📜 Przypomnij, co się wydarzyło</button>` : ""}</div>
       </section>
       ${S.klasa && S.klasa.kom ? `<section class="karta rozkaz"><div>${portret("s", S.motyw, 52)}</div><div><b>📨 Wiadomość od: ${esc(M().szef)}</b><p>${esc(S.klasa.kom)}</p></div></section>` : ""}
       <section id="cel-klasy"></section>
       ${wyzwanieHTML()}
-      <ol class="sciezka">${F.etapy.map((e, i) => {
-        const ok = etapGotowy(e), dost = dostepny(i), wyn = e.typ === "test" ? S.testy[e.id] : S.misje[e.id];
-        const ikona = e.boss ? "💀" : e.typ === "test" ? "🎙️" : e.id === "prolog" ? "📞" : "📁";
-        let info = "";
-        if (wyn && e.typ === "misja") info = e.bezPoziomu ? `${wyn.proc}%` : `${F.poziomy[wyn.poziom].n} · ${wyn.proc}% · proponowana ocena: <b>${wyn.ocena}</b>${moznaPoprawic(e) ? " · można poprawić" : ""}`;
-        if (wyn && e.typ === "test") info = `${wyn.s}/${wyn.m} pkt (${wyn.proc}%) · proponowana ocena: <b>${ocenaTestu(wyn.s, wyn.m)}</b>`;
-        if (!ok && zamknietyPrzezSzefa(i)) info = `odblokuje ${esc(M().szef)}`;
-        const zaleg = !ok && S.klasa && S.klasa.od && i < odblokowaneDo();
-        if (zaleg) info = `<b class="zaleg-t">⚠ zaległa – do zaliczenia</b>`;
-        return `<li class="etap ${ok ? "zrob" : dost ? "dost" : "zamk"} ${e.boss ? "boss" : ""} ${zaleg ? "zaleg" : ""}">
-          <button data-i="${i}" ${dost || ok ? "" : "disabled"}>
-            <span class="ik">${ok ? "✔" : dost ? ikona : "🔒"}</span>
-            <span class="tx"><b>${esc(tytul(e))}</b><small>${esc(e.lekcja || (e.typ === "test" ? (e.boss ? "Finał rozdziału – sprawdzian" : "Kartkówka") : e.id === "prolog" ? "Prolog" : "Misja"))}${info ? " · " + info : ""}</small></span>
-          </button></li>`;
-      }).join("")}</ol>`;
+      ${F.rozdzialy.map((r) => {
+        const idx = F.etapy.map((e, i) => i).filter((i) => rozdzialEtapu(F.etapy[i]) === r.nr);
+        if (!idx.length) return "";
+        const gotowy = idx.every((i) => etapGotowy(F.etapy[i]));
+        return `<details class="rozdz" ${r.nr === rozdzialAkt().nr ? "open" : ""}><summary>${esc(r.nazwa)}${gotowy ? " · ✔ ukończony" : ""}</summary>
+          <ol class="sciezka">${idx.map((i) => etapLi(F.etapy[i], i)).join("")}</ol></details>`;
+      }).join("")}`;
     $$(".sciezka button", w).forEach((b) => (b.onclick = () => { dzwiek("klik"); otworzEtap(F.etapy[+b.dataset.i]); }));
     const pz = $("[data-przypomnij]", w); if (pz) pz.onclick = () => scena(ost.koniec[S.motyw]);
     const wz = $("[data-wyzwanie]", w); if (wz) wz.onclick = grajWyzwanie;
     celKlasy();
     if (!S.misje.prolog && !S.widzialStart) { S.widzialStart = 1; zapisz(); otworzEtap(F.etapy[0]); }
     else if (S.klasa && S.klasa.kom && S.komWidziany !== S.klasa.kom) { S.komWidziany = S.klasa.kom; zapisz(); scena([["s", S.klasa.kom]]); }
+  }
+
+  function etapLi(e, i) {
+    const ok = etapGotowy(e), dost = dostepny(i), wyn = e.typ === "test" ? S.testy[e.id] : S.misje[e.id];
+    const ikona = e.boss ? "💀" : e.typ === "test" ? "🎙️" : czyProlog(e) ? "📞" : "📁";
+    let info = "";
+    if (wyn && e.typ === "misja") info = e.bezPoziomu ? `${wyn.proc}%` : `${F.poziomy[wyn.poziom].n} · ${wyn.proc}% · proponowana ocena: <b>${wyn.ocena}</b>${moznaPoprawic(e) ? " · można poprawić" : ""}`;
+    if (wyn && e.typ === "test") info = `${wyn.s}/${wyn.m} pkt (${wyn.proc}%) · proponowana ocena: <b>${ocenaTestu(wyn.s, wyn.m)}</b>`;
+    if (!ok && zamknietyPrzezSzefa(i)) info = `odblokuje ${esc(M().szef)}`;
+    const zaleg = !ok && S.klasa && S.klasa.od && i < odblokowaneDo();
+    if (zaleg) info = `<b class="zaleg-t">⚠ zaległa – do zaliczenia</b>`;
+    return `<li class="etap ${ok ? "zrob" : dost ? "dost" : "zamk"} ${e.boss ? "boss" : ""} ${zaleg ? "zaleg" : ""}">
+      <button data-i="${i}" ${dost || ok ? "" : "disabled"}>
+        <span class="ik">${ok ? "✔" : dost ? ikona : "🔒"}</span>
+        <span class="tx"><b>${esc(tytul(e))}</b><small>${esc(e.lekcja || (e.typ === "test" ? (e.boss ? "Finał rozdziału – sprawdzian" : "Kartkówka") : czyProlog(e) ? "Prolog" : "Misja"))}${info ? " · " + info : ""}</small></span>
+      </button></li>`;
   }
 
   async function celKlasy() {
@@ -467,7 +485,10 @@
     const xp = S.xp - xpPrzed;
     const nowe = [];
     if (pierwszy) [].concat(e.karta || []).forEach((k) => { if (!S.karty.includes(k)) { S.karty.push(k); nowe.push(k); } });
-    if (F.etapy.filter((x) => x.zagadka).every((x) => S.zagadki[x.id]) && !S.karty.includes("c6")) { S.karty.push("c6"); nowe.push("c6"); }
+    F.rozdzialy.forEach((r) => {   // tajna karta rozdziału za wszystkie jego zagadki
+      const z = etapyRozdzialu(r.nr).filter((x) => x.zagadka);
+      if (r.tajna && z.length && z.every((x) => S.zagadki[x.id]) && !S.karty.includes(r.tajna)) { S.karty.push(r.tajna); nowe.push(r.tajna); }
+    });
     zapisz();
     await podsumowanie({ e, poziom, suma: Math.round(suma), max, proc, podp, pierwszy, rodzaj, stara, xp, nowe, przed });
     mapa();
@@ -681,19 +702,24 @@
       </section>
       <section class="karta"><h2>${esc(M().kolekcja)} (${S.karty.length}/${Object.keys(F.karty).length})</h2>
         <div class="karty">${Object.keys(F.karty).map((k) => kartaHTML(k, S.karty.includes(k))).join("")}</div>
-        <p class="mala">Tajną kartę zdobędziesz, rozwiązując wszystkie zagadki dodatkowe.</p>
+        <p class="mala">Tajną kartę rozdziału zdobędziesz, rozwiązując wszystkie jego zagadki dodatkowe.</p>
       </section>
       <section class="karta"><h2>Moje wyniki</h2><table class="tabela"><tr><th>Etap</th><th>Poziom</th><th>Wynik</th><th>Proponowana ocena</th></tr>
-        ${F.etapy.map((e) => { const m = e.typ === "test" ? S.testy[e.id] : S.misje[e.id];
-          return `<tr><td>${esc(tytul(e))}</td><td>${m && m.poziom && !e.bezPoziomu ? esc(F.poziomy[m.poziom].n) : e.typ === "test" ? (e.boss ? "Sprawdzian" : "Kartkówka") : "–"}</td><td>${m ? (e.typ === "test" ? `${m.s}/${m.m} (${m.proc}%)` : `${m.proc}%`) : "–"}</td><td>${m && m.ocena ? `<b>${m.ocena}</b>${m.proby && m.proby.length > 1 ? " <small>(po poprawie)</small>" : ""}` : m && e.typ === "test" ? `<b>${ocenaTestu(m.s, m.m)}</b>` : "–"}</td></tr>`; }).join("")}
+        ${F.etapy.map((e, i) => { const m = e.typ === "test" ? S.testy[e.id] : S.misje[e.id];
+          const nag = F.rozdzialy.length > 1 && (i === 0 || rozdzialEtapu(F.etapy[i - 1]) !== rozdzialEtapu(e)) ? `<tr><th colspan="4">${esc(R(rozdzialEtapu(e)).nazwa)}</th></tr>` : "";
+          if (!m && rozdzialEtapu(e) > rozdzialAkt().nr) return "";
+          return nag + `<tr><td>${esc(tytul(e))}</td><td>${m && m.poziom && !e.bezPoziomu ? esc(F.poziomy[m.poziom].n) : e.typ === "test" ? (e.boss ? "Sprawdzian" : "Kartkówka") : "–"}</td><td>${m ? (e.typ === "test" ? `${m.s}/${m.m} (${m.proc}%)` : `${m.proc}%`) : "–"}</td><td>${m && m.ocena ? `<b>${m.ocena}</b>${m.proby && m.proby.length > 1 ? " <small>(po poprawie)</small>" : ""}` : m && e.typ === "test" ? `<b>${ocenaTestu(m.s, m.m)}</b>` : "–"}</td></tr>`; }).join("")}
       </table></section>
-      <section class="karta"><h2>🎓 Dyplom</h2>${F.etapy.every(etapGotowy)
-        ? `<p>Rozdział ukończony! Pobierz dyplom z wynikami.</p><p><button class="glowny" data-dyplom>Pobierz dyplom (PNG)</button></p>`
-        : `<p class="mala">Dyplom odblokujesz po ukończeniu wszystkich etapów rozdziału (${ukonczone()}/${F.etapy.length}).</p>`}</section>`;
+      <section class="karta"><h2>🎓 Dyplomy</h2>${F.rozdzialy.filter((r) => r.nr <= rozdzialAkt().nr).map((r) => {
+        const et = etapyRozdzialu(r.nr), ile = et.filter(etapGotowy).length;
+        return ile === et.length
+          ? `<p><b>${esc(r.nazwa)}</b> – ukończony! <button class="glowny" data-dyplom="${r.nr}">Pobierz dyplom (PNG)</button></p>`
+          : `<p class="mala"><b>${esc(r.nazwa)}</b> – dyplom po ukończeniu wszystkich etapów (${ile}/${et.length}).</p>`;
+      }).join("")}</section>`;
     $$("[data-s]", w).forEach((b) => (b.onclick = () => {
       const s = b.dataset.s; S.awatar[s] = s === "skora" || s === "wlosy" ? +b.dataset.v : b.dataset.v; zapisz(); dzwiek("klik"); agent();
     }));
-    const dy = $("[data-dyplom]", w); if (dy) dy.onclick = dyplom;
+    $$("[data-dyplom]", w).forEach((b) => (b.onclick = () => dyplom(+b.dataset.dyplom)));
     const pl = $("[data-polacz]", w); if (pl) pl.onclick = () => { S.lokalny = false; S.gracz = null; zapisz(); start(); };
     $("[data-wyloguj]", w).onclick = async () => {
       if (!(await pytanie(S.lokalny ? "Wylogować? Postęp gry bez konta zostanie usunięty z tego urządzenia." : "Wylogować z tego urządzenia? Postęp zostaje w chmurze.", "Wyloguj", "Anuluj"))) return;
@@ -727,7 +753,7 @@
   }
 
   /* ---------- Dyplom (PNG) ---------- */
-  async function dyplom() {
+  async function dyplom(nr) {
     const W = 1600, H = 1130, c = document.createElement("canvas"); c.width = W; c.height = H;
     const x = c.getContext("2d"), st = getComputedStyle(document.body);
     const akc = st.getPropertyValue("--akc").trim() || "#fca311", tlo = st.getPropertyValue("--panel").trim() || "#16213e";
@@ -744,9 +770,9 @@
     x.font = "bold 72px Segoe UI, sans-serif"; x.fillStyle = "#fff"; x.fillText((S.gracz && S.gracz.n) || "Agent", sr, 405);
     x.font = "34px Segoe UI, sans-serif"; x.fillStyle = "#e8edf5";
     x.fillText(`klasa ${(S.gracz && S.gracz.k) || "–"} · stopień: ${nazwaStopnia(stopien())} · ${S.xp} XP`, sr, 465);
-    x.fillText(`za ukończenie: ${F.rozdzial}`, sr, 520);
+    x.fillText(`za ukończenie: ${R(nr).nazwa}`, sr, 520);
     x.textAlign = "left"; x.font = "28px Segoe UI, sans-serif"; let y = 640;
-    F.etapy.forEach((e) => {
+    etapyRozdzialu(nr).forEach((e) => {
       const m = e.typ === "test" ? S.testy[e.id] : S.misje[e.id]; if (!m) return;
       const oc = e.typ === "test" ? ocenaTestu(m.s, m.m) : m.ocena;
       x.fillStyle = "#e8edf5"; x.fillText(tytul(e), 520, y);

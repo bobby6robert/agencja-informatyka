@@ -55,11 +55,15 @@
 <div id="app"></div>
 <script src="../tresc/klasa1/gra/fabula.js"></script>
 <script src="../tresc/klasa1/gra/fabula-mundur.js"></script>
+<script src="../tresc/klasa1/gra/rozdzial2.js"></script>
+<script src="../tresc/klasa2/gra/fabula.js"></script>
+<script src="../tresc/klasa2/gra/rozdzial1.js"></script>
 <script src="../tresc/klasa1/gra/postacie.js"></script>
 <script>
 (function(){
 "use strict";
-const F=window.FABULA, BAZA="../tresc/klasa1/gra/";
+const Fakt=()=>{const k=K(),r=k&&String(k.k)[0];return window.FABULY[r]||window.FABULY[1]};   // fabuła klasy wybranej z planu
+const F=new Proxy({},{get:(t,p)=>Fakt()[p]});
 let API="https://script.google.com/macros/s/AKfycbzGvnKlock74eu0ptTr8Dy7O7BKdnQBL2V8B9vFoSWcl80k3ZLd06R1tBz8m82dQPKySw/exec";
 try{const q=new URLSearchParams(location.search).get("api");if(q&&/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//.test(q))API=q}catch(e){}
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -87,7 +91,7 @@ function ocenaTestu(sk,mx){const p=Math.round((+sk||0)/(+mx||1)*100);for(const [
 function nazwaTestu(id){const m=/^k(\d)(\d)([abk])$/.exec(id);if(!m)return id;return `Klasa ${m[1]} · Rozdział ${m[2]} · ${m[3]==="k"?"kartkówka":"sprawdzian "+m[3].toUpperCase()}`}
 const grupaZPlanu=t=>{const m=/^(\d)([a-z]+?)l?(\d)\/(\d)$/i.exec(String(t||"").trim());return m?{k:(m[1]+m[2]).toUpperCase(),g:m[3],nr:+m[1]}:null};
 const MATERIALY={1:"../tresc/klasa1/klasa1-informatyka-efekty.html",2:"../tresc/klasa2/klasa2-informatyka-efekty.html"};   // klasy z materiałami w aplikacji
-const GRA_KLASY=[1];   // klasy, dla których jest gra
+const GRA_KLASY=Object.keys(window.FABULY).map(Number);   // klasy, dla których jest gra
 const DNI=["","Poniedziałek","Wtorek","Środa","Czwartek","Piątek"];
 
 /* ---------- logowanie ---------- */
@@ -117,6 +121,7 @@ function kroki(){
 }
 const pelny=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})};
 function rysuj(){
+  if(etapI>=F.etapy.length)etapI=Math.min(1,F.etapy.length-1);
   clearInterval(timer);timer=null;
   if(krok==="plan"||krok==="planEdycja"||krok==="teoriaK"){
     document.body.dataset.m="det";
@@ -142,7 +147,7 @@ function rysuj(){
     <button class="drugi" id="pelny" title="Pełny ekran">⛶</button>
   </div><div id="ekran"></div>`;
   $("#doPlanu").onclick=()=>{krok="plan";rysuj()};
-  $("#selK").onchange=ev=>{klasa=ev.target.value;zapamietaj();rysuj()};
+  $("#selK").onchange=ev=>{klasa=ev.target.value;if(etapI>=F.etapy.length)etapI=nastepny(K());zapamietaj();rysuj()};
   $("#selE").onchange=ev=>{etapI=+ev.target.value;krok="odprawa";zapamietaj();rysuj()};
   $$(".kroki button").forEach(b=>b.onclick=()=>{krok=b.dataset.k;rysuj()});
   $("#pelny").onclick=pelny;
@@ -250,7 +255,7 @@ function odprawa(){
 /* ---------- 2. teoria ---------- */
 function teoria(){
   const e=E(),w=$("#ekran");let i=0;
-  const url=id=>`${BAZA}${F.lekcje}#${id}`;
+  const url=id=>`../${F.baza}${F.lekcje}#${id}`;
   w.innerHTML=`<div class="ramkaT"><div class="nawT"><button class="drugi" id="pop">◂ Poprzednia część</button><b id="tytT"></b>
     <button class="drugi" id="zoomM" title="Mniejszy tekst">A−</button><button class="drugi" id="zoomP" title="Większy tekst">A+</button>
     <button class="drugi" id="nast">Następna część ▸</button><button class="glowny" id="doMisji">Koniec teorii – do misji ▸</button></div>

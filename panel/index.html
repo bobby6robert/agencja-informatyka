@@ -40,16 +40,22 @@ tr.klik{cursor:pointer}tr.klik:hover td{background:color-mix(in srgb,var(--akc) 
 <main id="app"></main>
 <script src="../tresc/klasa1/gra/fabula.js"></script>
 <script src="../tresc/klasa1/gra/fabula-mundur.js"></script>
+<script src="../tresc/klasa1/gra/rozdzial2.js"></script>
+<script src="../tresc/klasa2/gra/fabula.js"></script>
+<script src="../tresc/klasa2/gra/rozdzial1.js"></script>
 <script>
 (function(){
 "use strict";
-const F=window.FABULA;
+let rocz="1";try{rocz=sessionStorage.getItem("agencja-rocznik")||"1"}catch(e){}
+const F=new Proxy({},{get:(t,p)=>(window.FABULY[rocz]||window.FABULY[1])[p]});   // fabuła wybranej klasy (rocznika)
 let API="https://script.google.com/macros/s/AKfycbzGvnKlock74eu0ptTr8Dy7O7BKdnQBL2V8B9vFoSWcl80k3ZLd06R1tBz8m82dQPKySw/exec";
 try{const q=new URLSearchParams(location.search).get("api");if(q&&/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//.test(q))API=q}catch(e){}
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const app=$("#app");
-let D=null,haslo="",zak="uczniowie",filtr="";
+let D=null,D0=null,haslo="",zak="uczniowie",filtr="";
+const wRoczniku=x=>String(x.k||"")[0]===rocz;
+const filtruj=()=>Object.assign({},D0,{gracze:(D0.gracze||[]).filter(wRoczniku),klasy:(D0.klasy||[]).filter(wRoczniku),wyniki:(D0.wyniki||[]).filter(w=>!w.k||wRoczniku(w))});
 try{haslo=sessionStorage.getItem("agencja-panel")||""}catch(e){}
 
 async function api(a,d){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({},d,{a}))});const t=await r.text();try{return JSON.parse(t)}catch(e){throw new Error("stary")}}
@@ -73,15 +79,16 @@ async function wczytaj(){
     const r=await api("panel",{haslo});
     if(!r.ok){$("#stan").textContent="";return logowanie({haslo:"Złe hasło.",brakHasla:"Najpierw wpisz hasło w arkuszu (karta „Ustawienia”, komórka B1).",blokada:"Za dużo prób. Odczekaj 10 minut."}[r.e]||"Błąd logowania.")}
     try{sessionStorage.setItem("agencja-panel",haslo)}catch(e){}
-    D=r;$("#stan").textContent="Odświeżono "+new Date().toLocaleTimeString("pl-PL");rysuj();
+    D0=r;D=filtruj();$("#stan").textContent="Odświeżono "+new Date().toLocaleTimeString("pl-PL");rysuj();
   }catch(e){$("#stan").textContent="";logowanie(e.message==="stary"?"Skrypt w arkuszu nie jest jeszcze zaktualizowany (instrukcja w folderze DLA-NAUCZYCIELA).":"Brak połączenia z arkuszem.")}
 }
 
 function rysuj(){
   const odd=[...new Set(D.gracze.map(g=>g.k))].sort();
-  app.innerHTML=`<div class="zakladki">${[["uczniowie","Uczniowie"],["zalegle","Zaległości"],["klasy","Klasy i kody"],["wyniki","Wyniki testów"],["hasla","Hasła do testów"]].map(([k,n])=>`<button data-z="${k}" aria-pressed="${zak===k}">${n}</button>`).join("")}
+  app.innerHTML=`<div class="zakladki">${Object.keys(window.FABULY).map(r=>`<button data-rocz="${r}" aria-pressed="${rocz===r}">Klasa ${r}</button>`).join("")}<span style="width:14px"></span>${[["uczniowie","Uczniowie"],["zalegle","Zaległości"],["klasy","Klasy i kody"],["wyniki","Wyniki testów"],["hasla","Hasła do testów"]].map(([k,n])=>`<button data-z="${k}" aria-pressed="${zak===k}">${n}</button>`).join("")}
   <span style="flex:1"></span><a href="../prowadzenie/${location.search}" target="_blank" rel="noopener" style="align-self:center;margin-right:8px">🎓 Prowadzenie lekcji ↗</a><button data-odsw>⟳ Odśwież</button><button data-wyl>Wyloguj</button></div><div id="tresc"></div>`;
   $$("[data-z]").forEach(b=>b.onclick=()=>{zak=b.dataset.z;rysuj()});
+  $$("[data-rocz]").forEach(b=>b.onclick=()=>{rocz=b.dataset.rocz;try{sessionStorage.setItem("agencja-rocznik",rocz)}catch(e){}D=filtruj();filtr="";rysuj()});
   $("[data-odsw]").onclick=wczytaj;
   $("[data-wyl]").onclick=()=>{haslo="";try{sessionStorage.removeItem("agencja-panel")}catch(e){}D=null;logowanie()};
   const t=$("#tresc");
@@ -200,7 +207,7 @@ function szczegoly(g){
   $("[data-pin]",b).onclick=async()=>{if(!confirm(`Zresetować PIN ucznia ${g.n}? Przy następnym logowaniu ustawi nowy PIN, postęp zostaje.`))return;
     if(await akcja("resetPin",{n:g.n,k:g.k},st))st.textContent="✔ PIN zresetowany. Uczeń loguje się z nowym PIN-em."};
   $("[data-usun]",b).onclick=async()=>{if(!confirm(`Usunąć ucznia ${g.n} (${g.k}) razem z całym postępem? Tego nie da się cofnąć.`))return;
-    if(await akcja("usunGracza",{n:g.n,k:g.k},st)){D.gracze.splice(D.gracze.indexOf(g),1);rysuj()}};
+    if(await akcja("usunGracza",{n:g.n,k:g.k},st)){D0.gracze.splice(D0.gracze.indexOf(g),1);D=filtruj();rysuj()}};
   $$("[data-reset]",b).forEach(x=>x.onclick=async()=>{const e=F.etapy.find(y=>y.id===x.dataset.reset);
     if(!confirm(`Usunąć wynik „${e.tytul.det}” ucznia ${g.n}? Uczeń zrobi ten etap od nowa, XP zostanie przeliczone.`))return;
     if(await akcja("resetEtapu",{n:g.n,k:g.k,etap:e.id},st)){await wczytaj();const g2=D.gracze.find(y=>y.n===g.n&&y.k===g.k);if(g2)szczegoly(g2)}});

@@ -1,7 +1,7 @@
 {
-  "wersja": 14,
-  "data": "2026-11-05 21:04",
-  "opis": "Usprawnienia materiałów",
+  "wersja": 15,
+  "data": "2026-11-06 09:17",
+  "opis": "Rozdział 2 klasy 1 (grafika) i gra dla klasy 2",
   "wersjaAplikacji": 1,
   "plikAplikacji": "aplikacja/Agencja Cyfrowych Detektywów.exe",
   "hashAplikacji": "39829879bb498d76dcb7c0050d91e465f23dfdd405ca15012aa5f473d9f02417",
@@ -73,12 +73,13 @@
   ]
 },
   "pliki": [
-    {"p":"tresc/klasa1/gra/fabula.js","h":"ed3ebe22edd58f287e4e78684f311e2e5098ab98180c57f056afccf415daf7ec","r":46687},
+    {"p":"tresc/klasa1/gra/fabula.js","h":"55620b37aab19316b3bc96a731ed8253d4214ae6654e787bc45173eeb1618a1c","r":47053},
     {"p":"tresc/klasa1/gra/fabula-mundur.js","h":"52a0fd0d75208d6dd2d5dafc0638a25560169005b755107e4e85c6a0afb4449a","r":13330},
-    {"p":"tresc/klasa1/gra/gra.css","h":"90eb3383620f81552675ad1cb0061e2ca4aabf9a49d2c7830e08f91319fa6abe","r":16115},
-    {"p":"tresc/klasa1/gra/gra.js","h":"f63cf064a5c59f257ee3c3addd718d9937e30bc51fe45722ac78d212704d456b","r":54317},
-    {"p":"tresc/klasa1/gra/index.html","h":"b171302385921ae5f4bc5a97b437d2417f894a4dcd53f52522ada9555e415723","r":647},
+    {"p":"tresc/klasa1/gra/gra.css","h":"98c103e7150a51c965f16078af869840eb43bd3674b00978fb64ca0dc9cf602e","r":16313},
+    {"p":"tresc/klasa1/gra/gra.js","h":"e8792bdf0584a2a142d03f1d907b5633068b420add60847c762b81b17fdd497d","r":55980},
+    {"p":"tresc/klasa1/gra/index.html","h":"ee01dff55f246b7d1e305d1cd3338136ea18ead8f4a683a1ad0c06d7f31aef07","r":666},
     {"p":"tresc/klasa1/gra/postacie.js","h":"359506eae22b3d1c0171833f65f4b3636bb91ddd754955ab05a5fc885abbd634","r":15344},
+    {"p":"tresc/klasa1/gra/rozdzial2.js","h":"6a2a2e85ef20feffd4ed69e97235fe48b8da90cada6c68c517bb41f38b1af73b","r":96387},
     {"p":"tresc/klasa1/klasa1-informatyka-efekty.html","h":"a9502595370e2c8f82d3ffefb97453806263826a1b1fe7d7d8525af5d57a9827","r":12366837},
     {"p":"tresc/klasa1/pliki-do-cwiczen/akcentowanie.pdf","h":"16ef44e0cec6207a27ddfe5b4e1ba06edc20b0d63f21afc9aca419ad6de321b9","r":75840},
     {"p":"tresc/klasa1/pliki-do-cwiczen/arkusz-kalkulacyjny/CZYTAJ-TO.txt","h":"89548fbc41ce1c9821868673334830908dfd5e30f04b4501cc95f16d033f85f2","r":907},
@@ -138,7 +139,10 @@
     {"p":"tresc/klasa1/pliki-do-cwiczen/wycieczka.jpg","h":"647e40a1087d98bb3712fcb153dde6eded84f306999c15e9d44d1b025b70288b","r":1003193},
     {"p":"tresc/klasa1/pliki-do-cwiczen/wystapienia.pdf","h":"37d41d34507f5761758cd323e2a9c7e65e62e0ce06944c3abf5b58fd7308dc41","r":46374},
     {"p":"tresc/klasa1/sprawdziany.html","h":"1f13bf9199188610447832ee53a4e46c8b3e451a2a64235df3ee2bd17270df93","r":47827},
-    {"p":"tresc/klasa2/klasa2-informatyka-efekty.html","h":"f6dccd5df0125fadca0aeba5d28788488047b140ec5037e23050080f33a41fd7","r":3357893},
+    {"p":"tresc/klasa2/gra/fabula.js","h":"55b354b0669ad29e0f2757b7dde5f391fa01ae2da06dbcb093457330a9d0a2e2","r":964},
+    {"p":"tresc/klasa2/gra/index.html","h":"5bccaf3597054ec8ea2499ab56e7a4739f6fc605eb1ebf02506e883b73ef3eac","r":785},
+    {"p":"tresc/klasa2/gra/rozdzial1.js","h":"03d5cd91ef042c10e3838c20b9e961f986db34c3b2f01b4fe102cd6963150f89","r":89472},
+    {"p":"tresc/klasa2/klasa2-informatyka-efekty.html","h":"78728009373696601299445b60290bbb2e7b842665094afa62a17a13ea467900","r":3358210},
     {"p":"tresc/klasa2/pliki-do-cwiczen/README.txt","h":"84d46a39b8587eda6803de393b6b15616dd98ba12d6d57347cc314dc9c5aaad9","r":837},
     {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-1-tworzenie-tresci/biuro.jpg","h":"d94ed7a0fc5e1274fe7ed7ea5f26f49f0548b6e6add05733d952bcf373a3668a","r":302956},
     {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-1-tworzenie-tresci/biuro_podrozy.html","h":"3cf4aa0f2469a96f8ab744bcdb2ca5f2021317c283bf8a45da60d54d0ae042f6","r":2559},
@@ -154,6 +158,6 @@
     {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_z5.accdb","h":"2e9cbcd8860c0fc125a4e5e5a3a88f7a6b78101a13f9b3c79065d67e69dd0c17","r":638976},
     {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_z6.accdb","h":"f2f10d975f7c1f45f5132e8aea09585a3188b643a7ebf0cf5dbb6bc325cc5b52","r":671744},
     {"p":"tresc/klasa2/pliki-do-cwiczen/rozdzial-2-bazy-danych/baza_blog_z7.accdb","h":"0a17b3d011a43876734c20c1b87faf419b5cf0fd6a1878be5f4ff6e56dad1f92","r":659456},
-    {"p":"tresc/klasa2/sprawdziany.html","h":"33db2614d394960e03dd3b5af5c0a3044c615cde27c5edc3517f111b5d2858c8","r":38944}
+    {"p":"tresc/klasa2/sprawdziany.html","h":"a70da9a832f0e617b4f82a5ba982d794fe48636677e53c08a7304d19240bc498","r":39186}
   ]
 }

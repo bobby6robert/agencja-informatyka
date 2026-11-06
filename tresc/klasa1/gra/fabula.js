@@ -534,6 +534,11 @@ window.FABULA = {
   ]
 };
 
+/* Rozdziały gry. Kolejne dopisują pliki rozdzialN.js (etapy z polem r: N i ich karty). */
+window.FABULA.rozdzialy = [{ nr: 1, nazwa: window.FABULA.rozdzial, tajna: "c6" }];
+window.FABULA.baza = "tresc/klasa1/gra/";   // folder gry (ścieżka od katalogu głównego)
+window.FABULY = { 1: window.FABULA };   // fabuły wszystkich klas (panel i prowadzenie lekcji)
+
 /* Skala ocen z kartkówek i sprawdzianów (procent → ocena), wg statutu szkoły. */
 window.FABULA.skalaTestow = [[100, "6"], [99, "6-"], [97, "5+"], [94, "5"], [90, "5-"], [84, "4+"], [78, "4"], [72, "4-"],
   [67, "3+"], [61, "3"], [55, "3-"], [49, "2+"], [43, "2"], [36, "2-"], [30, "1+"], [0, "1"]];
