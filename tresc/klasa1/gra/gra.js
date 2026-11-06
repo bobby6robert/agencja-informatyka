@@ -70,6 +70,7 @@
   };
   const zamknietyPrzezSzefa = (i) => i > odblokowaneDo();
   function dostepny(i) {
+    if (S.nauczyciel && S.nauczyciel.wszystko) return true;   // nauczyciel testuje dowolny etap
     if (zamknietyPrzezSzefa(i)) return false;
     for (let j = i - 1; j >= 0; j--) if (F.etapy[j].typ === "misja") return etapGotowy(F.etapy[j]);
     return true;
@@ -227,7 +228,7 @@
         <div class="gracz" title="${S.xp} XP">
           <div class="mini">${awatar(S.awatar, 44)}</div>
           <div><b>${esc(S.gracz ? S.gracz.n : "Gość")}</b>${S.gracz && S.gracz.k ? ` <small>${esc(S.gracz.k)}${S.gracz.g ? " gr " + esc(S.gracz.g) : ""}</small>` : ""}<br>
-          <span class="stopien">${esc(nazwaStopnia(st))}</span> <span class="xp">${S.xp} XP</span>
+          ${S.nauczyciel ? `<span class="stopien">👩‍🏫 nauczyciel</span>` : `<span class="stopien">${esc(nazwaStopnia(st))}</span>`} <span class="xp">${S.xp} XP</span>
           <span class="pasek"><i style="width:${pas}%"></i></span></div>
         </div>
         <div class="przyciski">
@@ -255,7 +256,7 @@
     return d.length ? d : Object.keys(F.motywy);
   }
   function ustawKlase(m, dm, od, kom) {   // ustawienia klasy z arkusza nauczyciela
-    S.klasa = { m: F.motywy[m] ? m : "", dm: Array.isArray(dm) ? dm : [], od: od || "", kom: kom || "" };
+    S.klasa = { m: F.motywy[m] ? m : "", dm: Array.isArray(dm) ? dm : [], od: S.nauczyciel && S.nauczyciel.wszystko ? "" : od || "", kom: kom || "" };
     const dz = dozwolone();
     if (!S.motyw || !dz.includes(S.motyw)) { S.motyw = dz.includes(S.klasa.m) ? S.klasa.m : dz[0]; return true; }
     return false;
@@ -296,6 +297,7 @@
       <p><button class="glowny" type="submit">Wchodzę do gry ▸</button></p>
       <p class="blad" aria-live="polite"></p>
       <p><button type="button" class="link" data-lok>Graj bez konta (postęp tylko na tym urządzeniu)</button></p>
+      <p><button type="button" class="link" data-naucz>👩‍🏫 Jestem nauczycielem</button></p>
     </form>`;
     const f = $("form", box), bl = $(".blad", box);
     let teraz = null;   // grupa, która według planu ma teraz lekcję – wtedy kod klasy nie jest potrzebny
@@ -306,8 +308,10 @@
         <br><small>Jeśli nie jesteś z tej grupy, wpisz kod od nauczyciela.</small></p>`;
       f.kod.required = false; f.kod.placeholder = "nie trzeba – trwa lekcja";
     }).catch(() => {});
+    $("[data-naucz]", box).onclick = () => logowanieNauczyciela(box);
     $("[data-lok]", box).onclick = () => {
       const n = f.n.value.trim();
+      if (S.nauczyciel) S = NOWY();
       S.lokalny = true; S.gracz = n ? { n: n.slice(0, 16) } : null; S.klasa = null; zapisz(); start();
     };
     f.onsubmit = async (e) => {
@@ -323,6 +327,7 @@
           bl.textContent = { kod: "Nieznany kod klasy. Sprawdź go u nauczyciela.", pin: "Zły PIN dla tej osoby w tej klasie.", blokada: "Za dużo prób. Odczekaj 10 minut.", nick: "Nieprawidłowe imię.", grupa: "To kod całej klasy. Wpisz kod swojej grupy – poda go nauczyciel.", brakLekcji: "Lekcja już się skończyła. Wpisz kod klasy od nauczyciela.", zajety: "Centrala jest zajęta. Spróbuj ponownie za chwilę." }[r.e] || "Nie udało się zalogować.";
           return;
         }
+        if (S.nauczyciel) S = NOWY();   // po trybie nauczyciela uczeń zaczyna od czystego stanu
         if (r.stan) {
           try { const zs = JSON.parse(r.stan); if ((zs.xp || 0) >= (S.xp || 0)) S = Object.assign(NOWY(), zs); } catch (er) {}
         } else { S.motyw = null; S.wybralMotyw = 0; }
@@ -335,6 +340,44 @@
           ? "Zapis w chmurze nie jest jeszcze włączony (nauczyciel musi zaktualizować skrypt). Możesz grać bez konta – postęp zostanie na tym urządzeniu."
           : "Brak połączenia z centralą. Sprawdź Internet albo graj bez konta.";
       }
+    };
+  }
+
+  /* Tryb nauczyciela: hasło do panelu → wybór klasy lub grupy. Gra wygląda jak u uczniów tej grupy,
+     a postęp zostaje tylko na tym urządzeniu (nie trafia do rankingu ani do arkusza). */
+  function logowanieNauczyciela(box) {
+    box.innerHTML = `<form class="karta login" autocomplete="off">
+      <h2>👩‍🏫 Tryb nauczyciela</h2>
+      <label>Hasło do panelu nauczyciela<input name="haslo" type="password" required autocomplete="current-password"></label>
+      <p><button class="glowny" type="submit">Dalej ▸</button> <button type="button" class="link" data-wroc>Wróć</button></p>
+      <p class="blad" aria-live="polite"></p></form>`;
+    const f = $("form", box), bl = $(".blad", box);
+    $("[data-wroc]", box).onclick = () => logowanie();
+    f.haslo.focus();
+    f.onsubmit = async (e) => {
+      e.preventDefault(); bl.textContent = "Łączę z centralą…";
+      try {
+        const r = await api("nauczyciel", { haslo: f.haslo.value });
+        if (!r.ok) { bl.textContent = { haslo: "Złe hasło.", blokada: "Za dużo prób. Odczekaj 10 minut.", brakHasla: "Najpierw ustaw hasło w arkuszu (Ustawienia, B1)." }[r.e] || "Nie udało się zalogować."; return; }
+        const klasy = r.klasy.filter((k) => String(k.k).charAt(0) === String(F.klasa))
+          .sort((a, b) => a.k.localeCompare(b.k) || String(a.g).localeCompare(String(b.g)));
+        if (!klasy.length) { bl.textContent = `W arkuszu nie ma klas ${F.klasa}.`; return; }
+        box.innerHTML = `<form class="karta login"><h2>👩‍🏫 Wybierz klasę</h2>
+          <label>Klasa lub grupa<select name="k">${klasy.map((k, i) => `<option value="${i}">${esc(k.k)}${k.g ? " · grupa " + esc(k.g) : " · cała klasa"}</option>`).join("")}</select></label>
+          <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="wsz" style="width:auto"> Wszystkie etapy odblokowane (do testowania)</label>
+          <p class="mala">Zobaczysz grę tak jak uczniowie tej grupy. Twój postęp zostaje tylko na tym urządzeniu – nie trafia do rankingu ani do arkusza.</p>
+          <p><button class="glowny" type="submit">Wchodzę ▸</button></p></form>`;
+        const f2 = $("form", box);
+        f2.onsubmit = (e2) => {
+          e2.preventDefault();
+          const k = klasy[+f2.k.value];
+          if (!S.nauczyciel) S = NOWY();   // nie mieszaj postępu ucznia z tego urządzenia
+          S.nauczyciel = { wszystko: f2.wsz.checked }; S.lokalny = true;
+          S.gracz = { n: "Nauczyciel", k: k.k, g: k.g || "" };
+          S.motyw = null; ustawKlase(k.m, k.dm, k.od, k.kom);
+          oczysc(); S.xp = liczXP(); zapisz(); start();
+        };
+      } catch (er) { bl.textContent = er.stary ? "Zaktualizuj skrypt w arkuszu (nowa wersja ranking.gs)." : "Brak połączenia z centralą."; }
     };
   }
 
@@ -390,7 +433,7 @@
   }
 
   async function celKlasy() {
-    const box = $("#cel-klasy"); if (!box || !S.gracz || S.lokalny || !S.gracz.k) return;
+    const box = $("#cel-klasy"); if (!box || !S.gracz || (S.lokalny && !S.nauczyciel) || !S.gracz.k) return;
     try {
       const r = await api("klasy", { n: S.gracz.n, k: S.gracz.k });
       if (!r.ok) return;
@@ -697,8 +740,9 @@
         <div class="duzy-awatar">${awatar(S.awatar, 160)}</div>
         <div><h2>${esc(S.gracz ? S.gracz.n : "Gość")}</h2>
           <p><span class="stopien">${esc(nazwaStopnia(st))}</span> · ${S.xp} XP${nast ? ` · do awansu: ${nast - S.xp} XP` : " · najwyższy stopień!"}</p>
-          <p class="mala">${S.lokalny ? "Postęp zapisany tylko na tym urządzeniu." : S.gracz && S.gracz.k ? `Klasa ${esc(S.gracz.k)}${S.gracz.g ? ", grupa " + esc(S.gracz.g) : ""} · postęp zapisany w chmurze.` : ""}</p>
-          <p>${S.lokalny ? `<button class="drugi" data-polacz>☁ Połącz z kontem klasy</button>` : ""} <button class="link" data-wyloguj>Wyloguj</button></p>
+          <p class="mala">${S.nauczyciel ? `👩‍🏫 Tryb nauczyciela · klasa ${esc(S.gracz.k)}${S.gracz.g ? ", grupa " + esc(S.gracz.g) : ""}${S.nauczyciel.wszystko ? " · wszystkie etapy odblokowane" : ""}. Postęp tylko na tym urządzeniu.` : S.lokalny ? "Postęp zapisany tylko na tym urządzeniu." : S.gracz && S.gracz.k ? `Klasa ${esc(S.gracz.k)}${S.gracz.g ? ", grupa " + esc(S.gracz.g) : ""} · postęp zapisany w chmurze.` : ""}</p>
+          <p>${S.nauczyciel ? `<button class="drugi" data-zmienk>Zmień klasę</button> <a href="https://bobby6robert.github.io/agencja-informatyka/panel/" target="_blank" rel="noopener">Panel ↗</a> · <a href="https://bobby6robert.github.io/agencja-informatyka/prowadzenie/" target="_blank" rel="noopener">Prowadzenie lekcji ↗</a>`
+            : S.lokalny ? `<button class="drugi" data-polacz>☁ Połącz z kontem klasy</button>` : ""} <button class="link" data-wyloguj>Wyloguj</button></p>
         </div>
       </section>
       <section class="karta"><h2>Wygląd</h2>
@@ -730,6 +774,7 @@
     }));
     $$("[data-dyplom]", w).forEach((b) => (b.onclick = () => dyplom(+b.dataset.dyplom)));
     const pl = $("[data-polacz]", w); if (pl) pl.onclick = () => { S.lokalny = false; S.gracz = null; zapisz(); start(); };
+    const zk = $("[data-zmienk]", w); if (zk) zk.onclick = () => { S.gracz = null; S.lokalny = false; zapisz(); start(); setTimeout(() => { const b = $("[data-naucz]"); if (b) b.click(); }, 0); };
     $("[data-wyloguj]", w).onclick = async () => {
       if (!(await pytanie(S.lokalny ? "Wylogować? Postęp gry bez konta zostanie usunięty z tego urządzenia." : "Wylogować z tego urządzenia? Postęp zostaje w chmurze.", "Wyloguj", "Anuluj"))) return;
       await chmuraTeraz().catch(() => {});
@@ -805,7 +850,7 @@
       <button data-z="wyzwanie" aria-pressed="${zakladka === "wyzwanie"}">Wyzwanie tygodnia</button></div><div id="rk"><p>Wczytuję…</p></div></section>`;
     $$("[data-z]", w).forEach((b) => (b.onclick = () => ranking(b.dataset.z)));
     const box = $("#rk", w);
-    if (S.lokalny || !S.gracz || !S.gracz.k) { box.innerHTML = `<p>Ranking działa po zalogowaniu kodem klasy (zapis w chmurze).</p>`; return; }
+    if ((S.lokalny && !S.nauczyciel) || !S.gracz || !S.gracz.k) { box.innerHTML = `<p>Ranking działa po zalogowaniu kodem klasy (zapis w chmurze).</p>`; return; }
     try {
       if (zakladka === "klasa") {
         const r = await api("ranking", { k: S.gracz.k });
