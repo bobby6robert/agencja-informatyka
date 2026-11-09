@@ -1,7 +1,7 @@
 {
-  "wersja": 17,
-  "data": "2026-11-06 09:52",
-  "opis": "Tryb nauczyciela w grze",
+  "wersja": 18,
+  "data": "2026-11-09 09:49",
+  "opis": "Systemy operacyjne i sieci: zadania zgodne ze scenariuszami lekcji (hasla, antywirus, DHCP, domeny, IPv6)",
   "wersjaAplikacji": 1,
   "plikAplikacji": "aplikacja/Agencja Cyfrowych Detektywów.exe",
   "hashAplikacji": "39829879bb498d76dcb7c0050d91e465f23dfdd405ca15012aa5f473d9f02417",
@@ -73,7 +73,7 @@
   ]
 },
   "pliki": [
-    {"p":"tresc/klasa1/gra/fabula.js","h":"55620b37aab19316b3bc96a731ed8253d4214ae6654e787bc45173eeb1618a1c","r":47053},
+    {"p":"tresc/klasa1/gra/fabula.js","h":"d33c37fb4fa505f2be1912d611967abb0b0d160baf5ff24cdcc16623f429fe24","r":49407},
     {"p":"tresc/klasa1/gra/fabula-mundur.js","h":"52a0fd0d75208d6dd2d5dafc0638a25560169005b755107e4e85c6a0afb4449a","r":13330},
     {"p":"tresc/klasa1/gra/gra.css","h":"98c103e7150a51c965f16078af869840eb43bd3674b00978fb64ca0dc9cf602e","r":16313},
     {"p":"tresc/klasa1/gra/gra.js","h":"d289453ce074118acee709628a3e0d789624169b4d029b7405e0bb8ab2194606","r":60925},
