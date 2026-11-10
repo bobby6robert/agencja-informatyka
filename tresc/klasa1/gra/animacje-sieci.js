@@ -243,17 +243,18 @@
   }
 
   const NAZWY = { pakiet: DEF.pakiet.n, macip: DEF.macip.n, topologie: "Topologie sieci – awarie", dns: DEF.dns.n, dhcp: DEF.dhcp.n, ping: DEF.ping.n, tracert: "Tracert – trasa pakietów" };
+  const WL = {};   // animacje dopisane z innych plików (animacje-systemy.js): id → funkcja(el) zwracająca „zatrzymaj” albo null
   function otworz(lista) {
     lista = [].concat(lista).filter((x) => NAZWY[x]);
     const o = document.createElement("div"); o.className = "nakladka nak-anim";
-    o.innerHTML = `<div class="okno" role="dialog" aria-modal="true" aria-label="Animacje sieci"><div class="an-gora"><div class="zakladki">${lista.map((x, j) => `<button data-a="${x}" aria-pressed="${j === 0}">🎬 ${esc(NAZWY[x])}</button>`).join("")}</div>
+    o.innerHTML = `<div class="okno" role="dialog" aria-modal="true" aria-label="Animacje"><div class="an-gora"><div class="zakladki">${lista.map((x, j) => `<button data-a="${x}" aria-pressed="${j === 0}">🎬 ${esc(NAZWY[x])}</button>`).join("")}</div>
       <button class="ikona" data-x aria-label="Zamknij">✕</button></div><div class="an-ekran"></div></div>`;
     document.body.appendChild(o);
     let stop = null;
     const pokaz = (x) => {
       if (stop) stop(); o.querySelectorAll("[data-a]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.a === x));
       const el = o.querySelector(".an-ekran");
-      stop = x === "topologie" ? (topologie(el), null) : x === "tracert" ? tracert(el) : silnik(el, DEF[x]);
+      stop = WL[x] ? WL[x](el) || null : x === "topologie" ? (topologie(el), null) : x === "tracert" ? tracert(el) : silnik(el, DEF[x]);
     };
     o.querySelectorAll("[data-a]").forEach((b) => (b.onclick = () => pokaz(b.dataset.a)));
     const zamknij = () => { if (stop) stop(); o.remove(); };
@@ -262,5 +263,7 @@
     pokaz(lista[0]);
     return o;
   }
-  window.ANIMACJE = { otworz, nazwy: NAZWY };
+  window.ANIMACJE = { otworz, nazwy: NAZWY,
+    dodaj(id, nazwa, fn) { NAZWY[id] = nazwa; WL[id] = fn; },
+    krokowa(id, d) { DEF[id] = d; NAZWY[id] = d.n; } };
 })();

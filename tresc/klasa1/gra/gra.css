@@ -339,3 +339,5 @@ line.an-klik:hover{stroke:var(--akc2);stroke-width:8}
 .tk-u{margin:8px 0 14px;padding-left:1.2em;display:grid;gap:8px;font-size:1.08em;line-height:1.5}
 .tk-c{margin-top:14px;opacity:.9}.tk-c summary{cursor:pointer}
 .tk-ost{color:var(--akc);font-size:.95em}
+.tk-u b{color:var(--akc)}.nak-teczka h2{color:var(--akc2)}
+.tk-u code{font:700 .95em Consolas,monospace;background:#000;color:var(--akc2);border:1px solid color-mix(in srgb,var(--akc2) 45%,transparent);border-radius:6px;padding:.05em .4em;white-space:nowrap}
