@@ -341,3 +341,10 @@ line.an-klik:hover{stroke:var(--akc2);stroke-width:8}
 .tk-ost{color:var(--akc);font-size:.95em}
 .tk-u b{color:var(--akc)}.nak-teczka h2{color:var(--akc2)}
 .tk-u code{font:700 .95em Consolas,monospace;background:#000;color:var(--akc2);border:1px solid color-mix(in srgb,var(--akc2) 45%,transparent);border-radius:6px;padding:.05em .4em;white-space:nowrap}
+.etap button.zadp{width:auto;margin:6px 0 0 56px;padding:6px 12px;font-size:.9em;border-style:dashed;position:relative;z-index:1}
+.zp-l{margin:18px 0 4px;color:var(--akc2)}.zp-h{margin:10px 0 2px}.zp-n,.zp-p{margin:2px 0 6px;font-size:.92em;opacity:.85}
+.zp-p a{display:inline-block;margin:2px 4px 2px 0;padding:.1em .6em;border:1px solid color-mix(in srgb,var(--akc2) 50%,transparent);border-radius:999px;color:var(--akc2);text-decoration:none}
+.zp-u{list-style:none;padding:0;margin:6px 0 10px;display:grid;gap:6px}
+.zp-u label{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;background:var(--panel2);cursor:pointer;line-height:1.45}
+.zp-u input{flex:none;width:1.2em;height:1.2em;margin-top:.2em;accent-color:var(--akc)}.zp-u input:checked+span{opacity:.6}
+.zp-g{color:var(--akc);white-space:nowrap}

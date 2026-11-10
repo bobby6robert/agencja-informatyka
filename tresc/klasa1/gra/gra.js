@@ -423,7 +423,8 @@
         return `<details class="rozdz" ${r.nr === rozdzialAkt().nr ? "open" : ""}><summary>${esc(r.nazwa)}${gotowy ? " · ✔ ukończony" : ""}</summary>
           <ol class="sciezka">${idx.map((i) => etapLi(F.etapy[i], i)).join("")}</ol></details>`;
       }).join("")}`;
-    $$(".sciezka button, [data-otworz]", w).forEach((b) => (b.onclick = () => { dzwiek("klik"); otworzEtap(F.etapy[+(b.dataset.i || b.dataset.otworz)]); }));
+    $$("[data-zadp]", w).forEach((b) => (b.onclick = () => { dzwiek("klik"); zadaniaP(F.etapy[+b.dataset.zadp]); }));
+    $$(".sciezka button[data-i], [data-otworz]", w).forEach((b) => (b.onclick = () => { dzwiek("klik"); otworzEtap(F.etapy[+(b.dataset.i || b.dataset.otworz)]); }));
     const pz = $("[data-przypomnij]", w); if (pz) pz.onclick = () => scena(ost.koniec[S.motyw]);
     const wz = $("[data-wyzwanie]", w); if (wz) wz.onclick = grajWyzwanie;
     celKlasy();
@@ -461,7 +462,7 @@
       <button data-i="${i}" ${dost || ok ? "" : "disabled"}>
         <span class="ik">${ok ? "✔" : dost ? ikona : "🔒"}</span>
         <span class="tx"><b>${esc(tytul(e))}</b><small>${esc(e.lekcja || (e.typ === "test" ? (e.boss ? "Finał rozdziału – sprawdzian" : "Kartkówka") : czyProlog(e) ? "Prolog" : "Misja"))}${info ? " · " + info : ""}</small></span>
-      </button></li>`;
+      </button>${(() => { const [zs, zm] = dost || ok ? zadIle(e) : [0, 0]; return zm ? `<button class="zadp" data-zadp="${i}">📝 Zadania z podręcznika · ${zs}/${zm}</button>` : ""; })()}</li>`;
   }
 
   async function celKlasy() {
@@ -488,6 +489,43 @@
         <div class="duzy-pasek"><i style="width:${pr}%"></i><span>${moja.suma} / ${cel} XP</span></div>
         <small>Każdy Twój punkt przybliża całą klasę do celu. Gdy klasa go osiągnie, ${esc(M().szef)} przygotuje nagrodę.</small></div>`;
     } catch (e) {}
+  }
+
+  /* Zadania z podręcznika (zadania.js – plik generowany z podręcznika, treść poleceń 1:1).
+     Uczeń wykonuje je w programie na komputerze i odhacza; odhaczenia (S.zadP) zapisują się razem ze stanem gry.
+     Nie dają XP – to praca praktyczna, którą ocenia nauczyciel. */
+  const ZP = () => (window.ZADANIA && String(F.lekcje).includes(window.ZADANIA.zrodlo) ? window.ZADANIA : null);
+  function zadaniaE(e) {
+    const Z = ZP(), w = []; if (!Z || !e || !e.lekcje) return w;
+    e.lekcje.forEach(([id, n]) => (Z.lekcje[id] || []).forEach((g, gi) => w.push({ id, n, g, gi })));
+    return w;
+  }
+  function zadIle(e) {
+    let s = 0, m = 0;
+    zadaniaE(e).forEach((x) => x.g.items.forEach((z, j) => { m++; if (S.zadP && S.zadP[`${x.id}:${x.gi}:${j}`]) s++; }));
+    return [s, m];
+  }
+  function zadaniaP(e) {
+    const Z = ZP(), L = zadaniaE(e); if (!L.length) return;
+    const baza = String(F.lekcje).replace(/[^/]*$/, "") + "pliki-do-cwiczen/";
+    const gw = (n) => (n ? `<span class="zp-g" title="${["", "łatwe", "średnie", "trudniejsze"][n] || ""}">${"★".repeat(n)}</span> ` : "");
+    let ost = "";
+    const o = okno(`<div class="tk-g"><b>📝 Zadania z podręcznika</b><button class="glowny" data-x>← Wróć</button></div>
+      <h2>${esc(tytul(e))}</h2>
+      <p class="info">Polecenia są dokładnie takie jak w podręczniku. Wykonaj je w programie na komputerze i odhacz zrobione. Nie dają XP – ocenia je ${esc(M().szef)}.</p>
+      ${L.map((x) => {
+        const nagl = x.id !== ost; ost = x.id; const pl = (nagl && Z.pliki[x.id]) || [];
+        return `${nagl ? `<h3 class="zp-l">${esc(x.n)}</h3>` : ""}
+          ${pl.length ? `<p class="zp-p">📎 Pliki do pobrania: ${pl.map((f) => `<a href="${baza}${encodeURI(f)}" download>${esc(f.split("/").pop())}</a>`).join(" ")}</p>` : ""}
+          <h4 class="zp-h">${esc(x.g.h)}</h4>${x.g.note ? `<p class="zp-n">${esc(x.g.note)}</p>` : ""}
+          <ul class="zp-u">${x.g.items.map((z, j) => { const k = `${x.id}:${x.gi}:${j}`;
+            return `<li><label><input type="checkbox" data-zk="${k}" ${S.zadP && S.zadP[k] ? "checked" : ""}><span>${gw(z.lvl)}${esc(z.t)}</span></label></li>`; }).join("")}</ul>`;
+      }).join("")}
+      <p><button class="drugi" data-x>← Wróć</button></p>`, "nak-teczka");
+    $$("[data-zk]", o).forEach((c) => (c.onchange = () => {
+      S.zadP = S.zadP || {}; if (c.checked) S.zadP[c.dataset.zk] = 1; else delete S.zadP[c.dataset.zk]; zapisz();
+    }));
+    $$("[data-x]", o).forEach((b) => (b.onclick = () => { o.remove(); if ($(".sciezka")) mapa(); }));
   }
 
   function otworzEtap(e) { return e.typ === "test" ? (e.gra ? klikTestGra(e) : grajTest(e)) : grajMisje(e); }
