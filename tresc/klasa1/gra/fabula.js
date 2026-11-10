@@ -165,7 +165,7 @@ window.FABULA = {
     },
 
     {
-      id: "m1", typ: "misja", lekcja: "Lekcja 3 · Systemy operacyjne", tytul: { det: "Włamanie do systemu", szp: "Infiltracja centrali", fan: "Klątwa w Sercu Systemu" },
+      id: "m1", typ: "misja", teczka: "systemy", lekcja: "Lekcja 3 · Systemy operacyjne", tytul: { det: "Włamanie do systemu", szp: "Infiltracja centrali", fan: "Klątwa w Sercu Systemu" },
       lekcje: [["k2", "1.1 System komputerowy i system operacyjny"], ["k3", "1.1b Zadania systemu operacyjnego"], ["k4", "1.2 Bezpieczeństwo pracy w systemie"], ["k5", "1.3 Rozwiązywanie problemów z komputerem"], ["k6", "Zadania z rozdziału 1 (systemy operacyjne)"]],
       karta: "c1",
       wstep: {
@@ -332,6 +332,7 @@ window.FABULA = {
       tytul: { det: "Namierzanie nadajnika", szp: "Podsłuch w centrali", fan: "Obcy kryształ w Akademii" },
       burza: { temat: "Sieć komputerowa", kat: ["Urządzenia", "Usługi", "Sposób dostępu"] },   // ćwiczenie 1 z podręcznika (Prowadzenie → Burza mózgów)
       lekcje: [["k7", "2.1 Sieć komputerowa i urządzenia sieciowe"], ["k8", "2.2 Rodzaje sieci komputerowych"], ["k9", "2.3 Sieć lokalna LAN i adres MAC"]],
+      teczka: "siec-budowa",   // teczki.js – krótka teoria ucznia i wersja do czytania dla nauczyciela
       animacje: ["pakiet", "topologie", "macip"],   // animacje-sieci.js – w aktach misji i w Prowadzeniu (teoria)
       karta: "c2",
       wstep: {
@@ -464,7 +465,7 @@ window.FABULA = {
     },
 
     {
-      id: "m3", typ: "misja", lekcja: "Lekcja 4b · Sieci komputerowe – Internet i usługi",
+      id: "m3", typ: "misja", teczka: "siec-internet", lekcja: "Lekcja 4b · Sieci komputerowe – Internet i usługi",
       tytul: { det: "Pościg przez Internet", szp: "Pościg za sygnałem", fan: "Droga do Wieży Adresów" },
       lekcje: [["k10", "2.4 Internet, czyli sieć sieci"], ["k11", "2.4b Komunikacja w sieci (infografika)"], ["k12", "2.4c Adres opisowy, DNS i konfiguracja"], ["k13", "2.5 Usługi internetowe"], ["k14", "2.6 Diagnostyka dostępu do sieci"], ["k15", "Zadania z rozdziału 2 (sieci)"]],
       animacje: ["dns", "dhcp", "ping", "tracert"],

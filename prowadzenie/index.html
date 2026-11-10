@@ -31,6 +31,11 @@
 .ramkaT .nawT{display:flex;gap:8px;align-items:center;padding:8px 16px;background:var(--panel2);flex-wrap:wrap}
 .ramkaT .nawT b{flex:1}
 .ramkaT iframe{flex:1;border:0;width:100%;background:#fff}
+.czyt{flex:1;overflow:auto;padding:22px 20px 60px;line-height:1.65}
+.czytW{max-width:46em;margin:0 auto}.czytW h2{color:var(--akc);font-size:1.5em;margin:0 0 .5em}.czytW p{margin:0 0 .9em}
+.czytP,.czytZ{border-radius:12px;padding:12px 16px;margin:14px 0;background:var(--panel)}
+.czytP{border-left:5px solid var(--akc)}.czytP button{font-size:.75em;margin-left:8px}.czytP #odpT{margin-top:8px}
+.czytZ{font-size:.85em;border:1px dashed color-mix(in srgb,var(--tekst) 30%,transparent)}.czytZ ul{margin:.4em 0 0;padding-left:1.2em}
 .ostrz{background:#7c2d12;color:#fff;padding:10px 14px;border-radius:10px;font-weight:700;margin-bottom:14px}
 .liczniki{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 16px}
 .liczniki div{background:var(--panel);border-radius:12px;padding:10px 16px;min-width:140px}
@@ -49,10 +54,11 @@
 .planP.biez{border-color:var(--akc);box-shadow:0 0 0 4px color-mix(in srgb,var(--akc) 25%,transparent)}
 .bz-chipy{display:flex;flex-wrap:wrap;gap:8px}.bz-chipy span{background:var(--panel2);border-radius:999px;padding:.3em 1em}
 .duzy .bz-kol li{font-size:1.25em}
-#obec{position:fixed;right:12px;bottom:12px;z-index:30;background:var(--panel);border:1px solid color-mix(in srgb,var(--tekst) 20%,transparent);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45);max-width:340px}
+body:has(#obec) .pasekG{padding-right:290px}
+#obec{position:fixed;right:12px;top:8px;z-index:30;background:var(--panel);border:1px solid color-mix(in srgb,var(--tekst) 20%,transparent);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45);max-width:340px}
 .obec-g{display:flex;gap:4px}.obec-g button{background:none;border:0;padding:8px 10px;font-weight:700}
 .obec-l{max-height:50vh;overflow:auto;padding:0 12px 10px;display:grid;gap:3px}
-#toasty{position:fixed;right:12px;bottom:64px;z-index:31;display:grid;gap:6px}
+#toasty{position:fixed;right:12px;top:60px;z-index:31;display:grid;gap:6px}
 .toastP{background:#7c2d12;color:#fff;border-radius:10px;padding:8px 14px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:pojaw .2s}
 .planP .teraz{background:var(--akc);color:#111;font-weight:800;border-radius:999px;padding:.2em .8em}
 @media (max-width:900px){.odprawa{grid-template-columns:1fr}}
@@ -69,6 +75,7 @@
 <script src="../tresc/klasa1/gra/burza.js"></script>
 <script src="../tresc/klasa1/gra/konsola.js"></script>
 <script src="../tresc/klasa1/gra/animacje-sieci.js"></script>
+<script src="../tresc/klasa1/gra/teczki.js"></script>
 <script>
 (function(){
 "use strict";
@@ -479,8 +486,36 @@ function odprawa(){
 }
 
 /* ---------- 2. teoria ---------- */
+/* Lekcja z teczką (teczki.js): najpierw wersja do czytania na głos (karty: tekst, animacja, pytanie do klasy,
+   „Zapamiętaj” = teczka ucznia). „📚 Cała teoria” przełącza na wszystkie slajdy z podręcznika. */
+let teoriaPelna=false;
+function teoriaKarty(e,T){
+  const w=$("#ekran");let i=0,zoom=1;try{zoom=+localStorage.getItem("agencja-czyt")||1}catch(er){}
+  w.innerHTML=`<div class="ramkaT"><div class="nawT"><button class="drugi" id="pop">◂ Poprzednia karta</button><b id="tytT"></b>
+    <button class="drugi" id="zoomM" title="Mniejszy tekst">A−</button><button class="drugi" id="zoomP" title="Większy tekst">A+</button>
+    <button class="drugi" id="nast">Następna karta ▸</button><button class="drugi" id="pelna" title="Wszystkie slajdy z podręcznika">📚 Cała teoria</button>
+    <button class="glowny" id="doMisji">Koniec teorii – do misji ▸</button></div><div class="czyt" id="czyt"></div></div>`;
+  const pokaz=()=>{const k=T[i],c=$("#czyt");
+    $("#tytT").textContent=`Karta ${i+1}/${T.length} · ok. ${String(k.min).replace(".",",")} min czytania`;
+    c.style.fontSize=Math.round(21*zoom)+"px";
+    c.innerHTML=`<div class="czytW"><h2>${i+1}. ${esc(k.t)}</h2>${k.n.map(x=>`<p>${x}</p>`).join("")}
+      ${k.anim&&window.ANIMACJE?`<p><button class="glowny" id="animK">🎬 Pokaż animację: ${esc(window.ANIMACJE.nazwy[k.anim])}</button></p>`:""}
+      ${k.pyt?`<div class="czytP"><b>❓ Pytanie do klasy:</b> ${k.pyt}<button class="drugi" id="odpK">Pokaż odpowiedź</button><div id="odpT" hidden>✅ ${k.odp}</div></div>`:""}
+      <div class="czytZ"><b>📂 Zapamiętaj</b> (to uczeń ma w teczce: przed misją za darmo, w czasie misji za 25% punktów zadania)<ul>${k.u.map(x=>`<li>${x}</li>`).join("")}</ul></div></div>`;
+    c.scrollTop=0;$("#pop").disabled=i===0;$("#nast").disabled=i===T.length-1;
+    const a=$("#animK");if(a)a.onclick=()=>window.ANIMACJE.otworz([k.anim]);
+    const o=$("#odpK");if(o)o.onclick=()=>{$("#odpT").hidden=false;o.remove()}};
+  $("#pop").onclick=()=>{if(i>0){i--;pokaz()}};$("#nast").onclick=()=>{if(i<T.length-1){i++;pokaz()}};
+  const zm=d=>{zoom=Math.min(2,Math.max(.7,zoom+d));try{localStorage.setItem("agencja-czyt",zoom)}catch(er){}pokaz()};
+  $("#zoomP").onclick=()=>zm(.1);$("#zoomM").onclick=()=>zm(-.1);
+  $("#pelna").onclick=()=>{teoriaPelna=true;rysuj()};
+  $("#doMisji").onclick=()=>{krok="podglad";rysuj()};
+  pokaz();
+}
 function teoria(){
   const e=E(),w=$("#ekran");let i=0;
+  const T0=window.TECZKI&&e.teczka&&window.TECZKI[e.teczka];
+  if(T0&&!teoriaPelna)return teoriaKarty(e,T0);
   const url=id=>`../${F.baza}${F.lekcje}#${id}`;
   w.innerHTML=`<div class="ramkaT"><div class="nawT"><button class="drugi" id="pop">◂ Poprzednia część</button><b id="tytT"></b>
     <button class="drugi" id="zoomM" title="Mniejszy tekst">A−</button><button class="drugi" id="zoomP" title="Większy tekst">A+</button>
@@ -499,6 +534,7 @@ function teoria(){
   $("#zoomP").onclick=()=>{zoom=Math.min(2,zoom+.1);prezentacja()};$("#zoomM").onclick=()=>{zoom=Math.max(.6,zoom-.1);prezentacja()};
   $("#doMisji").onclick=()=>{krok="podglad";rysuj()};
   const an=$("#anim");if(an)an.onclick=()=>window.ANIMACJE.otworz(e.animacje);
+  if(T0){const b=document.createElement("button");b.className="drugi";b.textContent="📖 Wersja do czytania";b.onclick=()=>{teoriaPelna=false;rysuj()};$(".nawT").insertBefore(b,$("#doMisji"))}
   pokaz();
 }
 

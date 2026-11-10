@@ -216,6 +216,18 @@
     const url = `${F.lekcje}#${id}`;
     const o = okno(`<div class="ramka-g"><button class="glowny" data-x>← Wróć do misji</button><b>${esc(nazwa)}</b><a href="${url}" target="_blank" rel="noopener">Otwórz w nowym oknie ↗</a></div><iframe src="${url}" title="${esc(nazwa)}"></iframe>`, "nak-ramka");
     $("[data-x]", o).onclick = () => o.remove();
+    // Ta sama domena: podręcznik dostaje kolory motywu gry, znikają menu, nagłówek i zakładki z quizami.
+    const ifr = $("iframe", o);
+    ifr.onload = () => { try {
+      const d = ifr.contentDocument, cs = getComputedStyle(document.body), v = (n) => cs.getPropertyValue(n).trim();
+      if (!d || d.getElementById("zGry")) return;
+      d.documentElement.dataset.theme = "dark";
+      const st = d.createElement("style"); st.id = "zGry";
+      st.textContent = `:root{--bg:${v("--tlo")}!important;--panel:${v("--panel")}!important;--line:${v("--panel2")}!important;--ink:${v("--tekst")}!important;--mute:${v("--mute")}!important;--acc:${v("--akc")}!important;--acc-ink:#111!important;--c1:${v("--akc")}!important;--c2:${v("--akc2")}!important}
+        header,nav,#hud,#misnick,#misrank,.chips span+span,.tabs [data-t=quiz],.tabs [data-t=test],.tabs [data-t=mis],.tabs [data-t=wyz]{display:none!important}
+        .layout{grid-template-columns:1fr!important;min-height:100vh!important}main{max-width:60em!important;margin:0 auto!important}`;
+      d.head.appendChild(st);
+    } catch (er) {} };
   }
 
   /* ---------- Szkielet strony ---------- */
@@ -498,7 +510,48 @@
     });
   }
 
+  /* Teczka (teczki.js): krótka teoria misji w kolorach gry. Przed misją – za darmo (ekran akt);
+     w czasie misji przycisk przy zadaniu kosztuje 25% punktów za to zadanie (T.tk, jak kalkulator).
+     Otwiera się na karcie pasującej do zadania (słowa kluczowe `sl`). Cała teoria z podręcznika – dla chętnych. */
+  const teczkaE = (e) => (window.TECZKI && e && e.teczka && window.TECZKI[e.teczka]) || null;
+  function teczka(e, z, przed) {
+    const T = teczkaE(e); if (!T) return;
+    let i = 0;
+    if (z) {
+      const txt = [z.q, z.fab, z.why].join(" "); let naj = 0;
+      T.forEach((k, j) => { const n = (txt.match(new RegExp(k.sl, "gi")) || []).length; if (n > naj) { naj = n; i = j; } });
+    }
+    const o = okno("", "nak-teczka");
+    const rys = () => {
+      const k = T[i], b = $(".okno", o);
+      b.innerHTML = `<div class="tk-g"><b>📂 Teczka: najważniejsze</b><button class="glowny" data-x>${przed ? "✔ Zamknij teczkę" : "← Wróć do zadania"}</button></div>
+        <div class="tk-z">${T.map((x, j) => `<button data-k="${j}" aria-pressed="${j === i}">${j + 1}. ${esc(x.kr || x.t)}</button>`).join("")}</div>
+        <h2>${esc(k.t)}</h2><ul class="tk-u">${k.u.map((x) => `<li>${x}</li>`).join("")}</ul>
+        <div class="zad-p">${k.anim && window.ANIMACJE ? `<button class="drugi" data-anim>🎬 Animacja: ${esc(window.ANIMACJE.nazwy[k.anim])}</button>` : ""}
+          ${i < T.length - 1 ? `<button class="drugi" data-nast>Następna karta ▸</button>` : ""}</div>
+        <details class="tk-c"><summary>📚 Cała teoria z podręcznika (dla chętnych)</summary>
+          <div class="lista-akt">${(e.lekcje || []).map(([id, n]) => `<button class="drugi" data-l="${id}" data-n="${esc(n)}">📄 ${esc(n)}</button>`).join("")}</div></details>`;
+      b.scrollTop = 0;
+      $("[data-x]", b).onclick = () => o.remove();
+      $$("[data-k]", b).forEach((x) => (x.onclick = () => { i = +x.dataset.k; rys(); }));
+      const n = $("[data-nast]", b); if (n) n.onclick = () => { i++; rys(); };
+      const a = $("[data-anim]", b); if (a) a.onclick = () => window.ANIMACJE.otworz([k.anim]);
+      $$("[data-l]", b).forEach((x) => (x.onclick = () => lekcja(x.dataset.l, x.dataset.n)));
+    };
+    rys();
+  }
+
   function akta(e) {
+    if (teczkaE(e)) return new Promise((ok) => {   // misja z teczką: przegląd przed misją (za darmo), potem zadania
+      const w = szkielet("mapa");
+      w.innerHTML = `<section class="karta akta"><h2>📂 Teczka: ${esc(tytul(e))}</h2>${e.lekcja ? `<p class="mala">${esc(e.lekcja)}</p>` : ""}
+        <p>Przejrzyj teczkę <b>teraz</b> – jest w niej wszystko, czego potrzebujesz do zadań.</p>
+        <p class="tk-ost">⚠ Po rozpoczęciu misji zajrzenie do teczki kosztuje <b>25% punktów</b> za zadanie.</p>
+        <p><button class="glowny" data-teczka>📂 Otwórz teczkę</button> <button class="drugi" data-start>Rozpocznij zadania ▸</button> <button class="link" data-x>Wróć do mapy</button></p></section>`;
+      $("[data-teczka]", w).onclick = () => teczka(e, null, true);
+      $("[data-start]", w).onclick = () => ok(true);
+      $("[data-x]", w).onclick = () => ok(false);
+    });
     return new Promise((ok) => {
       const w = szkielet("mapa");
       w.innerHTML = `<section class="karta akta"><h2>📂 ${esc(M().akta)}: ${esc(tytul(e))}</h2>${e.lekcja ? `<p class="mala">${esc(e.lekcja)}</p>` : ""}
@@ -534,8 +587,8 @@
     while (i != null) {
       const w = wolne(), nr = i;
       const r = await zadanie(e, zad[nr], nr, zad.length, pkt, Object.values(T.odp).reduce((a, x) => a + x[2], 0), false, {
-        odp: T.odp, h: T.h[nr] || 0, pomin: w.length > 1, ostatnie: w.length === 1, poziom, kalk0: !!(T.k && T.k[nr]),
-        podp: (n) => { T.h[nr] = n; zapisz(); }, kalkuj: () => { (T.k = T.k || {})[nr] = 1; zapisz(); },
+        odp: T.odp, h: T.h[nr] || 0, pomin: w.length > 1, ostatnie: w.length === 1, poziom, kalk0: !!(T.k && T.k[nr]), tk0: !!(T.tk && T.tk[nr]),
+        podp: (n) => { T.h[nr] = n; zapisz(); }, kalkuj: () => { (T.k = T.k || {})[nr] = 1; zapisz(); }, teczkuj: () => { (T.tk = T.tk || {})[nr] = 1; zapisz(); },
         wynik: (x) => { T.odp[nr] = x; T.t = S.trwa.t = Date.now(); zapisz(); } });
       if (r === null) { delete S.trwa; zapisz(); return mapa(); }   // wyjście – odpowiedzi zostają w S.niedok
       const w2 = wolne();
@@ -601,7 +654,7 @@
     }
     return new Promise((gotowe) => {
       const w = szkielet("mapa");
-      let uzyte = nav ? nav.h : 0, sprawdzone = false, kalk = !!(nav && nav.kalk0);
+      let uzyte = nav ? nav.h : 0, sprawdzone = false, kalk = !!(nav && nav.kalk0), tk = !!(nav && nav.tk0);
       const przel = window.PRZELICZNIK && window.PRZELICZNIK.dotyczy(z), kalkOk = !(nav && nav.poziom === "elita");
       const kary = F.kary;
       const koszt = (n) => Math.round((1 - kary[n]) * 100);
@@ -624,6 +677,7 @@
         <div class="podp-box"></div>
         <div class="wynik" aria-live="polite"></div>
         <div class="zad-p">
+          ${teczkaE(e) ? `<button class="drugi" data-teczka title="Zajrzenie do teczki w czasie misji kosztuje 25% punktów za to zadanie">📂 Teczka (${tk ? "kara naliczona" : "−25% pkt"})</button>` : ""}
           <button class="drugi" data-podp>💡 Podpowiedź (−${koszt(1)}% pkt)</button>
           ${przel ? `<button class="drugi" data-przel title="Przelicz krok po kroku – bez utraty punktów">🧮 Przelicznik</button>` : ""}
           ${(z.konsola || z.real) && window.KONSOLA ? (window.KONSOLA.dostepna() ? `<button class="drugi" data-konsola title="Wiersz polecenia z prawdziwymi danymi tego komputera">🖥️ Konsola</button>`
@@ -677,6 +731,9 @@
       $$("[data-p]", w).forEach((s) => (s.onchange = () => { stan.para[s.dataset.p] = s.value; }));
       const wp = $(".wpis", w); if (wp) { wp.focus(); wp.onkeydown = (ev) => { if (ev.key === "Enter") $("[data-spr]", w).click(); }; }
 
+      const bt = $("[data-teczka]", w); if (bt) bt.onclick = () => {   // po sprawdzeniu odpowiedzi – już bez kary
+        if (!tk && !sprawdzone) { tk = true; bt.textContent = "📂 Teczka (kara naliczona)"; if (nav && nav.teczkuj) nav.teczkuj(); }
+        teczka(e, z); };
       const bp = $("[data-podp]", w);
       const pokazPodp = (n) => {
         $(".podp-box", w).insertAdjacentHTML("beforeend", `<div class="podp">${portret("p", S.motyw, 36)}<span><b>${esc(M().pomocnik)}:</b> ${esc(tok(z.h[n - 1]))}</span></div>`);
@@ -719,7 +776,7 @@
         }
         else { const v = norm(wp.value); if (!v) return wynik("Wpisz odpowiedź.", "uwaga"); dobrze = z.ok.some((x) => norm(x) === v); }
         sprawdzone = true;
-        const zdobyte = dobrze ? pkt * kary[Math.min(uzyte, kary.length - 1)] * (kalk ? 0.75 : 1) : 0;
+        const zdobyte = dobrze ? pkt * kary[Math.min(uzyte, kary.length - 1)] * (kalk ? 0.75 : 1) * (tk ? 0.75 : 1) : 0;
         if (nav) { nav.wynik([dobrze ? 1 : 0, uzyte, zdobyte]); if (pm) pm.remove(); }
         dzwiek(dobrze ? "ok" : "zle");
         // pokaż poprawne
@@ -728,7 +785,7 @@
         if (z.typ === "para") $$("[data-p]", w).forEach((s) => { s.disabled = true; s.classList.add(+s.value === +s.dataset.p ? "dobra" : "zla"); });
         if (wp) wp.disabled = true;
         bp.disabled = true;
-        wynik(`${dobrze ? `✔ Dobrze! +${Math.round(zdobyte * 10) / 10} pkt${uzyte ? ` (podpowiedzi: ${uzyte})` : ""}${kalk ? " (kalkulator −25%)" : ""}` : "✘ Niestety, to nie to."}<br><small>${esc(tok(z.why))}</small>${tylkoFormat ? `<br><small>ℹ Sprawdzono, czy odpowiedź ma sens. Każdy komputer ma inne dane – nauczyciel widzi, gdy dwie osoby wpiszą to samo.</small>` : ""}`, dobrze ? "dobrze" : "zle");
+        wynik(`${dobrze ? `✔ Dobrze! +${Math.round(zdobyte * 10) / 10} pkt${uzyte ? ` (podpowiedzi: ${uzyte})` : ""}${kalk ? " (kalkulator −25%)" : ""}${tk ? " (teczka −25%)" : ""}` : "✘ Niestety, to nie to."}<br><small>${esc(tok(z.why))}</small>${tylkoFormat ? `<br><small>ℹ Sprawdzono, czy odpowiedź ma sens. Każdy komputer ma inne dane – nauczyciel widzi, gdy dwie osoby wpiszą to samo.</small>` : ""}`, dobrze ? "dobrze" : "zle");
         const b = $("[data-spr]", w); b.textContent = (nav ? !nav.ostatnie : nr + 1 < ile) ? "Dalej ▸" : "Zakończ ▸";
         b.onclick = () => gotowe({ pkt: zdobyte, podp: uzyte });
         b.focus();
