@@ -85,7 +85,7 @@ async function wczytaj(){
 
 function rysuj(){
   const odd=[...new Set(D.gracze.map(g=>g.k))].sort();
-  app.innerHTML=`<div class="zakladki">${Object.keys(window.FABULY).map(r=>`<button data-rocz="${r}" aria-pressed="${rocz===r}">Klasa ${r}</button>`).join("")}<span style="width:14px"></span>${[["uczniowie","Uczniowie"],["zalegle","Zaległości"],["klasy","Klasy i kody"],["wyniki","Wyniki testów"],["hasla","Hasła do testów"]].map(([k,n])=>`<button data-z="${k}" aria-pressed="${zak===k}">${n}</button>`).join("")}
+  app.innerHTML=`<div class="zakladki">${Object.keys(window.FABULY).map(r=>`<button data-rocz="${r}" aria-pressed="${rocz===r}">Klasa ${r}</button>`).join("")}<span style="width:14px"></span>${[["uczniowie","Uczniowie"],["zalegle","Zaległości"],["sprawdz","📝 Do sprawdzenia"+(doSprawdzenia().length?` (${doSprawdzenia().length})`:"")],["klasy","Klasy i kody"],["wyniki","Wyniki testów"],["hasla","Hasła do testów"]].map(([k,n])=>`<button data-z="${k}" aria-pressed="${zak===k}">${n}</button>`).join("")}
   <span style="flex:1"></span><a href="../prowadzenie/${location.search}" target="_blank" rel="noopener" style="align-self:center;margin-right:8px">🎓 Prowadzenie lekcji ↗</a><button data-odsw>⟳ Odśwież</button><button data-wyl>Wyloguj</button></div><div id="tresc"></div>`;
   $$("[data-z]").forEach(b=>b.onclick=()=>{zak=b.dataset.z;rysuj()});
   $$("[data-rocz]").forEach(b=>b.onclick=()=>{rocz=b.dataset.rocz;try{sessionStorage.setItem("agencja-rocznik",rocz)}catch(e){}D=filtruj();filtr="";rysuj()});
@@ -97,15 +97,43 @@ function rysuj(){
   if(zak==="wyniki")wyniki(t);
   if(zak==="hasla")hasla(t);
   if(zak==="zalegle")zalegle(t);
+  if(zak==="sprawdz")sprawdz(t);
+}
+
+/* ---------- zadania otwarte z kartkówek i sprawdzianów w grze (ocenia nauczyciel) ---------- */
+function doSprawdzenia(wszystkie){   // [{g, s, e, t}] – testy z zadaniami otwartymi (domyślnie tylko nieocenione)
+  const out=[];
+  D.gracze.forEach(g=>{const s=stanUcznia(g);Object.entries(s.testy||{}).forEach(([id,t])=>{
+    if(!t.otw)return;const e=F.etapy.find(x=>x.id===id);if(!e)return;
+    if(wszystkie||Object.values(t.otw).some(o=>o.p==null))out.push({g,s,e,t})})});
+  return out.sort((a,b)=>String(a.g.k).localeCompare(String(b.g.k))||String(a.g.n).localeCompare(String(b.g.n),"pl"));
+}
+let pokazOcenione=false;
+function sprawdz(t){
+  const lista=doSprawdzenia(pokazOcenione).filter(x=>!filtr||x.g.k===filtr);
+  t.innerHTML=`<div class="karta"><p class="mute">Odpowiedzi na zadania otwarte z kartkówek i sprawdzianów w grze. Wpisz punkty i zapisz – ocena ucznia przeliczy się sama.
+    Zadania „z danymi komputera” trafiają tu, gdy uczeń pisał poza aplikacją.</p><label><input type="checkbox" id="pokOc" ${pokazOcenione?"checked":""}> pokaż też już ocenione</label></div>
+    ${lista.map((x,i)=>`<div class="karta"><h3>${esc(x.g.n)} <span class="mute">· ${esc(x.g.k)}${x.g.g?" gr "+esc(x.g.g):""} · ${esc(x.e.tytul.det)}${x.t.gr?" · gr. "+esc(x.t.gr):""} · teraz ${x.t.s}/${x.t.m} → ${ocenaTestu(x.t.s,x.t.m)}</span></h3>
+      ${Object.entries(x.t.otw).map(([q,o])=>`<div style="border-top:1px solid var(--linia,#ddd);padding:8px 0"><p><b>${esc(o.q)}</b> <span class="mute">(max ${o.m} pkt)</span></p>
+        ${o.kryt?`<p class="mute">Kryteria: ${esc(o.kryt)}</p>`:""}<blockquote style="margin:6px 0;padding:8px 12px;background:color-mix(in srgb,var(--nav,#36c) 8%,transparent);border-radius:8px;white-space:pre-wrap">${esc(o.odp)||"<i>brak odpowiedzi</i>"}</blockquote>
+        <p>Punkty: ${Array.from({length:o.m+1},(_,p)=>`<label style="margin-right:10px"><input type="radio" name="o${i}-${esc(q)}" value="${p}" ${o.p===p?"checked":""}> ${p}</label>`).join("")}</p></div>`).join("")}
+      <p><button data-zo="${i}">Zapisz punkty</button> <span class="mute" id="st${i}"></span></p></div>`).join("")||`<div class="karta mute">Nic nie czeka na sprawdzenie. 🎉</div>`}`;
+  $("#pokOc").onchange=e=>{pokazOcenione=e.target.checked;sprawdz(t)};
+  $$("[data-zo]",t).forEach(b=>b.onclick=async()=>{const i=+b.dataset.zo,x=lista[i],pkt={};
+    Object.keys(x.t.otw).forEach(q=>{const r=t.querySelector(`input[name="o${i}-${CSS.escape(q)}"]:checked`);if(r)pkt[q]=+r.value});
+    if(!Object.keys(pkt).length)return $("#st"+i).textContent="Zaznacz punkty.";
+    const r=await akcja("ocenOtwarte",{n:x.g.n,k:x.g.k,etap:x.e.id,pkt},$("#st"+i));
+    if(r)await wczytaj()});
 }
 
 function ocenaTestu(sk,mx){const p=Math.round((+sk||0)/(+mx||1)*100);for(const [g,o] of F.skalaTestow)if(p>=g-1e-9)return o;return "1"}
+function poza(e,s){const n=(s.alarmy||[]).filter(a=>a.id===e.id).length;return n?` <span class="blad" title="Wyjścia z okna gry w czasie tego etapu (na lekcji)">⚠${n}</span>`:""}
 function komorka(e,s){
-  if(e.typ==="test"){const r=(s.testy||{})[e.id];return r?`<span class="oc">${ocenaTestu(r.s,r.m)}</span> <span class="mute">${r.s}/${r.m} · ${r.proc}%</span>`:"–"}
+  if(e.typ==="test"){const r=(s.testy||{})[e.id];return r?`<span class="oc">${ocenaTestu(r.s,r.m)}</span> <span class="mute">${r.s}/${r.m} · ${r.proc}%</span>${r.doOceny?` <span title="Zadania otwarte czekają na sprawdzenie (zakładka Do sprawdzenia)">📝</span>`:""}${r.kara?` <span class="blad" title="${esc(r.kara)} – ocena 1. Bez kary: ${r.sPrzedKara}/${r.m}">⛔</span> <button data-kara="${esc(e.id)}" title="Cofnij karę (np. awaria komputera)">cofnij</button>`:""}${poza(e,s)}`:"–"}
   const r=(s.misje||{})[e.id];if(!r)return "–";
   if(e.bezPoziomu)return `${r.proc}%`;
   const pop=r.proby&&r.proby.length>1?` · popr. ×${r.proby.length-1}`:"";
-  return `<span class="oc">${r.ocena}</span> <span class="mute">${esc(F.poziomy[r.poziom].n)} · ${r.proc}%${r.podp?` · 💡${r.podp}`:""}${pop}</span>`;
+  return `<span class="oc">${r.ocena}</span> <span class="mute">${esc(F.poziomy[r.poziom].n)} · ${r.proc}%${r.podp?` · 💡${r.podp}`:""}${pop}</span>${poza(e,s)}`;
 }
 async function akcja(a,d,st){
   if(st)st.textContent="Zapisuję…";
@@ -125,7 +153,11 @@ function uczniowie(t,odd){
   ${lista.map((g,i)=>{const s=stanUcznia(g);return `<tr class="klik" data-i="${D.gracze.indexOf(g)}"><td><b>${esc(g.n)}</b></td><td>${esc(g.k)}</td><td>${(()=>{const gr=[...new Set(D.klasy.filter(k=>k.k===g.k&&k.g).map(k=>k.g))].sort();return gr.length?`<select data-grupa="${D.gracze.indexOf(g)}" title="Grupa ucznia" style="${g.g?"":"border-color:var(--zle);color:var(--zle)"}"><option value="" ${g.g?"":"selected"}>brak!</option>${gr.map(x=>`<option ${x===String(g.g||"")?"selected":""}>${esc(x)}</option>`).join("")}</select>`:esc(g.g||"–")})()}</td><td>${+g.xp||0}</td><td>${esc(stopien(+g.xp||0))}</td>${F.etapy.map(e=>`<td>${komorka(e,s)}</td>`).join("")}<td class="mute">${data(g.ost)}</td></tr>`}).join("")}
   </table></div></div><div id="szczeg"></div>`;
   $("#f").onchange=e=>{filtr=e.target.value;rysuj()};
-  $$("tr.klik",t).forEach(r=>r.onclick=e=>{if(e.target.closest("select"))return;szczegoly(D.gracze[+r.dataset.i])});
+  $$("tr.klik",t).forEach(r=>r.onclick=async e=>{if(e.target.closest("select"))return;
+    const kb=e.target.closest("[data-kara]");   // cofnięcie kary za 3 wyjścia z gry w teście
+    if(kb){const g=D.gracze[+r.dataset.i];if(!confirm(`Cofnąć karę w teście dla: ${g.n}? Wynik wróci do punktów bez kary.`))return;
+      kb.disabled=true;if(await akcja("ocenOtwarte",{n:g.n,k:g.k,etap:kb.dataset.kara,cofnijKare:true,pkt:{}}))await wczytaj();return}
+    szczegoly(D.gracze[+r.dataset.i])});
   const ag=$("#autoGr",t);if(ag)ag.onclick=()=>autoGrupy(lista);
   $$("[data-grupa]",t).forEach(sel=>{sel.onclick=e=>e.stopPropagation();sel.onchange=async()=>{const g=D.gracze[+sel.dataset.grupa];
     if(await akcja("ustawGrupe",{n:g.n,k:g.k,g:sel.value},null)){g.g=sel.value;sel.style.cssText=sel.value?"":"border-color:var(--zle);color:var(--zle)"}else{alert("Nie udało się zapisać grupy (zaktualizuj skrypt w arkuszu albo spróbuj ponownie).");sel.value=g.g||""}}});
@@ -225,6 +257,7 @@ function klasy(t){
     <td style="white-space:nowrap">${MK.map(m=>`<label style="display:block;margin:0 0 .15em"><input type="checkbox" data-dm="${m}" ${dm.includes(m)?"checked":""}> ${esc(F.motywy[m].nazwa)}</label>`).join("")}</td>
     <td><select data-od><option value="">wszystko</option>${F.etapy.map(e=>`<option value="${e.id}" ${k.od===e.id?"selected":""}>${esc(e.tytul.det)}</option>`).join("")}</select></td>
     <td><textarea data-kom rows="3" maxlength="500" style="width:15em;font:inherit;font-size:.85rem" placeholder="np. Jutro kartkówka!">${esc(k.kom||"")}</textarea></td>
+
     <td><button class="glowny" data-zap>Zapisz</button><div class="mute" data-st></div></td></tr>`}).join("")}
   </table></div></div>
   <div class="karta"><b>Komunikat do wszystkich klas</b><p class="mute">Zastępuje komunikaty wszystkich klas. Pusty = usuwa komunikaty. Uczeń zobaczy go jako wiadomość od Twojej postaci.</p>
@@ -234,6 +267,7 @@ function klasy(t){
   $$("tr[data-k]",t).forEach(tr=>{
     const k=D.klasy[+tr.dataset.k],st=$("[data-st]",tr);
     $("[data-m]",tr).onchange=e=>{const c=$(`[data-dm="${e.target.value}"]`,tr);if(c)c.checked=true};
+    // kolumna „Pracownia” (blokada przez aplikację) ukryta – administrator blokuje aplikację w pracowni
     $("[data-zap]",tr).onclick=async()=>{
       const m=$("[data-m]",tr).value,wl=$$("[data-dm]",tr).filter(c=>c.checked).map(c=>c.dataset.dm);
       if(!wl.length){st.textContent="Włącz co najmniej jeden klimat.";return}
@@ -257,7 +291,7 @@ function zalegle(t){
     const oi=odI(k),gr=D.gracze.filter(g=>wGrupie(g,k));
     if(!gr.length)return "";
     if(oi<0)return `<div class="karta"><h3>${esc(etyk(k))}</h3><p class="mute">Wszystkie etapy są odblokowane – zaległości liczę, gdy zaczniesz odblokowywać misje w „Prowadzeniu lekcji” (albo ustawisz „Odblokowane do” w zakładce Klasy).</p></div>`;
-    const etapy=F.etapy.slice(0,oi+1);
+    const etapy=F.etapy.slice(0,oi+1).filter(e=>!e.niespodzianka);   // kartkówki-niespodzianki: zaległości w Prowadzeniu przy teście
     const wiersze=gr.map(g=>{const s=stanUcznia(g);const brak=etapy.filter(e=>!(e.typ==="test"?(s.testy||{})[e.id]:(s.misje||{})[e.id]));return {g,brak}}).filter(x=>x.brak.length)
       .sort((a,b)=>b.brak.length-a.brak.length||String(a.g.n).localeCompare(String(b.g.n),"pl"));
     return `<div class="karta"><h3>${esc(etyk(k))} <span class="mute">· odblokowane do: ${esc(F.etapy[oi].lekcja||F.etapy[oi].tytul.det)}</span></h3>

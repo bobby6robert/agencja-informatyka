@@ -8,7 +8,7 @@ if not exist "%CSC%" set "CSC=%WINDIR%\Microsoft.NET\Framework\v4.0.30319\csc.ex
 set "SRC=%~dp0..\aplikacja\zrodlo"
 "%CSC%" /nologo /codepage:65001 /optimize+ /target:winexe /platform:anycpu ^
   /win32icon:"%SRC%\ikona.ico" /win32manifest:"%SRC%\app.manifest" ^
-  /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll ^
+  /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Management.dll /r:System.Web.dll ^
   /out:"%~dp0..\aplikacja\Agencja Cyfrowych Detektywów.exe" "%SRC%\Program.cs"
 if errorlevel 1 (echo. & echo BLAD KOMPILACJI & exit /b 1)
 echo Zbudowano: aplikacja\Agencja Cyfrowych Detektywów.exe

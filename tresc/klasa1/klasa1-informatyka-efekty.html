@@ -187,6 +187,7 @@ pre .bt2 button.run{background:#12b886;border-color:#12b886;font-weight:800}
 .nav2 button.primary{background:linear-gradient(110deg,var(--c1),var(--c2));border:0;box-shadow:0 10px 20px -10px var(--c1)}
 .nav2 button.primary:hover{transform:translateY(-2px)}
 .nav2 span.dots{display:flex;gap:.35rem;justify-content:center;flex-wrap:wrap}
+.slide+.nav2,.slide~.nav2{position:sticky;bottom:.5rem;z-index:5;padding:.55rem .7rem;border-radius:99px;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);box-shadow:var(--sh);border:1px solid var(--line)}
 .dots i{width:.7rem;height:.7rem;border-radius:99px;background:var(--line);cursor:pointer;transition:all .25s}
 .dots i.on{width:2rem;background:linear-gradient(90deg,var(--c1),var(--c2))}.dots i.pass{background:color-mix(in srgb,var(--c1) 55%,var(--line))}
 .plan{margin-top:1rem;padding:.8rem 1rem;border-radius:14px;border:2px dashed color-mix(in srgb,var(--c1) 45%,var(--line));font-size:.82em}
@@ -2116,8 +2117,10 @@ function viewTheory(l){
   const n=l.slides.length,s=l.slides[state.slide];
   $("#view").innerHTML=`<div class="slide"><h3 style="margin:.2em 0;font-size:1.25em">${s.h}</h3>${s.html}${(s.img||[]).map(k=>shot(k)).join("")}</div>
   <div class="nav2"><button id="prev" ${state.slide?"":"disabled"}>Wstecz</button><span>${state.slide+1} / ${n}</span><button id="next" class="primary">${state.slide<n-1?"Dalej":(l.mis?"Przejdź do misji":l.exercise||l.py?"Przejdź do ćwiczenia":l.quiz?"Przejdź do quizu":l.tasks?"Przejdź do zadań":"Koniec teorii")}</button></div>`;
-  $("#prev").onclick=()=>{state.slide--;viewTheory(l)};
-  $("#next").onclick=()=>{if(state.slide<n-1){state.slide++;viewTheory(l)}else{mark("teoria");const nt=l.mis?"mis":l.exercise?"cw":l.py?"py":l.quiz?"quiz":l.tasks?"zad":null;if(nt){state.tab=nt;state.slide=0}render()}};
+  state.seen=state.seen||{};(state.seen[l.id]=state.seen[l.id]||{})[state.slide]=1;
+  const naGore=()=>{const t=$("#view");if(t&&t.getBoundingClientRect().top<0)t.scrollIntoView({block:"start"})};
+  $("#prev").onclick=()=>{state.slide--;viewTheory(l);naGore()};
+  $("#next").onclick=()=>{if(state.slide<n-1){state.slide++;viewTheory(l);naGore()}else{mark("teoria");const nt=l.mis?"mis":l.exercise?"cw":l.py?"py":l.quiz?"quiz":l.tasks?"zad":null;if(nt){state.tab=nt;state.slide=0}render()}};
 }
 function viewExercise(l){
   const ex=l.exercise, saved=store.get("code:"+l.id,ex.start);
@@ -2319,8 +2322,8 @@ function skin(){
       sl.after(p);p.onclick=e=>{const a=e.target.closest("a");if(a){state.slide=+a.dataset.i;viewTheory(l)}};
     }
     const sp=main.querySelector(".nav2 span");
-    if(sp&&!sp.classList.contains("dots")){sp.className="dots";sp.innerHTML=l.slides.map((s,i)=>`<i class="${i===state.slide?"on":i<state.slide?"pass":""}" title="${i+1}. ${E(s.h.replace(/<[^>]+>/g,""))}"></i>`).join("");
-      sp.onclick=e=>{const i=[...sp.children].indexOf(e.target);if(i>=0){state.slide=i;viewTheory(l)}}}
+    if(sp&&!sp.classList.contains("dots")){sp.className="dots";const wid=(state.seen||{})[l.id]||{};sp.innerHTML=l.slides.map((s,i)=>`<i class="${i===state.slide?"on":wid[i]?"pass":""}" title="${i+1}. ${E(s.h.replace(/<[^>]+>/g,""))}"></i>`).join("");
+      sp.onclick=e=>{const i=[...sp.children].indexOf(e.target);if(i>=0){state.slide=i;viewTheory(l);const t=$("#view");if(t&&t.getBoundingClientRect().top<0)t.scrollIntoView({block:"start"})}}}
   }
   const sc=main.querySelector(".score:not([data-sk])");
   if(sc){sc.dataset.sk=1;const m=sc.textContent.match(/(\d+)\s*\/\s*(\d+)/);if(m&&m[1]===m[2]&&+m[2]>0){sc.textContent="🏆 "+sc.textContent;confetti()}}

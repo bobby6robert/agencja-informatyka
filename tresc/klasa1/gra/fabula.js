@@ -314,42 +314,58 @@ window.FABULA = {
     },
 
     {
-      id: "m2", typ: "misja", lekcja: "Lekcja 4 · Sieci komputerowe – budowa i usługi",
-      tytul: { det: "Pościg przez sieć", szp: "Podsłuch i pościg", fan: "Pajęcze Ścieżki do Wieży" },
-      lekcje: [["k7", "2.1 Sieć komputerowa i urządzenia sieciowe"], ["k8", "2.2 Rodzaje sieci komputerowych"], ["k9", "2.3 Sieć lokalna LAN i adres MAC"], ["k10", "2.4 Internet, czyli sieć sieci"], ["k11", "2.4b Komunikacja w sieci (infografika)"], ["k12", "2.4c Adres opisowy, DNS i konfiguracja"], ["k13", "2.5 Usługi internetowe"], ["k14", "2.6 Diagnostyka dostępu do sieci"], ["k15", "Zadania z rozdziału 2 (sieci)"]],
-      karta: ["c2", "c4"],
+      id: "kart1", typ: "test", niespodzianka: true, gra: { testy: ["1r1-sys"], czas: 5 }, karta: "c3", lekcja: "Lekcja 4a · kartkówka-niespodzianka: systemy operacyjne",
+      tytul: { det: "Nagłe przesłuchanie", szp: "Niezapowiedziany test lojalności", fan: "Nagła Próba Rady" },
+      alarm: { det: "Stop! Zanim ruszysz dalej – nagłe przesłuchanie. Sprawdzam, co pamiętasz o systemach.", szp: "Alarm w centrali! Niezapowiedziany test lojalności – systemy operacyjne.",
+               fan: "Rada Magów zwołuje nagłą próbę! Pokaż, co pamiętasz o Sercu Systemu.", woj: "Alarm! Niezapowiedziana kontrola wiedzy – systemy operacyjne.",
+               kas: "Kontrola doraźna! Sprawdzamy wiedzę o systemach operacyjnych.", mun: "Wezwanie na przesłuchanie! Pytania o systemy operacyjne." },
+      wstep: { det: [], szp: [], fan: [] },
+      koniec: {
+        det: [["s", "Pamiętasz, jak działa system. Dobrze – teraz wracamy do pościgu."]],
+        szp: [["s", "Test zaliczony. Wracamy do operacji."]],
+        fan: [["s", "Rada jest zadowolona. Wracaj na Pajęcze Ścieżki."]]
+      }
+    },
+
+    {
+      id: "m2", typ: "misja", lekcja: "Lekcja 4a · Sieci komputerowe – budowa sieci",
+      tytul: { det: "Namierzanie nadajnika", szp: "Podsłuch w centrali", fan: "Obcy kryształ w Akademii" },
+      burza: { temat: "Sieć komputerowa", kat: ["Urządzenia", "Usługi", "Sposób dostępu"] },   // ćwiczenie 1 z podręcznika (Prowadzenie → Burza mózgów)
+      lekcje: [["k7", "2.1 Sieć komputerowa i urządzenia sieciowe"], ["k8", "2.2 Rodzaje sieci komputerowych"], ["k9", "2.3 Sieć lokalna LAN i adres MAC"]],
+      animacje: ["pakiet", "topologie", "macip"],   // animacje-sieci.js – w aktach misji i w Prowadzeniu (teoria)
+      karta: "c2",
       wstep: {
         det: [
           ["n", "W poprzednim odcinku: system agencji uratowany, ale Cień uciekł przez sieć, zostawiając sygnaturę B0."],
-          ["p", "Najpierw znajdźmy jego urządzenie w naszej sieci. Każda karta sieciowa ma adres MAC – to jak odcisk palca."],
-          ["s", "A potem pójdziemy za nim do Internetu: adresy IP, DNS, porty, ping i tracert. Dziś złapiemy trop aż do jego kryjówki."]
+          ["p", "W naszej sieci lokalnej pracuje urządzenie, którego nikt nie zna. Każda karta sieciowa ma adres MAC – to jak odcisk palca."],
+          ["s", "Najpierw poznaj sieć: urządzenia, rodzaje sieci, adresy MAC. Potem sprawdzisz w konsoli swój komputer – prawdziwy, nie z ćwiczeń."]
         ],
         szp: [
           ["n", "Poprzednio: atak na centralę odparty, ale Fantom uciekł przez sieć, podpisując się B0."],
           ["p", "W sieci lokalnej nadaje nieznane urządzenie. Jego adres MAC to nasz pierwszy trop."],
-          ["s", "Namierz nadajnik, a potem idź za sygnałem przez Internet: IP, DNS, porty, tracert. Do końca dnia chcę mieć adres serwera."]
+          ["s", "Poznaj budowę sieci i sprawdź swój terminal w konsoli. Prawdziwe dane, agencie."]
         ],
         fan: [
           ["n", "Wcześniej w Kronice: klątwa zdjęta, ale Null uciekł siecią, zostawiając runę B0."],
-          ["p", "W sieci Akademii świeci obce urządzenie. Jego adres MAC jest jak magiczny odcisk – niepowtarzalny."],
-          ["s", "Odnajdź intruza, a potem podążaj Pajęczymi Ścieżkami aż do Wieży Adresów w Internecie."]
+          ["p", "W sieci Akademii świeci obcy kryształ. Jego adres MAC jest jak magiczny odcisk – niepowtarzalny."],
+          ["s", "Poznaj Pajęcze Ścieżki: urządzenia, rodzaje sieci i adresy MAC. Potem zajrzyj w kryształ swojego komputera."]
         ]
       },
       koniec: {
         det: [
           ["p", "Mam go! Adres MAC zgadza się z kartą starego punktu dostępowego w piwnicy. Urządzenie jest puste…"],
-          ["p", "…ale w jego pamięci została trasa. Tracert prowadzi do serwera w Internecie. Port 443 otwarty – Cień tam jest!"],
-          ["s", "Świetna robota. Zanim wejdziemy, przesłuchamy świadka, żeby mieć pewność. Potem – konfrontacja."]
+          ["p", "…ale w jego pamięci została trasa do Internetu."],
+          ["s", "Dobra robota. Na następnej lekcji idziemy tym tropem przez Internet."]
         ],
         szp: [
           ["p", "Namierzony! Podrzucony punkt dostępowy w szybie wentylacyjnym. Pusty…"],
-          ["p", "…ale trasa w jego pamięci prowadzi do serwera w Internecie. Port 443 aktywny."],
-          ["s", "Mamy współrzędne. Przed akcją: test lojalności. Potem starcie."]
+          ["p", "…ale w jego pamięci jest trasa prowadząca do Internetu."],
+          ["s", "Jutro idziemy za sygnałem dalej."]
         ],
         fan: [
           ["p", "Znalazłam! Zaklęty punkt dostępowy w starej wieży. Pusty…"],
-          ["p", "…ale w jego krysztale odbija się droga do Wieży Adresów. Brama 443 stoi otworem!"],
-          ["s", "Przed pojedynkiem czeka Cię jeszcze Próba Rady Magów."]
+          ["p", "…ale w jego krysztale odbija się droga prowadząca poza Akademię."],
+          ["s", "Następnym razem podążymy tą drogą."]
         ]
       },
       zadania: {
@@ -364,14 +380,136 @@ window.FABULA = {
             q: "Czym jest protokół komunikacyjny?", o: ["Zbiorem zasad, według których urządzenia wymieniają dane", "Kablem łączącym dwa komputery", "Programem antywirusowym", "Adresem karty sieciowej"], a: 0,
             h: ["To nie jest sprzęt.", "Chodzi o wspólny „język” urządzeń.", "Przykłady: Ethernet, TCP/IP, HTTP."],
             why: "Protokół to zbiór zasad komunikacji, np. Ethernet w sieci lokalnej czy TCP/IP w Internecie." },
+          { typ: "wiele", fab: "{wrog} mógł przesyłać dane różnymi drogami. Wskaż wszystkie możliwe.",
+            q: "Zaznacz WSZYSTKIE media transmisyjne.",
+            o: ["Skrętka", "Światłowód", "Fale radiowe", "Router", "Karta graficzna"], a: [0, 1, 2],
+            h: ["Medium to „droga”, a nie urządzenie.", "Są media przewodowe i bezprzewodowe.", "Odrzuć urządzenia."],
+            why: "Media: przewody (skrętka, światłowód) i fale radiowe. Router to urządzenie." },
+          { typ: "wpisz", real: "nazwa", konsola: true, wzor: "^[A-Za-z0-9_-]{1,15}$", fab: "Zanim złapiemy intruza, sprawdź, jak w sieci przedstawia się Twój komputer.",
+            q: "W Wierszu polecenia wpisz hostname. Jak nazywa się komputer, przy którym siedzisz?", ph: "nazwa komputera",
+            h: ["Kliknij „🖥 Idę do Wiersza polecenia”, potem Win + R → cmd → Enter.", "Wpisz dokładnie: hostname i naciśnij Enter.", "Przepisz nazwę, którą wyświetliła konsola."],
+            why: "Polecenie hostname wyświetla nazwę komputera w sieci." },
+          { typ: "para", fab: "{szef} chce mapę zasięgu sieci, w których mógł działać {wrog}.",
+            q: "Połącz rodzaj sieci z jej zasięgiem.",
+            l: ["PAN", "LAN", "MAN", "WAN"],
+            r: ["Kilka metrów wokół człowieka (np. Bluetooth)", "Budynek, np. szkoła", "Miasto", "Kraj lub kontynent"],
+            h: ["P = Personal, osobista.", "M = Metropolitan, miejska.", "Od najmniejszej: PAN, LAN, MAN, WAN."],
+            why: "PAN – osobista, LAN – lokalna, MAN – miejska, WAN – rozległa." },
           { typ: "wybor", fab: "Szukamy urządzenia intruza w sieci lokalnej.",
             q: "Co jednoznacznie rozpoznaje urządzenie w sieci lokalnej?", o: ["Adres MAC", "Kolor kabla", "Nazwa producenta monitora", "Moc procesora"], a: 0,
             h: ["To „odcisk palca” karty sieciowej.", "Nadaje go producent karty sieciowej.", "M…"],
-            why: "Adres MAC jest przypisany karcie sieciowej przez producenta." },
+            why: "Adres MAC jest przypisany karcie sieciowej przez producenta." }
+        ],
+        agent: [
+          { typ: "wybor", fab: "{pomocnik} śledzi pakiety {wrog}: najpierw przez przełącznik w biurze, potem przez router.",
+            q: "Na podstawie czego te urządzenia kierują dane?", o: ["Przełącznik – adresów MAC, router – adresów IP", "Przełącznik – adresów IP, router – adresów MAC", "Oba – nazw domen", "Oba – numerów portów"], a: 0,
+            h: ["Przełącznik działa wewnątrz sieci lokalnej.", "Router łączy różne sieci.", "W sieci lokalnej liczy się adres karty sieciowej."],
+            why: "Przełącznik kieruje dane w sieci lokalnej według adresów MAC, a router przekazuje je między sieciami według adresów IP." },
+          { typ: "wpisz", real: "mac", konsola: true, wzor: "^[0-9A-Fa-f]{2}([-:]?[0-9A-Fa-f]{2}){5}$", fab: "Porównamy odcisk intruza z Twoim. Potrzebny prawdziwy adres MAC Twojego komputera.",
+            q: "W Wierszu polecenia wpisz getmac albo ipconfig /all. Podaj adres fizyczny (MAC) karty, przez którą Twój komputer łączy się z siecią.", ph: "np. 3C-52-82-1A-B4-9F",
+            h: ["W ipconfig /all szukaj „Adres fizyczny” przy karcie, która ma adres IP.", "Adres MAC to 6 par znaków oddzielonych myślnikami.", "Przepisz go dokładnie – wielkość liter nie ma znaczenia."],
+            why: "Adres MAC (fizyczny) to 6 par cyfr szesnastkowych, np. 3C-52-82-1A-B4-9F. Każda karta sieciowa ma inny." },
+          { typ: "wpisz", fab: "{pomocnik} liczy, ile informacji mieści adres MAC.",
+            q: "Z ilu bitów składa się adres MAC?", ok: ["48"], ph: "liczba",
+            h: ["Adres ma 6 par znaków.", "Każda para to 1 bajt.", "1 bajt = 8 bitów, więc 6 × 8."],
+            why: "6 bajtów × 8 bitów = 48 bitów." },
+          { typ: "wybor", fab: "Laptop {wrog} miał kartę sieciową. Bez niej nie połączyłby się z niczym.",
+            q: "Do czego służy karta sieciowa?", o: ["Zamienia dane na sygnały (elektryczne, świetlne, radiowe) i odwrotnie", "Wyświetla obraz na monitorze", "Przechowuje pliki", "Zamienia nazwy stron na adresy IP"], a: 0,
+            h: ["Łączy komputer z siecią.", "Dane muszą zamienić się w sygnał, żeby popłynąć kablem albo falą.", "Działa w obie strony."],
+            why: "Karta sieciowa zamienia pakiety danych na sygnały elektryczne, impulsy świetlne lub fale radiowe – i odwrotnie." },
+          { typ: "kolej", fab: "Odtwórz drogę, którą dane z laptopa intruza poszły do Internetu.",
+            q: "Ułóż drogę danych z laptopa w sieci wi-fi do Internetu.",
+            el: ["Karta sieciowa laptopa", "Punkt dostępowy wi-fi", "Router", "Sieć dostawcy Internetu (ISP)"],
+            h: ["Zaczynamy w laptopie.", "Laptop bez kabla łączy się najpierw z urządzeniem od wi-fi.", "Router łączy sieć lokalną z siecią dostawcy."],
+            why: "Karta sieciowa → punkt dostępowy → router → sieć dostawcy." },
+          { typ: "wiele", fab: "{wrog} połączył laptop z Internetem przez hotspot w swoim smartfonie.",
+            q: "Zaznacz WSZYSTKIE role, które pełni smartfon udostępniający połączenie internetowe.",
+            o: ["Punkt dostępowy wi-fi", "Router", "Serwer DHCP", "Serwer DNS", "Drukarka sieciowa", "Serwer poczty"], a: [0, 1, 2, 3],
+            h: ["Laptop łączy się z telefonem przez wi-fi i dostaje adres IP automatycznie.", "Telefon łączy dwie sieci: wi-fi i sieć komórkową.", "Cztery odpowiedzi są poprawne."],
+            why: "Smartfon z hotspotem to punkt dostępowy i router, a dla podłączonych urządzeń także serwer DHCP i DNS." }
+        ],
+        elita: [
+          { typ: "wpisz", przel: true, fab: "Ostatnia para adresu MAC intruza to FF. {pomocnik} potrzebuje tej liczby w systemie dziesiętnym.",
+            q: "Ile to FF (szesnastkowo) w systemie dziesiętnym?", ok: ["255"], ph: "liczba",
+            h: ["Użyj przycisku 🧮 Przelicznik – kreator jest bez kary.", "F = 15. Pierwsza cyfra ma wagę 16, druga 1.", "15 × 16 + 15."],
+            why: "FF₁₆ = 15 × 16 + 15 = 255." },
+          { typ: "blad", fab: "{wrog} podrzucił do logów fałszywy adres MAC. Jeden z nich nie może istnieć.",
+            q: "Kliknij niepoprawny adres MAC.",
+            el: ["3C-52-82-1A-B4-9F", "00-1A-2B-3C-4D-5G", "A4-5E-60-E1-0B-77", "F0-DE-F1-12-34-56"], a: 1,
+            h: ["Adres MAC zapisuje się cyframi szesnastkowymi.", "Cyfry szesnastkowe to 0–9 i A–F.", "Szukaj litery spoza A–F."],
+            why: "G nie jest cyfrą szesnastkową (0–9, A–F), więc 00-1A-2B-3C-4D-5G nie jest poprawnym adresem MAC." },
+          { typ: "wybor", fab: "{wrog} sklonował adres MAC naszej drukarki. W sieci są teraz dwa urządzenia z tym samym adresem.",
+            q: "Dlaczego to problem?", o: ["Przełącznik nie wie, do którego urządzenia wysłać dane", "Drukarka zacznie drukować szybciej", "Router zmieni adres IP na MAC", "Nic się nie stanie"], a: 0,
+            h: ["Przełącznik kieruje dane według adresów MAC.", "Adres ma być niepowtarzalny.", "Dwa takie same adresy = zamieszanie."],
+            why: "Przełącznik zapamiętuje, pod którym portem jest dany MAC. Dwa urządzenia z tym samym adresem mylą go i dane trafiają nie tam, gdzie trzeba." },
+          { typ: "wiele", fab: "{pomocnik} spisuje urządzenia, które mogą mieć adres MAC w naszej sieci.",
+            q: "Zaznacz WSZYSTKIE urządzenia, które mają kartę sieciową (a więc adres MAC).",
+            o: ["Komputer", "Smartfon", "Drukarka sieciowa", "Router", "Monitor podłączony kablem HDMI", "Klawiatura USB"], a: [0, 1, 2, 3],
+            h: ["Adres MAC ma każde urządzenie, które samo łączy się z siecią.", "Monitor i klawiatura łączą się tylko z komputerem.", "Cztery odpowiedzi są poprawne."],
+            why: "Kartę sieciową (i adres MAC) mają urządzenia, które same łączą się z siecią: komputer, smartfon, drukarka sieciowa, router." },
+          { typ: "wpisz", konsola: true, fab: "Chcemy zobaczyć adresy MAC urządzeń, z którymi Twój komputer ostatnio rozmawiał w sieci lokalnej.",
+            q: "Które polecenie Windows to pokaże? Sprawdź je w Wierszu polecenia.", ok: ["arp -a", "arp"], ph: "polecenie",
+            h: ["To polecenie ma trzy litery i jeden przełącznik.", "ARP łączy adresy IP z adresami MAC.", "a r p  - a"],
+            why: "arp -a wyświetla tablicę ARP: adresy IP i odpowiadające im adresy MAC urządzeń z sieci lokalnej." },
+          { typ: "kolej", fab: "{szef} każe uporządkować mapę sieci, w których działał {wrog}.",
+            q: "Ułóż rodzaje sieci od najmniejszego do największego zasięgu.",
+            el: ["PAN", "LAN", "MAN", "WAN"],
+            h: ["P = osobista.", "L = lokalna, M = miejska.", "W = rozległa."],
+            why: "PAN (osobista) < LAN (lokalna) < MAN (miejska) < WAN (rozległa)." }
+        ]
+      },
+      zagadka: { typ: "wpisz", real: "mac_ost_dec", konsola: true, przel: true, wzor: "^\\d{1,3}$", fab: "Zagadka dodatkowa: czy {wrog} nie podszył się pod Twój komputer? Sprawdź jego odcisk.",
+                 q: "Odczytaj w Wierszu polecenia adres MAC swojego komputera (getmac). Ostatnią parę znaków zamień na system dziesiętny.", ph: "liczba",
+                 h: ["getmac albo ipconfig /all, a potem 🧮 Przelicznik (kreator bez kary)."], why: "Ostatnia para MAC to liczba szesnastkowa – np. 9F₁₆ = 9 × 16 + 15 = 159." }
+    },
+
+    {
+      id: "m3", typ: "misja", lekcja: "Lekcja 4b · Sieci komputerowe – Internet i usługi",
+      tytul: { det: "Pościg przez Internet", szp: "Pościg za sygnałem", fan: "Droga do Wieży Adresów" },
+      lekcje: [["k10", "2.4 Internet, czyli sieć sieci"], ["k11", "2.4b Komunikacja w sieci (infografika)"], ["k12", "2.4c Adres opisowy, DNS i konfiguracja"], ["k13", "2.5 Usługi internetowe"], ["k14", "2.6 Diagnostyka dostępu do sieci"], ["k15", "Zadania z rozdziału 2 (sieci)"]],
+      animacje: ["dns", "dhcp", "ping", "tracert"],
+      karta: "c4",
+      wstep: {
+        det: [
+          ["n", "Poprzednio: nadajnik Cienia znaleziony w piwnicy. W jego pamięci została trasa do Internetu."],
+          ["p", "Trasa prowadzi przez wiele routerów. Pójdziemy za nią: adresy IP, DNS, porty, ping i tracert."],
+          ["s", "Wszystko sprawdzisz na prawdziwym komputerze. Do końca lekcji chcę mieć adres kryjówki."]
+        ],
+        szp: [
+          ["n", "Poprzednio: podrzucony punkt dostępowy namierzony. W pamięci została trasa."],
+          ["p", "Idziemy za sygnałem przez Internet: IP, DNS, porty, tracert."],
+          ["s", "Do końca dnia chcę mieć adres serwera Fantoma."]
+        ],
+        fan: [
+          ["n", "Wcześniej w Kronice: obcy kryształ znaleziony. Odbija się w nim droga poza Akademię."],
+          ["p", "Podążymy Pajęczymi Ścieżkami: adresy IP, DNS, bramy i tracert."],
+          ["s", "Na końcu drogi czeka Wieża Adresów. Ruszaj."]
+        ]
+      },
+      koniec: {
+        det: [
+          ["p", "Tracert doprowadził nas do serwera w Internecie. Port 443 otwarty – Cień tam jest!"],
+          ["s", "Świetna robota. Zanim wejdziemy, jeszcze raz sprawdzimy całą wiedzę. Potem – konfrontacja."]
+        ],
+        szp: [
+          ["p", "Trasa kończy się na serwerze w Internecie. Port 443 aktywny."],
+          ["s", "Mamy współrzędne. Przed akcją: test. Potem starcie."]
+        ],
+        fan: [
+          ["p", "Droga kończy się u bram Wieży Adresów. Brama 443 stoi otworem!"],
+          ["s", "Przed pojedynkiem czeka Cię jeszcze Próba Rady Magów."]
+        ]
+      },
+      zadania: {
+        rekrut: [
           { typ: "wybor", fab: "{pomocnik} wyświetla adres serwera, na którym ukrył się {wrog}.",
             q: "Jak wygląda adres IPv4?", o: ["Cztery liczby 0–255 oddzielone kropkami", "Sześć par znaków szesnastkowych", "Nazwa z domeną", "Pięć liter"], a: 0,
             h: ["Sześć par szesnastkowych to adres MAC.", "Przykład: 178.33.170.138.", "Liczby oddzielone kropkami."],
             why: "Adres IPv4 to cztery liczby 0–255, np. 178.33.170.138." },
+          { typ: "wpisz", real: "ip", konsola: true, wzor: "^\\d{1,3}(\\.\\d{1,3}){3}$", fab: "Zanim ruszymy w Internet, sprawdź swój adres w sieci.",
+            q: "W Wierszu polecenia wpisz ipconfig. Podaj adres IPv4 swojego komputera.", ph: "np. 192.168.1.20",
+            h: ["Szukaj wiersza „Adres IPv4”.", "To cztery liczby oddzielone kropkami.", "Nie pomyl z maską (255.255…) ani z bramą."],
+            why: "ipconfig pokazuje adres IPv4, maskę podsieci i bramę domyślną komputera." },
           { typ: "wybor", fab: "{wrog} ukrywa się pod nazwą strony, ale komputer potrzebuje liczb.",
             q: "Do czego służy system DNS?", o: ["Do zamiany adresów opisowych na adresy IP", "Do szyfrowania haseł", "Do zasilania routera", "Do drukowania"], a: 0,
             h: ["To „książka telefoniczna” Internetu.", "Zamienia nazwę na numer.", "Adres opisowy → adres IP."],
@@ -380,27 +518,32 @@ window.FABULA = {
             q: "Która usługa automatycznie przydziela urządzeniom adres IP i resztę konfiguracji sieci?", o: ["DHCP", "DNS", "HTTP", "SMTP"], a: 0,
             h: ["DNS zamienia nazwy na adresy, a nie rozdaje ich.", "Usługę tę zwykle pełni router.", "D…"],
             why: "Serwer DHCP (najczęściej w routerze) przydziela adres IP, maskę, bramę i adres serwera DNS." },
+          { typ: "para", fab: "{pomocnik} sprawdza, z jakich usług korzystał {wrog}.",
+            q: "Połącz usługę internetową z tym, do czego służy.",
+            l: ["WWW", "Poczta elektroniczna", "FTP", "Komunikator"],
+            r: ["Przeglądanie stron internetowych", "Wysyłanie i odbieranie listów elektronicznych", "Przesyłanie plików na serwer", "Rozmowy na żywo (czat)"],
+            h: ["FTP = File Transfer Protocol.", "WWW = strony.", "Czat to rozmowa na żywo."],
+            why: "WWW – strony, poczta – listy elektroniczne, FTP – przesyłanie plików, komunikator – rozmowy na żywo." },
           { typ: "wybor", fab: "{pomocnik} wysyła ping do naszego routera i dostaje odpowiedź.",
             q: "Co potwierdza udane polecenie ping do routera?", o: ["Że komunikacja z bramą działa prawidłowo", "Że router się zepsuł", "Że Internet jest wolny", "Że brak zasilania"], a: 0,
             h: ["Router odesłał pakiety.", "Odpowiedź = połączenie działa.", "Router to brama do Internetu."],
             why: "Skoro router odpowiedział, komunikacja z bramą działa." }
         ],
         agent: [
-          { typ: "para", fab: "{szef} chce mapę zasięgu sieci, w których mógł działać {wrog}.",
-            q: "Połącz rodzaj sieci z jej zasięgiem.",
-            l: ["PAN", "LAN", "MAN", "WAN"],
-            r: ["Kilka metrów wokół człowieka (np. Bluetooth)", "Budynek, np. szkoła", "Miasto", "Kraj lub kontynent"],
-            h: ["P = Personal, osobista.", "M = Metropolitan, miejska.", "Od najmniejszej: PAN, LAN, MAN, WAN."],
-            why: "PAN – osobista, LAN – lokalna, MAN – miejska, WAN – rozległa." },
           { typ: "wiele", fab: "W naszej sieci padł serwer DHCP. Komputer trzeba skonfigurować ręcznie, żeby iść dalej tropem {wrog}.",
             q: "Zaznacz WSZYSTKIE parametry, które trzeba wpisać, aby komputer miał dostęp do Internetu.",
             o: ["Adres IP", "Maska podsieci", "Brama domyślna", "Adres serwera DNS", "Adres MAC", "Rozdzielczość ekranu"], a: [0, 1, 2, 3],
             h: ["Adres MAC nadaje producent karty – nie wpisujemy go.", "Bez bramy komputer nie wyjdzie poza sieć lokalną.", "Cztery odpowiedzi są poprawne."],
             why: "Do pracy w Internecie potrzebne są: adres IP, maska podsieci, brama domyślna i adres serwera DNS." },
-          { typ: "wybor", fab: "{pomocnik} śledzi pakiety {wrog}: najpierw przez przełącznik w biurze, potem przez router.",
-            q: "Na podstawie czego te urządzenia kierują dane?", o: ["Przełącznik – adresów MAC, router – adresów IP", "Przełącznik – adresów IP, router – adresów MAC", "Oba – nazw domen", "Oba – numerów portów"], a: 0,
-            h: ["Przełącznik działa wewnątrz sieci lokalnej.", "Router łączy różne sieci.", "W sieci lokalnej liczy się adres karty sieciowej."],
-            why: "Przełącznik kieruje dane w sieci lokalnej według adresów MAC, a router przekazuje je między sieciami według adresów IP." },
+          { typ: "wpisz", real: "brama", konsola: true, wzor: "^\\d{1,3}(\\.\\d{1,3}){3}$", fab: "Każdy pakiet z naszej sieci wychodzi do Internetu przez jedną bramę.",
+            q: "W Wierszu polecenia wpisz ipconfig. Podaj adres bramy domyślnej Twojego komputera.", ph: "adres IP",
+            h: ["Szukaj wiersza „Brama domyślna”.", "To zwykle adres routera, np. kończący się na .1.", "Cztery liczby oddzielone kropkami."],
+            why: "Brama domyślna to adres routera, przez który komputer wysyła dane poza sieć lokalną." },
+          { typ: "wpisz", real: { nslookup: "{cel}" }, cele: ["onet.pl", "wp.pl", "interia.pl", "allegro.pl", "gov.pl", "nask.pl", "wikipedia.org", "pw.edu.pl"], konsola: true,
+            wzor: "^\\d{1,3}(\\.\\d{1,3}){3}$", fab: "{wrog} korzysta z różnych serwerów. Sprawdź jeden z nich.",
+            q: "W Wierszu polecenia wpisz: nslookup {cel}. Podaj jeden z adresów IP tej domeny.", ph: "adres IP",
+            h: ["Pierwszy adres w wyniku to serwer DNS, który odpowiada – nie ten.", "Szukaj pod linią z nazwą {cel} („Nazwa” / „Name”).", "Wystarczy jeden adres IPv4 (cztery liczby)."],
+            why: "nslookup pyta serwer DNS o adres IP dla nazwy domeny – dokładnie to robi komputer, gdy wpisujesz adres strony." },
           { typ: "para", fab: "{wrog} rejestruje fałszywe strony. Po końcówce adresu poznasz, kto powinien jej używać.",
             q: "Połącz domenę z jej przeznaczeniem.",
             l: [".gov.pl", ".edu.pl", ".org", ".com"],
@@ -413,99 +556,129 @@ window.FABULA = {
             r: ["HTTP – strony WWW", "HTTPS – bezpieczne strony WWW", "DNS – zamiana nazw na adresy IP", "SMTP – wysyłanie poczty"],
             h: ["443 to bezpieczna wersja portu 80.", "DNS ma port 53.", "Poczta – 25."],
             why: "80 HTTP, 443 HTTPS, 53 DNS, 25 SMTP." },
+          { typ: "wpisz", wynik: `C:\\>tracert 8.8.8.8
+
+Śledzenie trasy do dns.google [8.8.8.8]
+przewyższającej maksymalną liczbę przeskoków 30:
+
+  1    <1 ms    <1 ms    <1 ms  10.178.10.1
+  2     *        *        *     Upłynął limit czasu żądania.
+  3     2 ms     2 ms     2 ms  10.100.254.242
+  4     2 ms     2 ms     2 ms  193.93.68.10
+  5     2 ms     2 ms     2 ms  ip-46-21-220-193.nette.pl [46.21.220.193]
+  6     *        *       23 ms  155.133.104.148
+  7    10 ms    10 ms    10 ms  72.14.219.142
+  8    12 ms    11 ms    10 ms  192.178.97.15
+  9    11 ms    12 ms    11 ms  216.239.40.43
+ 10    10 ms    11 ms    10 ms  dns.google [8.8.8.8]
+
+Śledzenie zakończone.`, fab: "{pomocnik} prześledził trasę z NASZEJ szkoły do serwera 8.8.8.8. To prawdziwy wynik ze szkolnej sieci.",
+            q: "Przez ile skoków (routerów) przeszły pakiety ze szkoły do 8.8.8.8?", ok: ["10"], ph: "liczba",
+            h: ["Policz wiersze zaczynające się od numeru.", "Wiersz z gwiazdkami też jest skokiem.", "Ostatni numer to odpowiedź."],
+            why: "Trasa ma 10 skoków – ostatni (10) to sam serwer dns.google. Skok 2 nie odpowiedział, ale pakiety przez niego przeszły." },
           { typ: "blad", fab: "{wrog} podmienił konfigurację karty sieciowej. Jedno ustawienie jest niemożliwe.",
             q: "Kliknij błędne ustawienie.",
             el: ["Adres IP: 192.168.1.256", "Maska podsieci: 255.255.255.0", "Brama domyślna: 192.168.1.1", "Serwer DNS: 8.8.8.8"], a: 0,
             h: ["Każda liczba w adresie IPv4 mieści się w zakresie 0–255.", "Sprawdź każdą liczbę po kolei.", "Szukaj liczby większej niż 255."],
-            why: "256 przekracza zakres 0–255, więc 192.168.1.256 nie jest poprawnym adresem." },
-          { typ: "wpisz", fab: "Trzeba zobaczyć, przez które routery idą pakiety do kryjówki.",
-            q: "Jakie polecenie Windows pokazuje trasę pakietów przez kolejne routery?",
-            ok: ["tracert", "traceroute"], ph: "polecenie",
-            h: ["To nie jest ping.", "Nazwa pochodzi od „trace route”.", "t r a c e r t"],
-            why: "tracert wyświetla kolejne routery na trasie do hosta." }
+            why: "256 przekracza zakres 0–255, więc 192.168.1.256 nie jest poprawnym adresem." }
         ],
         elita: [
-          { typ: "wiele", fab: "{wrog} mógł przesyłać dane różnymi drogami. Wskaż wszystkie możliwe.",
-            q: "Zaznacz WSZYSTKIE media transmisyjne.",
-            o: ["Skrętka", "Światłowód", "Fale radiowe", "Router", "Karta graficzna"], a: [0, 1, 2],
-            h: ["Medium to „droga”, a nie urządzenie.", "Są media przewodowe i bezprzewodowe.", "Odrzuć urządzenia."],
-            why: "Media: przewody (skrętka, światłowód) i fale radiowe. Router to urządzenie." },
-          { typ: "wiele", fab: "{wrog} połączył laptop z Internetem przez hotspot w swoim smartfonie.",
-            q: "Zaznacz WSZYSTKIE role, które pełni smartfon udostępniający połączenie internetowe.",
-            o: ["Punkt dostępowy wi-fi", "Router", "Serwer DHCP", "Serwer DNS", "Drukarka sieciowa", "Serwer poczty"], a: [0, 1, 2, 3],
-            h: ["Laptop łączy się z telefonem przez wi-fi i dostaje adres IP automatycznie.", "Telefon łączy dwie sieci: wi-fi i sieć komórkową.", "Cztery odpowiedzi są poprawne."],
-            why: "Smartfon z hotspotem to punkt dostępowy i router, a dla podłączonych urządzeń także serwer DHCP i DNS." },
-          { typ: "klucz", fab: "Sprawdź na komputerze w pracowni, jak wygląda prawdziwy „odcisk” karty sieciowej.",
-            q: "Zadanie praktyczne. W Wierszu polecenia wpisz: ipconfig /all i znajdź „Adres fizyczny”. Z ilu par znaków składa się adres?",
-            ok: ["6", "sześć", "szesc"], ph: "liczba",
-            h: ["Pary oddzielone są myślnikami.", "Policz grupy, np. A4-5E-…", "48 bitów / 8 bitów na parę."],
-            why: "Adres MAC ma 6 par cyfr szesnastkowych (6 bajtów)." },
-          { typ: "kolej", fab: "Odtwórz drogę, którą dane z laptopa intruza poszły do Internetu.",
-            q: "Ułóż drogę danych z laptopa w sieci wi-fi do Internetu.",
-            el: ["Karta sieciowa laptopa", "Punkt dostępowy wi-fi", "Router", "Sieć dostawcy Internetu (ISP)"],
-            h: ["Zaczynamy w laptopie.", "Laptop bez kabla łączy się najpierw z urządzeniem od wi-fi.", "Router łączy sieć lokalną z siecią dostawcy."],
-            why: "Karta sieciowa → punkt dostępowy → router → sieć dostawcy." },
-          { typ: "wybor", fab: "Serwer {wrog} ma dziwny, bardzo długi adres z dwukropkami. To adres IPv6.",
-            q: "Dlaczego wprowadza się adresy IPv6?", o: ["Bo kończą się wolne adresy IPv4", "Bo IPv4 nie działa w sieci wi-fi", "Żeby strony działały bez DNS", "Bo skończyły się adresy MAC"], a: 0,
-            h: ["Adres IPv4 ma 32 bity – to ok. 4,3 mld adresów.", "Urządzeń w Internecie jest coraz więcej.", "IPv6 ma 128 bitów."],
-            why: "32-bitowych adresów IPv4 jest ok. 4,3 mld i zaczyna ich brakować. IPv6 ma 128 bitów, więc adresów starczy na długo." },
+          { typ: "wpisz", real: { tracert: "{cel}" }, cele: ["onet.pl", "wp.pl", "interia.pl", "allegro.pl", "gov.pl", "nask.pl", "wikipedia.org", "pw.edu.pl"], konsola: true,
+            wzor: "^\\d{1,2}$", fab: "Idziemy śladem pakietów {wrog} przez kolejne routery.",
+            q: "W Wierszu polecenia wpisz: tracert -d {cel}. Przez ile skoków (wierszy z numerem) przeszły pakiety?", ph: "liczba",
+            h: ["tracert może potrwać do minuty – poczekaj na „Śledzenie zakończone”.", "Policz wiersze zaczynające się od numeru: 1, 2, 3…", "Wiersze z gwiazdkami (*) też się liczą."],
+            why: "tracert pokazuje każdy router na trasie (skok). Trasy mogą się trochę różnić, więc liczy się wynik ±1." },
+          { typ: "wybor", fab: "Na komputerze {szef} ping 8.8.8.8 działa, ale ping google.pl zwraca błąd „nie można odnaleźć hosta”.",
+            q: "Co najpewniej nie działa?", o: ["Serwer DNS (zamiana nazw na adresy)", "Kabel sieciowy", "Karta sieciowa", "Połączenie z Internetem"], a: 0,
+            h: ["Ping po adresie IP działa – czyli połączenie jest.", "Problem pojawia się dopiero przy nazwie.", "Kto zamienia nazwy na adresy IP?"],
+            why: "Skoro działa ping na adres IP, łącze jest sprawne. Nie działa tylko zamiana nazwy na adres – czyli DNS." },
+          { typ: "wpisz", real: { ping: "@brama" }, konsola: true, wzor: "^\\d{1,4}$", fab: "Sprawdźmy, jak szybko odpowiada nasza brama.",
+            q: "Sprawdź w Wierszu polecenia adres bramy domyślnej (ipconfig), a potem wyślij do niej ping. Jaki był średni czas odpowiedzi w ms?", ph: "liczba (ms)",
+            h: ["Najpierw ipconfig – odczytaj „Brama domyślna”.", "Potem: ping i ten adres.", "Na końcu wyniku: „Czas średni” / „Average”."],
+            why: "ping mierzy czas odpowiedzi. Brama jest blisko, więc odpowiada zwykle w kilka milisekund." },
           { typ: "kolej", fab: "Wpisujesz adres kryjówki w przeglądarkę. Ułóż, co dzieje się dalej.",
             q: "Ułóż kroki otwierania strony po wpisaniu adresu opisowego.",
             el: ["Wpisujesz adres opisowy w przeglądarce", "Komputer pyta serwer DNS o adres IP", "Serwer DNS odsyła adres IP", "Przeglądarka łączy się z serwerem WWW pod tym adresem"],
             h: ["Komputer nie zna adresu IP od razu.", "Najpierw pytanie, potem odpowiedź.", "Połączenie z serwerem WWW jest na końcu."],
             why: "Adres opisowy → zapytanie DNS → odpowiedź z IP → połączenie z serwerem WWW." },
-          { typ: "klucz", fab: "Sprawdź połączenie na komputerze w pracowni.",
-            q: "Zadanie praktyczne. W Wierszu polecenia wpisz: ping 127.0.0.1. Ile pakietów wysłano?",
-            ok: ["4", "cztery"], ph: "liczba",
-            h: ["Szukaj podsumowania „Pakiety: Wysłane = …”.", "127.0.0.1 to Twój własny komputer (localhost).", "Windows domyślnie wysyła tyle pakietów, ile jest kół w samochodzie."],
-            why: "Windows domyślnie wysyła 4 pakiety ping." }
+          { typ: "wybor", wynik: `C:\\>tracert 8.8.8.8
+
+Śledzenie trasy do dns.google [8.8.8.8]
+przewyższającej maksymalną liczbę przeskoków 30:
+
+  1    <1 ms    <1 ms    <1 ms  10.178.10.1
+  2     *        *        *     Upłynął limit czasu żądania.
+  3     2 ms     2 ms     2 ms  10.100.254.242
+  4     2 ms     2 ms     2 ms  193.93.68.10
+  5     2 ms     2 ms     2 ms  ip-46-21-220-193.nette.pl [46.21.220.193]
+  6     *        *       23 ms  155.133.104.148
+  7    10 ms    10 ms    10 ms  72.14.219.142
+  8    12 ms    11 ms    10 ms  192.178.97.15
+  9    11 ms    12 ms    11 ms  216.239.40.43
+ 10    10 ms    11 ms    10 ms  dns.google [8.8.8.8]
+
+Śledzenie zakończone.`, fab: "Prawdziwa trasa ze szkolnej sieci. {szef} pyta o pierwszy skok.",
+            q: "Czym najpewniej jest urządzenie z pierwszego skoku (10.178.10.1)?", o: ["Bramą domyślną – routerem szkolnej sieci", "Serwerem Google", "Serwerem DNS", "Komputerem ucznia"], a: 0,
+            h: ["Pierwszy skok jest najbliżej Ciebie.", "Czas odpowiedzi poniżej 1 ms – to bardzo blisko.", "Przez to urządzenie dane wychodzą z sieci szkoły."],
+            why: "Pierwszy skok to zawsze brama domyślna – router, przez który komputer wysyła dane poza sieć lokalną." },
+          { typ: "wpisz", wynik: `C:\\>nslookup onet.pl
+Serwer:  dns1.edu.lublin.eu
+Address:  10.8.2.22
+
+Nieautorytatywna odpowiedź:
+Nazwa:   onet.pl
+Addresses:  13.227.146.66
+          13.227.146.64
+          13.227.146.25
+          13.227.146.122`, fab: "Prawdziwa odpowiedź serwera DNS ze szkolnej sieci.",
+            q: "Jak nazywa się serwer DNS, z którego korzysta szkolna sieć?", ok: ["dns1.edu.lublin.eu"], ph: "nazwa serwera",
+            h: ["Patrz na górę wyniku.", "Wiersz „Serwer”.", "Kończy się na .edu.lublin.eu."],
+            why: "nslookup najpierw pokazuje serwer DNS, który odpowiada (dns1.edu.lublin.eu, 10.8.2.22), a potem adresy IP szukanej domeny." },
+          { typ: "wybor", fab: "Serwer {wrog} ma dziwny, bardzo długi adres z dwukropkami. To adres IPv6.",
+            q: "Dlaczego wprowadza się adresy IPv6?", o: ["Bo kończą się wolne adresy IPv4", "Bo IPv4 nie działa w sieci wi-fi", "Żeby strony działały bez DNS", "Bo skończyły się adresy MAC"], a: 0,
+            h: ["Adres IPv4 ma 32 bity – to ok. 4,3 mld adresów.", "Urządzeń w Internecie jest coraz więcej.", "IPv6 ma 128 bitów."],
+            why: "32-bitowych adresów IPv4 jest ok. 4,3 mld i zaczyna ich brakować. IPv6 ma 128 bitów, więc adresów starczy na długo." },
+          { typ: "kolej", fab: "Internet nie działa. {szef} chce wiedzieć, gdzie jest przerwa – sprawdzaj od najbliższego miejsca.",
+            q: "Ułóż kroki diagnozy połączenia od najbliższego do najdalszego.",
+            el: ["ping 127.0.0.1 – czy działa karta i system", "ping brama – czy działa sieć lokalna i router", "ping 8.8.8.8 – czy jest połączenie z Internetem", "ping google.pl – czy działa DNS"],
+            h: ["127.0.0.1 to Twój własny komputer.", "Brama to router w Twojej sieci.", "Nazwa (google.pl) wymaga jeszcze DNS."],
+            why: "Diagnozę zaczyna się od siebie: komputer → router → Internet (adres IP) → DNS (nazwa)." }
         ]
       },
-      zagadka: { typ: "wpisz", fab: "Zagadka dodatkowa: ostatnia para adresu MAC intruza to FF.",
-                 q: "Ile to w systemie dziesiętnym? (możesz użyć Kalkulatora w trybie Programista)", ok: ["255"], ph: "liczba",
-                 h: ["F to 15. FF = 15 × 16 + 15."], why: "FF₁₆ = 255." }
+      zagadka: { typ: "wpisz", fab: "Zagadka dodatkowa: adres IPv4 ma 32 bity.", q: "Ile bitów ma adres IPv6?", ok: ["128"], ph: "liczba",
+                 h: ["To cztery razy więcej niż IPv4."], why: "IPv6 ma 128 bitów – 4 razy więcej niż IPv4." }
     },
 
     {
-      id: "kart", typ: "test", test: "k11k", karta: "c3", lekcja: "Początek kolejnej lekcji · kartkówka z rozdziału",
+      id: "kart2", typ: "test", niespodzianka: true, gra: { testy: ["1r1-sie"], czas: 5 }, lekcja: "Kolejna lekcja · kartkówka-niespodzianka: sieci",
       tytul: { det: "Przesłuchanie świadka", szp: "Test lojalności", fan: "Próba Rady Magów" },
-      wstep: {
-        det: [
-          ["n", "Przesłuchanie świadka. Do tej sceny potrzebujesz hasła od komisarza, czyli nauczyciela."],
-          ["s", "Świadek odpowie tylko na dobrze zadane pytania. Pokaż, że znasz całą sprawę – to Twoja kartkówka."]
-        ],
-        szp: [
-          ["n", "Test lojalności. Potrzebujesz hasła od Dowódcy, czyli nauczyciela."],
-          ["s", "W naszej branży wiedza to broń. Udowodnij, że ją masz – to Twoja kartkówka."]
-        ],
-        fan: [
-          ["n", "Próba Rady Magów. Potrzebujesz hasła od Arcymaga, czyli nauczyciela."],
-          ["s", "Rada sprawdzi Twoją wiedzę z całego rozdziału. To Twoja kartkówka."]
-        ]
-      },
+      alarm: { det: "Stop! Zanim zaczniesz nową sprawę – przesłuchanie świadka. Pytania o sieci.", szp: "Alarm w centrali! Test lojalności – sieci komputerowe.",
+               fan: "Rada Magów zwołuje próbę! Pokaż, co wiesz o Pajęczych Ścieżkach.", woj: "Alarm! Niezapowiedziana kontrola wiedzy – sieci komputerowe.",
+               kas: "Kontrola doraźna! Sprawdzamy wiedzę o sieciach.", mun: "Wezwanie na przesłuchanie! Pytania o sieci komputerowe." },
+      wstep: { det: [], szp: [], fan: [] },
       koniec: {
-        det: [["s", "Zeznania się zgadzają: to serwer Cienia. Wchodzimy – czas na konfrontację."]],
-        szp: [["s", "Test zaliczony. Informator potwierdza: to serwer Fantoma. Ruszamy do akcji."]],
-        fan: [["s", "Rada jest zadowolona. Wyrocznia potwierdza: Null czeka w Wieży Adresów. Czas na pojedynek."]]
+        det: [["s", "Zeznania się zgadzają. Wracamy do nowej sprawy."]],
+        szp: [["s", "Test zaliczony. Wracamy do operacji."]],
+        fan: [["s", "Rada jest zadowolona. Ruszaj dalej."]]
       }
     },
 
     {
-      id: "boss", typ: "test", test: ["k11a", "k11b"], karta: "c5", boss: true, lekcja: "Sprawdzian z rozdziału 1",
+      id: "boss", typ: "test", gra: { testy: ["1r1-a", "1r1-b"], czas: 40 }, karta: "c5", boss: true, lekcja: "Sprawdzian z rozdziału 1",
       tytul: { det: "Konfrontacja z Cieniem", szp: "Starcie z Fantomem", fan: "Pojedynek z Nullem" },
       wstep: {
         det: [
-          ["n", "Finał rozdziału. Potrzebujesz hasła od komisarza (nauczyciela) i informacji, którą grupę piszesz: A czy B."],
+          ["n", "Finał rozdziału. Sprawdzian uruchamia komisarz (nauczyciel). Grupę A albo B dobierze komputer."],
           ["w", "Więc to ty jesteś nowym detektywem Braniewskiego? Sprawdźmy, ile naprawdę wiesz."],
           ["s", "Nie daj się sprowokować. Odpowiadaj spokojnie, pytanie po pytaniu. To Twój sprawdzian."]
         ],
         szp: [
-          ["n", "Finał rozdziału. Potrzebujesz hasła od Dowódcy (nauczyciela) i informacji o grupie: A lub B."],
+          ["n", "Finał rozdziału. Sprawdzian uruchamia Dowódca (nauczyciel)."],
           ["w", "Kursant Braniewskiego. Uroczo. Zobaczmy, czy wytrzymasz przesłuchanie."],
           ["s", "Zimna krew, agencie. Pytanie po pytaniu. To Twój sprawdzian."]
         ],
         fan: [
-          ["n", "Finał rozdziału. Potrzebujesz hasła od Arcymaga (nauczyciela) i informacji o grupie: A lub B."],
+          ["n", "Finał rozdziału. Sprawdzian uruchamia Arcymag (nauczyciel)."],
           ["w", "Uczeń Braniewskiego? Zabawne. Zmierzmy się – pytanie za pytanie."],
           ["s", "Skup się. Każda dobra odpowiedź to tarcza. To Twój sprawdzian."]
         ]

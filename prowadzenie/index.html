@@ -47,6 +47,13 @@
 .planP .nr{font-size:1.6rem;font-weight:800;color:var(--akc)}
 .planP .kl small{display:block}
 .planP.biez{border-color:var(--akc);box-shadow:0 0 0 4px color-mix(in srgb,var(--akc) 25%,transparent)}
+.bz-chipy{display:flex;flex-wrap:wrap;gap:8px}.bz-chipy span{background:var(--panel2);border-radius:999px;padding:.3em 1em}
+.duzy .bz-kol li{font-size:1.25em}
+#obec{position:fixed;right:12px;bottom:12px;z-index:30;background:var(--panel);border:1px solid color-mix(in srgb,var(--tekst) 20%,transparent);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45);max-width:340px}
+.obec-g{display:flex;gap:4px}.obec-g button{background:none;border:0;padding:8px 10px;font-weight:700}
+.obec-l{max-height:50vh;overflow:auto;padding:0 12px 10px;display:grid;gap:3px}
+#toasty{position:fixed;right:12px;bottom:64px;z-index:31;display:grid;gap:6px}
+.toastP{background:#7c2d12;color:#fff;border-radius:10px;padding:8px 14px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:pojaw .2s}
 .planP .teraz{background:var(--akc);color:#111;font-weight:800;border-radius:999px;padding:.2em .8em}
 @media (max-width:900px){.odprawa{grid-template-columns:1fr}}
 </style>
@@ -59,6 +66,9 @@
 <script src="../tresc/klasa2/gra/fabula.js"></script>
 <script src="../tresc/klasa2/gra/rozdzial1.js"></script>
 <script src="../tresc/klasa1/gra/postacie.js"></script>
+<script src="../tresc/klasa1/gra/burza.js"></script>
+<script src="../tresc/klasa1/gra/konsola.js"></script>
+<script src="../tresc/klasa1/gra/animacje-sieci.js"></script>
 <script>
 (function(){
 "use strict";
@@ -116,13 +126,15 @@ async function wczytaj(pierwszy){
 function kroki(){
   const e=E();
   return e.typ==="test"
-    ?[["odprawa","1. Informacja"],["haslo","2. Hasło do testu"],["podglad","3. Wyniki na żywo"],["koniec","4. Ranking"]]
+    ?(e.gra?[["odprawa","1. Informacja"],["uruchomT","2. Uruchom i wyniki"],["koniec","3. Ranking"]]
+      :[["odprawa","1. Informacja"],["haslo","2. Hasło do testu"],["podglad","3. Wyniki na żywo"],["koniec","4. Ranking"]])
     :[["odprawa","1. Odprawa"],["teoria","2. Teoria"],["podglad","3. Misja – podgląd na żywo"],["koniec","4. Ranking"]];
 }
 const pelny=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})};
 function rysuj(){
   if(etapI>=F.etapy.length)etapI=Math.min(1,F.etapy.length-1);
   clearInterval(timer);timer=null;
+  setTimeout(obecnosc,0);
   if(krok==="plan"||krok==="planEdycja"||krok==="teoriaK"){
     document.body.dataset.m="det";
     app.innerHTML=`<div class="pasekG"><b>Prowadzenie lekcji</b><button class="drugi" id="doPlanu">📅 Plan</button>
@@ -143,7 +155,10 @@ function rysuj(){
     <span style="flex:1"></span>
     ${(()=>{const bez=k&&k.g?D.gracze.filter(g=>g.k===k.k&&!g.g).length:0;return bez?`<span class="blad" style="font-weight:700" title="Przypisz grupy w panelu (Uczniowie → kolumna Grupa)">⚠ ${bez} uczniów ${esc(k.k)} bez grupy</span>`:""})()}
     <span class="mala">${stanOdb}</span>
-    ${odbl&&k&&k.od?`<span class="st-ok">✔ odblokowane</span>`:`<button class="glowny" id="odblokuj">🔓 Odblokuj: ${esc(tytul(e))}</button>`}
+    ${e.gra?"":odbl&&k&&k.od?`<span class="st-ok">✔ odblokowane</span>`:`<button class="glowny" id="odblokuj">🔓 Odblokuj: ${esc(tytul(e))}</button>`}
+    <button class="drugi" id="burzaB" aria-pressed="${krok==="burza"}" title="Ćwiczenie zespołowe: uczniowie w 3 drużynach zbierają skojarzenia">👥 Burza mózgów</button>
+    <button class="drugi" id="veyonB" title="Skopiuj polecenie, które w Veyon („Uruchom program”) otworzy grę na pełnym ekranie u uczniów">📋 Polecenie dla Veyon</button>
+    ${k&&APLIKACJA_W_PRACOWNI?przyciskPracowni(k):""}
     <button class="drugi" id="pelny" title="Pełny ekran">⛶</button>
   </div><div id="ekran"></div>`;
   $("#doPlanu").onclick=()=>{krok="plan";rysuj()};
@@ -152,7 +167,10 @@ function rysuj(){
   $$(".kroki button").forEach(b=>b.onclick=()=>{krok=b.dataset.k;rysuj()});
   $("#pelny").onclick=pelny;
   const ob=$("#odblokuj");if(ob)ob.onclick=odblokuj;
-  ({odprawa,teoria,podglad,koniec,haslo:hasloTestu})[krok]();
+  const pr=$("#pracownia");if(pr)pr.onclick=przelaczPracownie;
+  $("#burzaB").onclick=()=>{krok="burza";rysuj()};
+  $("#veyonB").onclick=kopiujVeyon;
+  ({odprawa,teoria,podglad,koniec,haslo:hasloTestu,burza:burzaEkran,uruchomT:uruchomTest})[krok]();
 }
 
 async function odblokuj(){
@@ -166,6 +184,213 @@ async function odblokuj(){
     else{b.disabled=false;b.textContent=r.e==="zajety"?"Arkusz zajęty – kliknij ponownie":"Błąd: "+r.e}}
   catch(er){b.disabled=false;b.textContent="Brak połączenia – kliknij ponownie"}
 }
+
+/* ---------- blokada komputerów w pracowni (aplikacja .exe: pełny ekran z grą) ---------- */
+// Wyłączone: administrator szkoły blokuje uruchamianie aplikacji w pracowni – grę na pełnym ekranie otwiera Veyon (kopiujVeyon).
+const APLIKACJA_W_PRACOWNI=false;
+const odblokowanaPr=k=>k&&k.odb>Date.now();
+const godz=t=>new Date(t).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"});
+function przyciskPracowni(k){
+  return odblokowanaPr(k)
+    ?`<button class="drugi" id="pracownia" title="Komputery tej grupy działają normalnie. Kliknij, aby znów włączyć pełny ekran z grą.">🔓 Komputery odblokowane do ${godz(k.odb)}</button>`
+    :`<button class="drugi" id="pracownia" title="W czasie lekcji aplikacja w pracowni pokazuje tylko grę na pełnym ekranie. Kliknij, aby uczniowie mogli korzystać z innych programów.">🔒 Komputery zablokowane</button>`;
+}
+async function przelaczPracownie(){
+  const k=K();if(!k)return;
+  const wl=odblokowanaPr(k),b=$("#pracownia");b.disabled=true;b.textContent="Zapisuję…";
+  try{const r=await api("blokadaPracowni",{haslo,k:k.k,g:k.g||"",wl});
+    if(r.ok){k.odb=r.odb||0;rysuj()}
+    else{b.disabled=false;b.textContent=r.e==="akcja"?"Zaktualizuj skrypt w arkuszu":r.e==="zajety"?"Arkusz zajęty – kliknij ponownie":"Błąd: "+r.e}}
+  catch(er){b.disabled=false;b.textContent="Brak połączenia – kliknij ponownie"}
+}
+function oknoUcznia(s){   // gdzie uczeń gra i ile razy wyszedł z okna gry w ciągu ostatnich 50 minut
+  const od=Date.now()-50*60e3,wsz=(s.alarmy||[]).filter(a=>a.t>=od),al=wsz.filter(a=>!a.c),cmd=wsz.filter(a=>a.c),sr=s.srod&&s.srod.t>=od-10*60e3?s.srod:null;
+  const gdzie=sr?(sr.p?`<span title="Aplikacja w pracowni – pełny ekran">🔒</span>`:`<span title="Zwykła przeglądarka – bez blokady">🌐</span>`):"";
+  const ile=al.length?`<span class="blad" style="font-weight:700" title="${esc(al.map(a=>`${godz(a.t)}${a.s!=null?` (${a.s} s)`:" (nadal poza oknem)"}`).join(", "))}">⚠ ${al.length}× poza oknem</span>`:"";
+  const kons=cmd.length?`<span title="Wyjścia do Wiersza polecenia w zadaniach z konsolą: ${esc(cmd.map(a=>`${godz(a.t)}${a.s!=null?` (${a.s} s)`:""}`).join(", "))}">🖥 ${cmd.length}×</span>`:"";
+  return `${gdzie} ${ile} ${kons}`;
+}
+
+/* ---------- burza mózgów: losowanie drużyn, liderzy, pomysły na żywo, wyniki (wspólne funkcje w burza.js) ---------- */
+let BZ=null,bzDet=false;
+const BU=()=>window.BURZA;
+const bzApi=(op,d)=>{const k=K();return api("burzaN",Object.assign({haslo,op,k:k.k,g:k.g||""},d))};
+const bzBledy={zajety:"Arkusz zajęty – kliknij ponownie.",akcja:"Zaktualizuj skrypt w arkuszu (burza mózgów wymaga nowej wersji).",wpisy:"Drużyny już zbierają pomysły – nie można losować od nowa.",haslo:"Złe hasło."};
+const zImionami=b=>b.w.map(w=>Object.assign({},w,{a:(b.u[w.a]||{}).n||""}));
+async function burzaEkran(){
+  const w=$("#ekran");if(!w||!K())return;
+  if(!BZ||BZ.kl!==klasa){
+    w.innerHTML=`<div class="ekran"><p class="mala">Wczytuję…</p></div>`;
+    try{const r=await bzApi("stan");BZ={kl:klasa,b:r.ok?r.b:null,e:r.ok?"":r.e,s:""}}catch(e){BZ={kl:klasa,b:null,e:"siec",s:""}}
+  }
+  BZ.s="";burzaRysuj();
+  if(!timer)timer=setInterval(async()=>{
+    if(krok!=="burza"||!BZ||!BZ.b)return;   // formularz startu się nie odświeża
+    try{const r=await bzApi("stan");if(r.ok&&BZ.kl===klasa){BZ.b=r.b;burzaRysuj()}}catch(e){}
+  },3000);
+}
+async function bzOp(op,d,przycisk){
+  if(przycisk){przycisk.disabled=true}
+  try{const r=await bzApi(op,d);
+    if(r.ok){BZ.b=r.b;BZ.s="";burzaRysuj();return r}
+    alert(bzBledy[r.e]||"Błąd: "+r.e)}
+  catch(e){alert("Brak połączenia z arkuszem – spróbuj ponownie.")}
+  if(przycisk)przycisk.disabled=false;
+}
+function burzaRysuj(){
+  const w=$("#ekran"),b=BZ&&BZ.b,k=K(),DRZ=BU().DRUZYNY;if(!w||!k)return;
+  const s=JSON.stringify(b);if(s===BZ.s)return;   // bez zmian – nie przerysowuj (zamknęłoby listy i podgląd)
+  if(document.activeElement&&document.activeElement.matches("#ekran select"))return;
+  BZ.s=s;
+  if(BZ.e==="akcja"){w.innerHTML=`<div class="ekran"><p class="blad">${bzBledy.akcja}</p></div>`;return}
+  if(!b){
+    const p=E().burza||{temat:"",kat:["","",""]};
+    w.innerHTML=`<div class="ekran duzy"><div class="temat">Ćwiczenie zespołowe · ${esc(etyk(k))}</div><h1>Burza mózgów</h1>
+      <p class="mala">Uczniowie, którzy mają otwartą grę, dostaną okno ćwiczenia. Program podzieli ich losowo na 3 drużyny i wylosuje lidera każdej z nich.
+      Każda drużyna zbiera skojarzenia z jednej kategorii, a lider porządkuje pomysły drużyny (powtórzenia łączą się same).</p>
+      <form id="bzStart" class="karta" style="max-width:760px">
+        <p><label>Hasło<br><input name="temat" maxlength="60" value="${esc(p.temat)}" style="width:100%;font:inherit;padding:.5em;border-radius:10px"></label></p>
+        ${DRZ.map((dr,i)=>`<p><label><b style="color:${dr.k}">Drużyna ${dr.n}</b> – kategoria<br><input name="kat${i}" maxlength="30" value="${esc(p.kat[i]||"")}" style="width:100%;font:inherit;padding:.5em;border-radius:10px"></label></p>`).join("")}
+        <p><button class="glowny">▶ Start – zbieramy uczniów</button> <span class="blad" id="bzBlad"></span></p></form></div>`;
+    $("#bzStart").onsubmit=ev=>{ev.preventDefault();const f=ev.target,kat=[0,1,2].map(i=>f["kat"+i].value.trim()),temat=f.temat.value.trim();
+      if(!temat||kat.some(x=>!x)){$("#bzBlad").textContent="Wpisz hasło i trzy kategorie.";return}
+      bzOp("start",{temat,kat},$("button",f))};
+    return;
+  }
+  const u=Object.entries(b.u),glowa=`<div class="temat">Burza mózgów · ${esc(etyk(k))}</div><h1>${esc(b.temat)}</h1>`;
+  const anuluj=`<button class="drugi" id="bzAnuluj">Anuluj ćwiczenie</button>`;
+  if(b.faza==="zapisy"){
+    w.innerHTML=`<div class="ekran duzy">${glowa}
+      <div class="liczniki"><div><b>${u.length}</b>uczniów dołączyło</div></div>
+      <p class="bz-chipy">${u.map(([,x])=>`<span>${esc(x.n)}</span>`).join("")||`<span class="mala" style="background:none">Czekamy… Okno ćwiczenia pojawi się w grze w ciągu ok. 10 sekund (uczeń musi być zalogowany).</span>`}</p>
+      <p><button class="glowny" id="bzLosuj" ${u.length?"":"disabled"}>🎲 Losuj drużyny</button> ${anuluj}</p>
+      <p class="mala">Spóźnieni uczniowie dołączą sami do najmniejszej drużyny.</p></div>`;
+    $("#bzLosuj").onclick=ev=>bzOp("losuj",{},ev.target);
+  }else if(b.faza==="zbieranie"){
+    const wi=zImionami(b);
+    w.innerHTML=`<div class="ekran"><div class="ostrz">⚠ Ten ekran zawiera imiona uczniów – wyłącz demonstrację Veyon.</div>${glowa}
+      <div class="bz-tablica">${DRZ.map((dr,d)=>{const czl=u.filter(([,x])=>x.d===d),gr=BU().grupuj(wi.filter(x=>x.d===d));
+        return `<div class="bz-kol" style="--dr:${dr.k}"><h3>${dr.n}</h3><div>Kategoria: <b>${esc(b.kat[d])}</b></div>
+          <p>Lider: ${czl.length?`<select data-lider="${d}">${czl.map(([l,x])=>`<option value="${esc(l)}" ${b.dr[d].l===l?"selected":""}>${esc(x.n)}</option>`).join("")}</select>`:"<span class='mala'>brak uczniów</span>"}</p>
+          <p>${b.dr[d].ok?`<span class="st-ok">✔ lider oddał</span>`:`<span class="st-tr">⏳ zbierają</span>`} · pomysłów: <b>${gr.length}</b></p>
+          <ul>${czl.map(([l,x])=>`<li>${esc(x.n)}${l===b.dr[d].l?" ⭐":""} <span class="mala">– wpisów: ${b.w.filter(z=>z.a===l).length}</span></li>`).join("")}</ul></div>`}).join("")}</div>
+      <details id="bzDet" ${bzDet?"open":""} class="karta"><summary>Podgląd pomysłów z autorami (najedź na pomysł) – nie pokazuj w demonstracji Veyon przed omówieniem</summary>${BU().tablica(wi,b.kat,true)}</details>
+      <p><button class="glowny" id="bzWyniki">📊 Pokaż wyniki wszystkim ▸</button> ${anuluj}</p></div>`;
+    $$("[data-lider]",w).forEach(s=>s.onchange=()=>{s.blur();bzOp("lider",{d:+s.dataset.lider,l:s.value})});
+    $("#bzDet").ontoggle=ev=>{bzDet=ev.target.open};
+    $("#bzWyniki").onclick=ev=>bzOp("faza",{f:"wyniki"},ev.target);
+  }else{
+    w.innerHTML=`<div class="ekran duzy">${glowa}${BU().tablica(b.w,b.kat)}
+      <p style="margin-top:20px"><button class="drugi" id="bzWroc">◂ Wróć do zbierania</button> <button class="glowny" id="bzKoniec">✔ Zakończ i zapisz w arkuszu</button> ${anuluj}</p>
+      <p class="mala">Po zakończeniu pomysły trafią do karty „Burze” w arkuszu, a okno ćwiczenia zniknie uczniom.</p></div>`;
+    $("#bzWroc").onclick=ev=>bzOp("faza",{f:"zbieranie"},ev.target);
+    $("#bzKoniec").onclick=ev=>{const wi=zImionami(b),wynik=[];
+      DRZ.forEach((dr,d)=>BU().grupuj(wi.filter(x=>x.d===d)).forEach(g=>wynik.push([dr.n,b.kat[d],g.t,g.ile,g.autorzy.join(", ")])));
+      bzOp("koniec",{wynik},ev.target).then(r=>{if(r)alert(`Zapisano w arkuszu: ${r.zapisano} pomysłów.`)})};
+  }
+  const an=$("#bzAnuluj");if(an)an.onclick=ev=>{if(confirm("Zakończyć ćwiczenie bez zapisywania pomysłów?"))bzOp("koniec",{wynik:[]},ev.target)};
+}
+
+/* ---------- kartkówka / sprawdzian w grze: uruchamia nauczyciel (bez hasła), zaległości dla pojedynczych uczniów ---------- */
+let TSt=null;
+const tsApi=(op,d)=>{const k=K();return api("testN",Object.assign({haslo,op,k:k.k,g:k.g||""},d))};
+const tsBledy={zajety:"Arkusz zajęty – kliknij ponownie.",akcja:"Zaktualizuj skrypt w arkuszu (testy w grze wymagają nowej wersji).",test:"Brak klucza tego testu w skrypcie – wklej nowy ranking.gs.",haslo:"Złe hasło."};
+async function uruchomTest(){
+  const e=E(),k=K(),w=$("#ekran");if(!w||!k)return;
+  const kl=klasa+"|"+e.id;
+  if(!TSt||TSt.kl!==kl){w.innerHTML=`<div class="ekran"><p class="mala">Wczytuję…</p></div>`;
+    try{const r=await tsApi("stan");TSt={kl,t:r.ok?r.t:null,e:r.ok?"":r.e,uru:{}}}catch(er){TSt={kl,t:null,e:"siec",uru:{}}}}
+  rysujTest();
+  if(!timer)timer=setInterval(async()=>{if(krok!=="uruchomT")return;
+    try{const r=await tsApi("stan");await wczytaj(false);if(r.ok&&TSt.kl===klasa+"|"+E().id){TSt.t=r.t;rysujTest()}}catch(er){}},8000);
+}
+async function tsOp(op,d,b){
+  if(b)b.disabled=true;
+  try{const r=await tsApi(op,d);if(r.ok){if(op!=="uczen")TSt.t=r.t;rysujTest();return r}alert(tsBledy[r.e]||"Błąd: "+r.e)}
+  catch(er){alert("Brak połączenia z arkuszem – spróbuj ponownie.")}
+  if(b)b.disabled=false;
+}
+function rysujTest(){
+  const e=E(),k=K(),w=$("#ekran");if(!w||!k||!e.gra)return;
+  if(TSt.e==="akcja"){w.innerHTML=`<div class="ekran"><p class="blad">${tsBledy.akcja}</p></div>`;return}
+  const t=TSt.t&&TSt.t.etap===e.id?TSt.t:null,inny=TSt.t&&!t?TSt.t:null;
+  const uczniowie=D.gracze.filter(g=>wGrupie(g,k)).map(g=>({g,s:stan(g)})).sort((a,b)=>String(a.g.n).localeCompare(String(b.g.n),"pl"));
+  const wyn=x=>(x.s.testy||{})[e.id];
+  const zrobili=uczniowie.filter(wyn),bez=uczniowie.filter(x=>!wyn(x));
+  const godz=ts=>new Date(ts).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"});
+  const zaczeli=t?Object.values(t.u||{}):[];
+  w.innerHTML=`<div class="ekran"><div class="ostrz">⚠ Ten ekran zawiera wyniki uczniów – wyłącz demonstrację Veyon.</div>
+    <h2>${esc(tytul(e))} · ${esc(etyk(k))}</h2>
+    ${inny?`<p class="blad">Dla tej grupy jest uruchomiony inny test (${esc(inny.nazwa||inny.etap)}). <button class="drugi" id="tsUsunInny">Zakończ go</button></p>`:""}
+    ${t?`<div class="karta"><p class="duzy">${t.stop?"⏹ Zakończony – nikt nowy nie zacznie":"🚨 Trwa"} · ${t.czas} min na ucznia · uruchomiony o ${godz(t.id)}</p>
+        <div class="liczniki"><div><b>${zaczeli.length}</b>zaczęło</div><div><b>${zrobili.length}/${uczniowie.length}</b>oddało</div></div>
+        <p>${t.stop?`<button class="drugi" id="tsWznow">▶ Wznów</button>`:`<button class="drugi" id="tsStop">⏹ Zakończ – nikt nowy już nie zacznie</button>`} <button class="link" id="tsUsun">Usuń uruchomienie</button></p></div>`
+      :`<div class="karta"><p>Uczniowie zalogowani w grze zobaczą okno „${esc(e.typ==="test"&&e.niespodzianka?"Kartkówka-niespodzianka":"Sprawdzian")}” w ciągu ok. 10 sekund. Każdy ma pełny czas od chwili, w której sam kliknie „Zaczynam”.</p>
+        <p><label>Czas na ucznia: <input id="tsCzas" type="number" min="1" max="90" value="${e.gra.czas}" style="width:5em;font:inherit;padding:.3em;border-radius:8px"> min</label></p>
+        <p><button class="glowny" id="tsStart">🚨 Uruchom teraz dla ${esc(etyk(k))}</button></p></div>`}
+    <div class="karta"><h3>Wyniki</h3><table class="tabela"><tr><th>Uczeń</th><th>Zaczął</th><th>Wynik</th><th>Ocena</th><th>Do sprawdzenia</th><th>Okno</th></tr>
+      ${uczniowie.map(x=>{const r=wyn(x),u=t&&(t.u||{})[String(x.g.n).toLowerCase()];
+        return `<tr><td><b>${esc(x.g.n)}</b></td><td>${u?godz(u.t0)+(u.gr&&e.gra.testy.length>1?" · gr. "+u.gr:""):""}</td><td>${r?`${r.s}/${r.m} (${r.proc}%)`:u?`<span class="st-tr">⏳ pisze</span>`:`<span class="st-nie">–</span>`}</td>
+          <td>${r?`<span class="oc">${ocenaTestu(r.s,r.m)}</span>`:""}</td><td>${r&&r.doOceny?`📝 ${r.doOceny} (Panel → Do sprawdzenia)`:""}</td><td>${oknoUcznia(x.s)}</td></tr>`}).join("")||`<tr><td colspan="6" class="mala">Brak uczniów.</td></tr>`}</table></div>
+    ${bez.length?`<div class="karta"><h3>Zaległości – uruchom dla jednego ucznia</h3><p class="mala">Dla ucznia, który był nieobecny: kliknij, gdy siedzi już przy komputerze. Test pojawi mu się w ciągu ok. 10 sekund.</p>
+      <p class="bz-chipy">${bez.map(x=>{const n=String(x.g.n);return TSt.uru[n]?`<span>✔ ${esc(n)} – uruchomiono</span>`:`<button class="drugi" data-tsu="${esc(n)}">▶ ${esc(n)}</button>`}).join("")}</p></div>`:""}</div>`;
+  const st=$("#tsStart");if(st)st.onclick=ev=>tsOp("start",{etap:e.id,testy:e.gra.testy,czas:+$("#tsCzas").value||e.gra.czas,nazwa:tytul(e)},ev.target);
+  const sp=$("#tsStop");if(sp)sp.onclick=ev=>tsOp("stop",{},ev.target);
+  const wz=$("#tsWznow");if(wz)wz.onclick=ev=>tsOp("wznow",{},ev.target);
+  const us=$("#tsUsun");if(us)us.onclick=ev=>{if(confirm("Usunąć uruchomienie? Uczniowie, którzy jeszcze nie zaczęli, nie zobaczą testu (oddane wyniki zostają)."))tsOp("usun",{},ev.target)};
+  const ui=$("#tsUsunInny");if(ui)ui.onclick=ev=>tsOp("usun",{},ev.target);
+  $$("[data-tsu]",w).forEach(b=>b.onclick=async()=>{const n=b.dataset.tsu;const r=await tsOp("uczen",{n,etap:e.id,testy:e.gra.testy,czas:e.gra.czas,nazwa:tytul(e)},b);if(r){TSt.uru[n]=1;rysujTest()}});
+}
+
+/* ---------- obecność na żywo: kto jest teraz w grze (gra wysyła stan okna co ~10 s) ---------- */
+// 🟢 w grze · 🟡 poza grą (inny program) · 🖥 w Wierszu polecenia (zadanie z konsolą) · 🔴 gra zamknięta · ⚪ nie otworzył gry.
+// Gdy ktoś wyjdzie z gry albo ją zamknie – komunikat i krótki dźwięk (można wyciszyć). Lista nazwisk domyślnie zwinięta (demonstracja Veyon).
+const OBc={o:{},prev:{},teraz:0,kl:"",cisza:false,otw:false};
+try{OBc.cisza=localStorage.getItem("agencja-cisza")==="1"}catch(e){}
+const OB_IK={gra:["🟢","w grze"],poza:["🟡","poza grą"],cmd:["🖥","w Wierszu polecenia"],zamk:["🔴","gra zamknięta"],brak:["⚪","nie otworzył gry"]};
+const stanOb=n=>{const x=OBc.o[n];return !x?"brak":OBc.teraz-x.t>35000?"zamk":x.st};
+const lekcyjny=()=>K()&&!["plan","planEdycja","teoriaK"].includes(krok);
+async function obecnosc(){
+  if(!D||!lekcyjny())return rysujObecnosc();
+  const k=K(),n=D.gracze.filter(g=>wGrupie(g,k)).map(g=>String(g.n));
+  try{const r=await api("obecni",{haslo,k:k.k,n});if(!r.ok)return;
+    OBc.o=r.o;OBc.teraz=r.teraz;
+    const nowe={};n.forEach(x=>nowe[x]=stanOb(x));
+    if(OBc.kl===klasa)n.forEach(x=>{const a=OBc.prev[x],b=nowe[x];if(a&&a!==b&&(b==="poza"||b==="zamk"&&a!=="brak"))alarmOb(x,b)});
+    OBc.prev=nowe;OBc.kl=klasa;rysujObecnosc()}catch(e){}
+}
+function pisk(){if(OBc.cisza)return;try{const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();
+  o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.18);setTimeout(()=>c.close(),400)}catch(e){}}
+function komunikat(html){let b=$("#toasty");if(!b){b=document.createElement("div");b.id="toasty";document.body.appendChild(b)}
+  const d=document.createElement("div");d.className="toastP";d.innerHTML=html;b.appendChild(d);setTimeout(()=>d.remove(),9000)}
+function alarmOb(n,st){komunikat(`${OB_IK[st][0]} <b>${esc(n)}</b> – ${st==="zamk"?"zamknął grę":"wyszedł z gry"}`);pisk()}
+function rysujObecnosc(){
+  let w=$("#obec");
+  if(!D||!lekcyjny()){if(w)w.remove();return}
+  if(!w){w=document.createElement("div");w.id="obec";document.body.appendChild(w)}
+  const n=Object.keys(OBc.prev),ile=s=>n.filter(x=>OBc.prev[x]===s).length;
+  const od=x=>{const o=OBc.o[x];return o&&o.st!=="gra"&&o.od?` · od ${Math.max(0,Math.round((OBc.teraz-o.od)/1000))} s`:""};
+  w.innerHTML=`<div class="obec-g"><button id="obecT" title="Kto jest teraz w grze – kliknij, żeby rozwinąć (nazwiska; wyłącz demonstrację Veyon)">🟢 ${ile("gra")} · 🟡 ${ile("poza")} · 🖥 ${ile("cmd")} · 🔴 ${ile("zamk")} · ⚪ ${ile("brak")}</button>
+    <button id="obecC" title="${OBc.cisza?"Włącz dźwięk":"Wycisz dźwięk"}">${OBc.cisza?"🔕":"🔔"}</button></div>
+    ${OBc.otw?`<div class="obec-l">${n.sort((a,b)=>["poza","zamk","cmd","brak","gra"].indexOf(OBc.prev[a])-["poza","zamk","cmd","brak","gra"].indexOf(OBc.prev[b])||a.localeCompare(b,"pl"))
+      .map(x=>`<div>${OB_IK[OBc.prev[x]][0]} ${esc(x)} <span class="mala">${OB_IK[OBc.prev[x]][1]}${od(x)}</span></div>`).join("")||`<span class="mala">Brak uczniów.</span>`}</div>`:""}`;
+  $("#obecT").onclick=()=>{OBc.otw=!OBc.otw;rysujObecnosc()};
+  $("#obecC").onclick=()=>{OBc.cisza=!OBc.cisza;try{localStorage.setItem("agencja-cisza",OBc.cisza?"1":"0")}catch(e){}rysujObecnosc()};
+}
+setInterval(obecnosc,10000);
+
+/* ---------- gra na pełnym ekranie przez Veyon („Uruchom program”) – bez aplikacji, której nie da się uruchomić w pracowni ---------- */
+const poleceniaVeyon=r=>`"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe" --kiosk "https://bobby6robert.github.io/agencja-informatyka/tresc/klasa${r}/gra/?tryb=pracownia" --edge-kiosk-type=fullscreen --no-first-run --user-data-dir=C:\\Users\\Public\\agencja-kiosk`;
+function kopiujVeyon(){const k=K(),r=k?String(k.k)[0]:"1",t=poleceniaVeyon(r);
+  const ok=()=>komunikat(`📋 Skopiowano polecenie dla klasy ${r}. W Veyon: zaznacz komputery → <b>Uruchom program</b> → wklej (Ctrl+V).`);
+  try{navigator.clipboard.writeText(t).then(ok,()=>prompt("Skopiuj polecenie (Ctrl+C):",t))}catch(e){prompt("Skopiuj polecenie (Ctrl+C):",t)}}
+
+/* te same prawdziwe dane (IP, MAC) u dwóch uczniów = najpewniej przepisane od sąsiada */
+function duplikaty(lista){const m={},out={};
+  lista.forEach(({g,s})=>Object.entries(s.dane||{}).forEach(([k,v])=>{if(!["ip","mac","nazwa"].includes(k))return;const kl=k+"|"+String(v).toUpperCase().replace(/[^0-9A-Z.]/g,"");(m[kl]=m[kl]||[]).push(String(g.n))}));
+  Object.entries(m).forEach(([kl,ns])=>{if(ns.length<2)return;const nazwa={ip:"adres IP",mac:"adres MAC",nazwa:"nazwę komputera"}[kl.split("|")[0]];
+    ns.forEach(n=>{(out[n]=out[n]||[]).push(`ten sam ${nazwa} co ${ns.filter(x=>x!==n).join(", ")}`)})});
+  return out}
 
 /* ---------- plan dnia ---------- */
 const minuty=t=>{const m=/(\d{1,2}):(\d{2})/.exec(t);return m?+m[1]*60+ +m[2]:0};
@@ -240,7 +465,8 @@ function odprawa(){
       :`<div class="poz3 duzy">${Object.entries(F.poziomy).map(([k,p])=>`<div><b>${esc(p.n)}</b> · ${e.zadania[k].length} zadań · ocena do <b>${p.max}</b></div>`).join("")}</div>
        <p class="mala" style="margin-top:12px">Poziom wybierasz przed misją. Poprawa tylko na wyższym poziomie – zostaje najwyższa ocena. Podpowiedzi ${esc(M().pomocnik)}: −10% / −25% / −50% punktów za zadanie.</p>`;
   } else {
-    srodek=`<div class="misjaInfo duzy"><p>Test z całego rozdziału${e.boss?" – grupy A i B":""}. Hasło poda nauczyciel.</p><p>Wpisz imię i nazwisko oraz klasę. Test piszesz tylko raz.</p></div>`;
+    srodek=e.gra?`<div class="misjaInfo duzy"><p>${e.niespodzianka?"Kartkówka-niespodzianka":"Sprawdzian"} w grze – ${e.gra.czas} min${e.gra.testy.length>1?", grupy A i B (wg numeru komputera)":""}. Bez hasła: uruchamiasz go w kroku 2.</p><p>Test piszesz tylko raz.</p></div>`
+      :`<div class="misjaInfo duzy"><p>Test z całego rozdziału${e.boss?" – grupy A i B":""}. Hasło poda nauczyciel.</p><p>Wpisz imię i nazwisko oraz klasę. Test piszesz tylko raz.</p></div>`;
   }
   w.innerHTML=`<div class="ekran duzy"><div class="temat">${esc(e.lekcja||"")}</div>
     <h1>${esc(tytul(e))}</h1><p class="mala">${esc(M().sprawa)} · ${esc(M().agencja)}</p>
@@ -248,8 +474,8 @@ function odprawa(){
       <div>${e.lekcje?`<div class="misjaInfo"><div class="temat">Co trzeba umieć</div><ul>${e.lekcje.map(([,n])=>`<li>${esc(n)}</li>`).join("")}</ul></div>`:""}</div>
       <div><div class="temat" style="margin-bottom:8px">${e.typ==="misja"?"Misja na dziś":e.boss?"Sprawdzian":"Kartkówka"}</div>${srodek}</div>
     </div>
-    <p style="margin-top:24px"><button class="glowny" id="dalej">${e.typ==="test"?"Hasło do testu ▸":"Teoria ▸"}</button></p></div>`;
-  $("#dalej").onclick=()=>{krok=e.typ==="test"?"haslo":"teoria";rysuj()};
+    <p style="margin-top:24px"><button class="glowny" id="dalej">${e.gra?"Uruchom ▸":e.typ==="test"?"Hasło do testu ▸":"Teoria ▸"}</button></p></div>`;
+  $("#dalej").onclick=()=>{krok=e.gra?"uruchomT":e.typ==="test"?"haslo":"teoria";rysuj()};
 }
 
 /* ---------- 2. teoria ---------- */
@@ -258,7 +484,7 @@ function teoria(){
   const url=id=>`../${F.baza}${F.lekcje}#${id}`;
   w.innerHTML=`<div class="ramkaT"><div class="nawT"><button class="drugi" id="pop">◂ Poprzednia część</button><b id="tytT"></b>
     <button class="drugi" id="zoomM" title="Mniejszy tekst">A−</button><button class="drugi" id="zoomP" title="Większy tekst">A+</button>
-    <button class="drugi" id="nast">Następna część ▸</button><button class="glowny" id="doMisji">Koniec teorii – do misji ▸</button></div>
+    <button class="drugi" id="nast">Następna część ▸</button>${e.animacje&&window.ANIMACJE?`<button class="drugi" id="anim">🎬 Animacje</button>`:""}<button class="glowny" id="doMisji">Koniec teorii – do misji ▸</button></div>
     <iframe id="ifT" title="Teoria"></iframe></div>`;
   const ifr=$("#ifT");let zoom=1;
   const prezentacja=()=>{try{const d=ifr.contentDocument;if(!d||!d.body)return;
@@ -272,6 +498,7 @@ function teoria(){
   $("#pop").onclick=()=>{if(i>0){i--;pokaz()}};$("#nast").onclick=()=>{if(i<e.lekcje.length-1){i++;pokaz()}};
   $("#zoomP").onclick=()=>{zoom=Math.min(2,zoom+.1);prezentacja()};$("#zoomM").onclick=()=>{zoom=Math.max(.6,zoom-.1);prezentacja()};
   $("#doMisji").onclick=()=>{krok="podglad";rysuj()};
+  const an=$("#anim");if(an)an.onclick=()=>window.ANIMACJE.otworz(e.animacje);
   pokaz();
 }
 
@@ -280,13 +507,16 @@ function podglad(){
   const e=E(),w=$("#ekran"),k=K();if(!w)return;
   const uczniowie=D.gracze.filter(g=>k&&wGrupie(g,k)).map(g=>({g,s:stan(g)})).sort((a,b)=>String(a.g.n).localeCompare(String(b.g.n),"pl"));
   const teraz=Date.now();
-  const wiersze=uczniowie.map(({g,s})=>{
+  const dup=duplikaty(uczniowie);
+  const wiersze=uczniowie.map(({g,s})=>Object.assign(wiersz(g,s),{okno:oknoUcznia(s)+(dup[g.n]?` <span class="blad" style="font-weight:700" title="${esc(dup[g.n].join("; "))}">⚠ odpisane?</span>`:""),poza:(s.alarmy||[]).some(a=>a.t>=teraz-50*60e3&&!a.c)}));
+  function wiersz(g,s){
     if(e.typ==="test"){const t=(s.testy||{})[e.id];return {g,ok:!!t,html:t?`<td class="st-ok">✔ napisany</td><td>${esc(t.test||"")}</td><td>${t.s}/${t.m} (${t.proc}%)</td><td><span class="oc">${ocenaTestu(t.s,t.m)}</span></td><td></td><td>${t.data?new Date(t.data).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"}):""}</td>`:`<td class="st-nie">– jeszcze nie</td><td></td><td></td><td></td><td></td><td></td>`}}
-    const m=(s.misje||{})[e.id],tr=s.trwa&&s.trwa.id===e.id&&teraz-s.trwa.t<3600e3;
+    const m=(s.misje||{})[e.id],nd=(s.niedok||{})[e.id],tr=nd||s.trwa&&s.trwa.id===e.id&&teraz-s.trwa.t<3600e3;
+    if(!m&&nd){const zz=e.bezPoziomu?e.zadania.wszystkie:e.zadania[nd.poziom]||[];return {g,tr:true,html:`<td class="st-tr">⏳ w trakcie: ${Object.keys(nd.odp||{}).length}/${zz.length}</td><td>${esc((F.poziomy[nd.poziom]||{}).n||"")}</td><td></td><td></td><td></td><td>${nd.t?"ostatnio "+new Date(nd.t).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"}):""}</td>`}}
     if(m)return {g,ok:true,html:`<td class="st-ok">✔ ukończona${m.proby&&m.proby.length>1?" (poprawa)":""}</td><td>${e.bezPoziomu?"–":esc(F.poziomy[m.poziom].n)}</td><td>${m.proc}%</td><td>${m.ocena?`<span class="oc">${m.ocena}</span>`:"–"}</td><td>${m.podp||0}</td><td>${m.data?new Date(m.data).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"}):""}</td>`};
     if(tr)return {g,tr:true,html:`<td class="st-tr">⏳ w trakcie</td><td>${esc((F.poziomy[s.trwa.poziom]||{}).n||"")}</td><td></td><td></td><td></td><td>od ${new Date(s.trwa.t).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"})}</td>`};
     return {g,html:`<td class="st-nie">– nie zaczął</td><td></td><td></td><td></td><td></td><td></td>`};
-  });
+  }
   const ile=wiersze.filter(x=>x.ok).length,trw=wiersze.filter(x=>x.tr).length;
   // najtrudniejsze zadania (pierwsze podejście)
   let trudne="";
@@ -301,10 +531,10 @@ function podglad(){
   w.innerHTML=`<div class="ekran"><div class="ostrz">⚠ Ten ekran zawiera wyniki uczniów – wyłącz demonstrację Veyon, zanim go otworzysz.</div>
     <h2>${esc(tytul(e))} · ${esc(k?etyk(k):"")}</h2>
     ${odIdx(k)<etapI||!k||!k.od&&false?"":""}
-    <div class="liczniki"><div><b>${ile}/${uczniowie.length}</b>${e.typ==="test"?"napisało":"ukończyło"}</div>${e.typ==="misja"?`<div><b>${trw}</b>w trakcie</div>`:""}<div><b>${uczniowie.length-ile-trw}</b>nie zaczęło</div></div>
-    <div class="karta"><div class="przewin" style="overflow-x:auto"><table class="tabela"><tr><th>Uczeń</th><th>Stan</th><th>${e.typ==="test"?"Test":"Poziom"}</th><th>Wynik</th><th>Ocena</th><th>${e.typ==="test"?"":"💡"}</th><th>Godzina</th></tr>
-    ${wiersze.map(x=>`<tr><td><b>${esc(x.g.n)}</b></td>${x.html}</tr>`).join("")||`<tr><td colspan="7" class="mala">Brak uczniów w tej klasie.</td></tr>`}</table></div>
-    <p class="mala">Odświeża się co 15 sekund. ${new Date().toLocaleTimeString("pl-PL")}</p></div>${trudne}</div>`;
+    <div class="liczniki"><div><b>${ile}/${uczniowie.length}</b>${e.typ==="test"?"napisało":"ukończyło"}</div>${e.typ==="misja"?`<div><b>${trw}</b>w trakcie</div>`:""}<div><b>${uczniowie.length-ile-trw}</b>nie zaczęło</div>${wiersze.some(x=>x.poza)?`<div><b class="blad">${wiersze.filter(x=>x.poza).length}</b>wychodziło z okna</div>`:""}</div>
+    <div class="karta"><div class="przewin" style="overflow-x:auto"><table class="tabela"><tr><th>Uczeń</th><th>Stan</th><th>${e.typ==="test"?"Test":"Poziom"}</th><th>Wynik</th><th>Ocena</th><th>${e.typ==="test"?"":"💡"}</th><th>Godzina</th><th>Okno</th></tr>
+    ${wiersze.map(x=>`<tr><td><b>${esc(x.g.n)}</b></td>${x.html}<td>${x.okno}</td></tr>`).join("")||`<tr><td colspan="8" class="mala">Brak uczniów w tej klasie.</td></tr>`}</table></div>
+    <p class="mala">🔒 gra w aplikacji z blokadą · 🌐 gra w zwykłej przeglądarce · ⚠ wyjścia z okna gry w ciągu ostatnich 50 minut (najedź, aby zobaczyć godziny). Odświeża się co 15 sekund. ${new Date().toLocaleTimeString("pl-PL")}</p></div>${trudne}</div>`;
   if(!timer)timer=setInterval(()=>{if(krok==="podglad")wczytaj(false)},15000);
 }
 

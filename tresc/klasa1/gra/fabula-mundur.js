@@ -112,50 +112,60 @@
         mun: [["p", "Hau! Proces zatrzymany! Ale zdążył wysłać dane przez sieć."], ["n", "W logu systemu zostaje podpis: B0."], ["s", "Fałszerz ucieka siecią. Ruszamy w pościg."]]
       }
     },
+    kart1: {
+      tytul: { woj: "Niezapowiedziana kontrola", kas: "Kontrola doraźna", mun: "Nagłe przesłuchanie" },
+      wstep: { woj: [], kas: [], mun: [] },
+      koniec: { woj: [["s", "Kontrola zaliczona. Wracamy do działań."]], kas: [["s", "Kontrola zakończona. Wracamy do postępowania."]], mun: [["s", "Przesłuchanie zakończone. Wracamy do pościgu."]] }
+    },
     m2: {
-      tytul: { woj: "Pościg przez sieć", kas: "Śladem przemytu", mun: "Pościg w sieci" },
+      tytul: { woj: "Namierzanie nadajnika", kas: "Nielegalne urządzenie", mun: "Namierzanie nadajnika" },
       wstep: {
         woj: [
           ["n", "Poprzednio: atak na sztab odparty, ale Kruk uciekł przez sieć, zostawiając podpis B0."],
           ["p", "W sieci jednostki pracuje nieznane urządzenie. Jego adres MAC to nasz pierwszy trop."],
-          ["s", "Zlokalizuj intruza, a potem idź za nim przez Internet: adresy IP, DNS, porty, tracert. Wykonać!"]
+          ["s", "Poznaj budowę sieci i sprawdź w konsoli swój komputer – prawdziwe dane, żołnierzu. Wykonać!"]
         ],
         kas: [
           ["n", "Poprzednio: kontrola systemu zakończona, ale Szmugler wyprowadził dane siecią, zostawiając podpis B0."],
           ["p", "W sieci urzędu pracuje urządzenie, którego nie ma w ewidencji. Jego adres MAC to nasz trop."],
-          ["s", "Znajdź nielegalne urządzenie, a potem prześledź, dokąd Szmugler przerzuca dane w Internecie."]
+          ["s", "Poznaj budowę sieci, a potem sprawdź w konsoli dane swojego komputera. Prawdziwe, nie z ćwiczeń."]
         ],
         mun: [
           ["n", "Poprzednio: system kontroli uratowany, ale Fałszerz uciekł przez sieć, zostawiając podpis B0."],
           ["p", "Hau! W sieci przejścia granicznego pracuje nieznane urządzenie. Jego adres MAC to trop."],
-          ["s", "Namierz intruza, a potem ruszaj w pościg przez Internet: IP, DNS, porty, tracert."]
+          ["s", "Poznaj budowę sieci i sprawdź w konsoli swój komputer. Potem ruszymy w pościg."]
         ]
       },
       koniec: {
-        woj: [["p", "Zlokalizowany! Nieautoryzowany punkt dostępowy przy ogrodzeniu jednostki. Pusty…"], ["p", "…ale trasa w jego pamięci prowadzi do serwera w Internecie. Port 443 aktywny."], ["s", "Cel namierzony. Przed akcją – odprawa. Potem starcie."]],
-        kas: [["p", "Mam je! Niezgłoszony punkt dostępowy w magazynie depozytowym. Pusty…"], ["p", "…ale w pamięci została trasa do serwera sklepu Szmuglera. Port 443 otwarty."], ["s", "Mamy adres. Zanim wejdziemy z kontrolą – egzamin kontrolny."]],
-        mun: [["p", "Hau! Ukryty punkt dostępowy w budce przy szlabanie. Pusty…"], ["p", "…ale trasa prowadzi do serwera Fałszerza w Internecie. Port 443 otwarty!"], ["s", "Zanim go zatrzymamy – przesłuchanie świadka."]]
+        woj: [["p", "Zlokalizowany! Nieautoryzowany punkt dostępowy przy ogrodzeniu jednostki. Pusty…"], ["p", "…ale w jego pamięci została trasa do Internetu."], ["s", "Na następnej odprawie idziemy tym tropem."]],
+        kas: [["p", "Mam je! Niezgłoszony punkt dostępowy w magazynie depozytowym. Pusty…"], ["p", "…ale w pamięci została trasa prowadząca do Internetu."], ["s", "Następnym razem sprawdzimy, dokąd prowadzi."]],
+        mun: [["p", "Hau! Ukryty punkt dostępowy w budce przy szlabanie. Pusty…"], ["p", "…ale w jego pamięci jest trasa do Internetu."], ["s", "Na następnej służbie ruszamy tym tropem."]]
       }
     },
-    kart: {
-      tytul: { woj: "Odprawa przed akcją", kas: "Egzamin kontrolny", mun: "Przesłuchanie świadka" },
+    m3: {
+      tytul: { woj: "Pościg przez sieć", kas: "Śladem przemytu", mun: "Pościg w sieci" },
       wstep: {
-        woj: [["n", "Odprawa przed akcją. Potrzebujesz hasła od pułkownika, czyli nauczyciela."], ["s", "Na odprawie nie ma miejsca na zgadywanie. Pokaż, co umiesz z całego rozdziału – to Twoja kartkówka."]],
-        kas: [["n", "Egzamin kontrolny. Potrzebujesz hasła od naczelnika, czyli nauczyciela."], ["s", "W kontroli liczy się dokładność. Pokaż, że znasz sprawę – to Twoja kartkówka."]],
-        mun: [["n", "Przesłuchanie świadka. Potrzebujesz hasła od nadinspektora, czyli nauczyciela."], ["s", "Świadek odpowie tylko na dobrze zadane pytania. To Twoja kartkówka."]]
+        woj: [["n", "Poprzednio: nadajnik Kruka namierzony. W jego pamięci została trasa do Internetu."], ["p", "Idziemy za nią: adresy IP, DNS, porty, ping i tracert – na prawdziwym komputerze."], ["s", "Do końca odprawy chcę mieć adres serwera Kruka. Wykonać!"]],
+        kas: [["n", "Poprzednio: nielegalne urządzenie zabezpieczone. W pamięci została trasa."], ["p", "Prześledzimy, dokąd Szmugler przerzuca dane: IP, DNS, porty, tracert."], ["s", "Chcę mieć adres jego serwera."]],
+        mun: [["n", "Poprzednio: nadajnik Fałszerza znaleziony. W pamięci została trasa."], ["p", "Hau! Idziemy tropem przez Internet: IP, DNS, porty, tracert."], ["s", "Ruszaj w pościg."]]
       },
       koniec: {
-        woj: [["s", "Odprawa zaliczona. Rozpoznanie potwierdza: to serwer Kruka. Do akcji!"]],
-        kas: [["s", "Egzamin zdany. Analiza przelewów potwierdza: to sklep Szmuglera. Wchodzimy z kontrolą."]],
-        mun: [["s", "Zeznania się zgadzają: to serwer Fałszerza. Czas na zatrzymanie."]]
+        woj: [["p", "Trasa kończy się na serwerze w Internecie. Port 443 aktywny."], ["s", "Cel namierzony. Przed akcją – sprawdzian. Potem starcie."]],
+        kas: [["p", "Trasa prowadzi do serwera sklepu Szmuglera. Port 443 otwarty."], ["s", "Mamy adres. Zanim wejdziemy z kontrolą – sprawdzian."]],
+        mun: [["p", "Hau! Trasa prowadzi do serwera Fałszerza. Port 443 otwarty!"], ["s", "Zanim go zatrzymamy – sprawdzian."]]
       }
+    },
+    kart2: {
+      tytul: { woj: "Odprawa przed akcją", kas: "Egzamin kontrolny", mun: "Przesłuchanie świadka" },
+      wstep: { woj: [], kas: [], mun: [] },
+      koniec: { woj: [["s", "Odprawa zaliczona. Do działań!"]], kas: [["s", "Egzamin zdany. Wracamy do postępowania."]], mun: [["s", "Zeznania się zgadzają. Wracamy do służby."]] }
     },
     boss: {
       tytul: { woj: "Starcie z Krukiem", kas: "Zatrzymanie Szmuglera", mun: "Zatrzymanie Fałszerza" },
       wstep: {
-        woj: [["n", "Finał rozdziału. Potrzebujesz hasła od pułkownika (nauczyciela) i informacji o grupie: A lub B."], ["w", "Żołnierz Braniewskiego? Zobaczymy, ile wytrzymasz."], ["s", "Spokój i dyscyplina. Pytanie po pytaniu. To Twój sprawdzian."]],
-        kas: [["n", "Finał rozdziału. Potrzebujesz hasła od naczelnika (nauczyciela) i informacji o grupie: A lub B."], ["w", "Kontroler od Braniewskiego? Sprawdźmy, czy coś znajdziesz."], ["s", "Dokładnie i spokojnie. Pytanie po pytaniu. To Twój sprawdzian."]],
-        mun: [["n", "Finał rozdziału. Potrzebujesz hasła od nadinspektora (nauczyciela) i informacji o grupie: A lub B."], ["w", "Funkcjonariusz Braniewskiego? Ciekawe, czy mnie złapiesz."], ["s", "Spokojnie i zgodnie z procedurami. Pytanie po pytaniu. To Twój sprawdzian."]]
+        woj: [["n", "Finał rozdziału. Sprawdzian uruchamia pułkownik (nauczyciel). Grupę A albo B dobierze komputer."], ["w", "Żołnierz Braniewskiego? Zobaczymy, ile wytrzymasz."], ["s", "Spokój i dyscyplina. Pytanie po pytaniu. To Twój sprawdzian."]],
+        kas: [["n", "Finał rozdziału. Sprawdzian uruchamia naczelnik (nauczyciel). Grupę A albo B dobierze komputer."], ["w", "Kontroler od Braniewskiego? Sprawdźmy, czy coś znajdziesz."], ["s", "Dokładnie i spokojnie. Pytanie po pytaniu. To Twój sprawdzian."]],
+        mun: [["n", "Finał rozdziału. Sprawdzian uruchamia nadinspektor (nauczyciel). Grupę A albo B dobierze komputer."], ["w", "Funkcjonariusz Braniewskiego? Ciekawe, czy mnie złapiesz."], ["s", "Spokojnie i zgodnie z procedurami. Pytanie po pytaniu. To Twój sprawdzian."]]
       },
       koniec: {
         woj: [["w", "Hm. Tym razem się wycofuję."], ["w", "Pozdrów ode mnie SOKOŁA. On wie, dlaczego."], ["p", "…Panie pułkowniku, nie rozpoznaję tego sygnału. Nie powinienem… prawda?"], ["s", "Zadanie wykonane. Ale ten podpis B0 i ta wiadomość… To jeszcze nie koniec."], ["n", "Ciąg dalszy w rozdziale 2."]],

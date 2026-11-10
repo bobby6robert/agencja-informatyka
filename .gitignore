@@ -5,3 +5,7 @@ DLA-NAUCZYCIELA/
 *hasla*
 *.gs
 .claude/
+
+# lokalne: archiwum do maila, wersja aplikacji jeszcze niewysłana uczniom
+aplikacja/*.zip
+aplikacja/nieopublikowana/

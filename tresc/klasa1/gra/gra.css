@@ -93,6 +93,7 @@ nav.dol button[aria-current=true]{background:var(--panel2);color:var(--tekst)}
 .ramka-g{display:flex;gap:12px;align-items:center;padding:8px 12px;background:var(--panel2);flex-wrap:wrap}
 .ramka-g b{flex:1}
 .ramka-g a{color:var(--akc2);font-size:.85rem}
+body.pracownia .ramka-g a[target]{display:none}
 .nak-ramka iframe{flex:1;border:0;width:100%;background:#fff}
 @keyframes pojaw{from{opacity:0}to{opacity:1}}
 
@@ -124,6 +125,12 @@ nav.dol button[aria-current=true]{background:var(--panel2);color:var(--tekst)}
 .kropki{display:flex;gap:6px;color:var(--akc2);font-weight:700}
 .kropki i{width:12px;height:12px;border-radius:50%;background:var(--panel2)}
 .kropki i.b{background:var(--akc2)}.kropki i.a{background:var(--akc);transform:scale(1.25)}
+.kropki button{width:28px;height:28px;border-radius:50%;border:2px solid color-mix(in srgb,var(--akc2) 50%,transparent);background:var(--panel2);font-size:.8rem;font-weight:700;padding:0;color:var(--tekst)}
+.kropki button:disabled{opacity:1;cursor:default}
+.kropki button.b{background:var(--dobrze);border-color:var(--dobrze);color:#111}.kropki button.b.zle{background:var(--zle);border-color:var(--zle);color:#fff}
+.kropki button.a{background:var(--akc);border-color:var(--akc);color:#111;transform:scale(1.15)}
+.dzis{display:grid;gap:12px}
+.dzis div{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .pkt{color:var(--mute);font-weight:700}
 .fab{display:flex;gap:10px;align-items:center;background:var(--panel2);border-left:4px solid var(--akc);padding:8px 12px;border-radius:8px;font-style:italic}
 .fab svg{flex:none}
@@ -138,8 +145,10 @@ nav.dol button[aria-current=true]{background:var(--panel2);color:var(--tekst)}
 .kolej li{counter-increment:k;display:flex;align-items:center;gap:10px;background:var(--panel2);border-radius:10px;padding:.5em .6em}
 .kolej li::before{content:counter(k);flex:none;width:26px;height:26px;border-radius:50%;background:var(--akc);color:#111;display:grid;place-items:center;font-weight:700;font-size:.85rem}
 .kolej li span:first-of-type{flex:1}
-.strz{display:flex;gap:4px}
-.strz button{background:var(--panel);border:0;border-radius:8px;width:38px;height:34px}
+.kolej li{cursor:grab;touch-action:none;user-select:none;border:2px solid transparent;transition:background .15s}
+.kolej li:hover{border-color:color-mix(in srgb,var(--akc2) 45%,transparent)}
+.kolej li.ciagnie{cursor:grabbing;background:color-mix(in srgb,var(--akc2) 25%,var(--panel2));border-color:var(--akc2);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.uchwyt{color:var(--mute);font-size:1.3rem;line-height:1;padding:0 4px}
 .para{display:grid;grid-template-columns:minmax(120px,1fr) 2fr;gap:10px;align-items:center;background:var(--panel2);border-radius:10px;padding:.5em .7em}
 .para select{width:100%;padding:.5em;border-radius:8px;background:var(--tlo);color:var(--tekst);border:2px solid color-mix(in srgb,var(--tekst) 20%,transparent);font:inherit;font-size:.92rem}
 .podp{display:flex;gap:10px;align-items:center;background:color-mix(in srgb,var(--akc2) 14%,var(--panel));border-radius:10px;padding:8px 12px;margin:6px 0;animation:wskocz .3s}
@@ -212,3 +221,113 @@ nav.dol button[aria-current=true]{background:var(--panel2);color:var(--tekst)}
 .wyzwanie{display:flex;gap:14px;align-items:center;justify-content:space-between;border:1px dashed var(--akc2)}
 .etap.zaleg button{border-color:var(--zle);background:color-mix(in srgb,var(--zle) 12%,var(--panel))}
 .zaleg-t{color:#fca5a5}
+
+/* burza mózgów (burza.js; okno ucznia w grze i tablica w Prowadzeniu lekcji) */
+.nak-burza{z-index:30}
+.nak-burza .okno{max-width:760px}
+.bz-temat{color:var(--akc2);font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:.9rem}
+.bz-dr{border-left:6px solid var(--dr);background:color-mix(in srgb,var(--dr) 18%,var(--panel2));border-radius:10px;padding:10px 14px;font-size:1.15rem;margin:8px 0}
+.bz-form{display:flex;gap:8px}
+.bz-form input{flex:1;font:inherit;padding:.6em .8em;border-radius:10px;border:1px solid color-mix(in srgb,var(--tekst) 25%,transparent);background:var(--tlo);color:var(--tekst)}
+.bz-moje{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0}
+.bz-moje li{background:var(--panel2);border-radius:999px;padding:.25em .8em}
+.bz-pasek{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.bz-info{background:color-mix(in srgb,var(--akc2) 20%,var(--panel2));border-radius:10px;padding:8px 12px}
+.bz-lista{display:grid;gap:6px}
+.bz-g{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--panel2);border:2px solid transparent;border-radius:10px;padding:6px 6px 6px 12px;cursor:pointer}
+.bz-g:hover{border-color:color-mix(in srgb,var(--akc2) 50%,transparent)}
+.bz-g.zazn{border-color:var(--akc2);box-shadow:0 0 0 3px color-mix(in srgb,var(--akc2) 30%,transparent)}
+.bz-ile{color:var(--akc)}
+.bz-akc{display:flex;gap:4px;flex:none}
+.bz-akc button{background:var(--panel);border:0;border-radius:8px;padding:.3em .55em}
+.bz-usuniete{margin-top:10px}
+.bz-tablica{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.bz-kol{background:var(--panel);border-top:6px solid var(--dr);border-radius:12px;padding:12px 16px}
+.bz-kol h3{margin:0;color:var(--dr);text-transform:uppercase;letter-spacing:.04em}
+.bz-kol ul{margin:.6em 0 0;padding-left:1.1em}
+.bz-kol li{margin:.2em 0}
+.bz-kol li b{color:var(--akc)}
+@media (max-width:700px){.bz-tablica{grid-template-columns:1fr}}
+
+/* przelicznik systemów liczbowych (przelicznik.js) */
+.nak-przel{z-index:25}
+.nak-przel .okno{max-width:640px}
+.pz-gora{display:flex;justify-content:space-between;align-items:center}
+.pz-dane{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.pz-dane label{display:grid;gap:4px;font-size:.85rem;color:var(--mute)}
+.pz-dane input,.pz-dane select,.pz-p{font:inherit;padding:.4em .6em;border-radius:8px;border:1px solid color-mix(in srgb,var(--tekst) 25%,transparent);background:var(--tlo);color:var(--tekst)}
+.pz-dane input{width:9em;font-family:Consolas,monospace;text-transform:uppercase}
+.pz-tab{border-collapse:collapse;margin:8px 0}
+.pz-tab td,.pz-tab th{padding:4px 8px;text-align:left;vertical-align:top}
+.pz-tab th{font-size:.8rem;color:var(--mute);font-weight:600}
+.pz-c{font-family:Consolas,monospace;font-size:1.3rem;font-weight:800;color:var(--akc)}
+.pz-suma td{border-top:2px solid color-mix(in srgb,var(--tekst) 25%,transparent);font-weight:700}
+.pz-p{font-family:Consolas,monospace;text-transform:uppercase;width:auto}
+.pz-p.ok{border-color:var(--dobrze);background:color-mix(in srgb,var(--dobrze) 18%,var(--tlo))}
+.pz-p.zle{border-color:var(--zle);background:color-mix(in srgb,var(--zle) 15%,var(--tlo))}
+.pz-pod{font-size:.8rem;color:var(--akc2);max-width:22em}
+.pz-brawo{color:var(--dobrze);font-weight:700}
+.pz-etap+.pz-etap{border-top:1px dashed color-mix(in srgb,var(--tekst) 20%,transparent);margin-top:10px}
+
+/* konsola z prawdziwymi danymi (konsola.js) */
+.nak-konsola{z-index:26}
+.nak-konsola .okno{max-width:860px;padding:0;background:#0c0c0c;border:1px solid #444;overflow:hidden;display:flex;flex-direction:column;height:min(80vh,620px)}
+.ks-pasek{display:flex;justify-content:space-between;align-items:center;background:#1f1f1f;color:#ddd;padding:6px 10px;font-size:.85rem}
+.ks-pasek button{background:none;border:0;color:#ddd;font-size:1rem}
+.ks-ekran{flex:1;overflow:auto;padding:10px 12px;font:15px/1.35 Consolas,"Cascadia Mono",monospace;color:#cccccc}
+.ks-ekran pre{margin:0 0 6px;white-space:pre-wrap;font:inherit}
+.ks-info{color:#f9d65c}.ks-blad{color:#ff7b7b}
+.ks-linia{display:flex;gap:6px;align-items:center}
+.ks-linia input{flex:1;background:transparent;border:0;outline:0;color:#fff;font:inherit;caret-color:#fff}
+
+/* kartkówki i sprawdziany w grze (testy.js) */
+.nak-alarm{z-index:28}
+.alarm-test{text-align:center}
+.syrena{font-size:3.2rem;animation:syrena .6s ease-in-out infinite alternate}
+@keyframes syrena{from{transform:scale(1) rotate(-8deg)}to{transform:scale(1.15) rotate(8deg)}}
+.nak-test{z-index:27;place-items:stretch}
+.nak-test .okno{max-width:900px;margin:0 auto;height:100%;max-height:none;display:flex;flex-direction:column}
+.ts-gora{display:flex;gap:12px;align-items:center;position:sticky;top:0;background:var(--panel);padding-bottom:8px;border-bottom:1px solid color-mix(in srgb,var(--tekst) 15%,transparent)}
+.ts-gora b{flex:1}
+.ts-czas{font:700 1.3rem Consolas,monospace;color:var(--akc2)}.ts-czas.malo{color:var(--zle);animation:syrena .5s infinite alternate}
+.ts-lista{flex:1;overflow:auto;padding-right:6px}
+.ts-pyt{background:var(--panel2);border-radius:12px;padding:12px 14px;margin:12px 0}
+.ts-pyt h3{font-size:1.02rem;margin:0 0 8px}.ts-pyt h3 small{color:var(--mute);font-weight:400}
+.ts-nr{color:var(--akc)}
+.ts-o{display:flex;gap:8px;align-items:flex-start;padding:6px 8px;border-radius:8px;cursor:pointer}
+.ts-o:hover{background:color-mix(in srgb,var(--akc2) 12%,transparent)}
+.ts-wym{display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.ts-wym input,.ts-pyt textarea,.ts-pyt .wpis{font:inherit;padding:.5em .7em;border-radius:8px;border:1px solid color-mix(in srgb,var(--tekst) 25%,transparent);background:var(--tlo);color:var(--tekst);width:100%}
+.ts-pyt .wpis{width:min(100%,320px)}
+
+/* animacje sieci (animacje-sieci.js) */
+.nak-anim{z-index:24}
+.nak-anim .okno{max-width:1000px}
+.an-gora{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
+.an-gora .zakladki,.an-topo-z{margin:0;display:flex;flex-wrap:wrap;gap:6px}
+.an-gora .zakladki button,.an-topo-z button{white-space:nowrap;font-size:.85rem;width:auto;height:auto}
+.an-gora .zakladki button,.an-topo-z button{background:var(--panel2);border:1px solid color-mix(in srgb,var(--tekst) 18%,transparent);border-radius:999px;padding:.35em .9em}
+.an-gora .zakladki button[aria-pressed=true],.an-topo-z button[aria-pressed=true]{background:var(--akc);color:#111}
+.an-svg{width:100%;height:auto;background:color-mix(in srgb,var(--tlo) 70%,#000);border-radius:12px;margin-top:10px;display:block}
+.an-kabel{stroke:color-mix(in srgb,var(--tekst) 40%,transparent);stroke-width:4;stroke-linecap:round}
+.an-klik{cursor:pointer}
+line.an-klik:hover{stroke:var(--akc2);stroke-width:8}
+.an-ciety{stroke:var(--zle)!important;stroke-dasharray:10 8}
+.an-wezel circle{fill:var(--panel2);stroke:color-mix(in srgb,var(--akc2) 60%,transparent);stroke-width:3;transition:all .3s}
+.an-wezel.an-on circle{stroke:var(--akc);stroke-width:5;fill:color-mix(in srgb,var(--akc) 25%,var(--panel2))}
+.an-wezel.an-bez circle{fill:#3a1d1d;stroke:var(--zle)}.an-wezel.an-bez{opacity:.55}
+.an-wezel.an-padl circle{fill:var(--zle)}
+.an-punkt circle{fill:var(--tekst);stroke:none}
+.an-ik{font-size:28px;text-anchor:middle}
+.an-pod{font-size:13px;text-anchor:middle;fill:var(--tekst);paint-order:stroke;stroke:color-mix(in srgb,var(--tlo) 80%,#000);stroke-width:4px}
+.an-pakiet text{font:700 12px Consolas,monospace;text-anchor:middle;fill:#111}
+.an-opis{min-height:3em;font-size:1.05rem;background:var(--panel2);border-radius:10px;padding:10px 14px;margin:10px 0}
+.an-ster{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.an-nr{color:var(--mute);font-size:.9rem;margin:0 6px}
+.an-tr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.an-tr input{font:inherit;padding:.4em .6em;border-radius:8px;border:1px solid color-mix(in srgb,var(--tekst) 25%,transparent);background:var(--tlo);color:var(--tekst);width:12em}
+
+/* komunikat na górze ekranu (wyjście z gry, Wiersz polecenia) */
+.dymek-info{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:40;background:var(--panel);border:2px solid var(--akc);border-radius:12px;padding:10px 16px;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:min(560px,92vw);animation:pojaw .2s}
+.ts-ostrz{position:sticky;top:44px;z-index:2;background:#7c2d12;color:#fff;border-radius:10px;padding:10px 14px;font-weight:700;margin:8px 0}
+.wynik-cmd{background:#0c0c0c;color:#cccccc;font:13px/1.35 Consolas,"Cascadia Mono",monospace;padding:10px 12px;border-radius:10px;overflow:auto;max-height:46vh;white-space:pre}
