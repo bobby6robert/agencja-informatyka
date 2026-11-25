@@ -9,7 +9,14 @@
           "typ": "strona",
           "ikona": "🕵",
           "nazwa": "Lekcje i misje",
-          "opis": "Lekcje, misje Agencji Cyfrowych Detektywów, quizy i ranking.",
+          "opis": "Misje Agencji Cyfrowych Detektywów: teczki, zadania z podręcznika i ranking.",
+          "plik": "tresc/klasa1/gra/index.html"
+        },
+        {
+          "typ": "strona",
+          "ikona": "📖",
+          "nazwa": "Podręcznik",
+          "opis": "Pełna teoria z podręcznika – wszystkie lekcje.",
           "plik": "tresc/klasa1/klasa1-informatyka-efekty.html"
         },
         {
@@ -38,7 +45,14 @@
           "typ": "strona",
           "ikona": "🕵",
           "nazwa": "Lekcje i misje",
-          "opis": "Lekcje, misje Agencji Cyfrowych Detektywów, quizy i ranking.",
+          "opis": "Misje Agencji Cyfrowych Detektywów: teczki, zadania z podręcznika i ranking.",
+          "plik": "tresc/klasa2/gra/index.html"
+        },
+        {
+          "typ": "strona",
+          "ikona": "📖",
+          "nazwa": "Podręcznik",
+          "opis": "Pełna teoria z podręcznika – wszystkie lekcje.",
           "plik": "tresc/klasa2/klasa2-informatyka-efekty.html"
         },
         {

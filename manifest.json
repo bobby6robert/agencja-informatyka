@@ -1,7 +1,7 @@
 {
-  "wersja": 23,
-  "data": "2026-11-25 20:26",
-  "opis": "Teczki i animacje do grafiki (rozdz. 2), kolory teorii w Prowadzeniu",
+  "wersja": 24,
+  "data": "2026-11-25 20:31",
+  "opis": "Lekcje i misje otwierają grę z misjami; podręcznik jako osobny kafelek",
   "wersjaAplikacji": 1,
   "plikAplikacji": "aplikacja/Agencja Cyfrowych Detektywów.exe",
   "hashAplikacji": "39829879bb498d76dcb7c0050d91e465f23dfdd405ca15012aa5f473d9f02417",
@@ -16,7 +16,14 @@
           "typ": "strona",
           "ikona": "🕵",
           "nazwa": "Lekcje i misje",
-          "opis": "Lekcje, misje Agencji Cyfrowych Detektywów, quizy i ranking.",
+          "opis": "Misje Agencji Cyfrowych Detektywów: teczki, zadania z podręcznika i ranking.",
+          "plik": "tresc/klasa1/gra/index.html"
+        },
+        {
+          "typ": "strona",
+          "ikona": "📖",
+          "nazwa": "Podręcznik",
+          "opis": "Pełna teoria z podręcznika – wszystkie lekcje.",
           "plik": "tresc/klasa1/klasa1-informatyka-efekty.html"
         },
         {
@@ -45,7 +52,14 @@
           "typ": "strona",
           "ikona": "🕵",
           "nazwa": "Lekcje i misje",
-          "opis": "Lekcje, misje Agencji Cyfrowych Detektywów, quizy i ranking.",
+          "opis": "Misje Agencji Cyfrowych Detektywów: teczki, zadania z podręcznika i ranking.",
+          "plik": "tresc/klasa2/gra/index.html"
+        },
+        {
+          "typ": "strona",
+          "ikona": "📖",
+          "nazwa": "Podręcznik",
+          "opis": "Pełna teoria z podręcznika – wszystkie lekcje.",
           "plik": "tresc/klasa2/klasa2-informatyka-efekty.html"
         },
         {
