@@ -20,7 +20,7 @@
 
   const etapy = [
     {
-      id: "r2-prolog", r: 2, typ: "misja", lekcja: "Wprowadzenie do rozdziału 2", tytul: { det: "Spreparowane zdjęcie" },
+      id: "r2-prolog", r: 2, typ: "misja", teczka: "graf-wstep", lekcja: "Wprowadzenie do rozdziału 2", tytul: { det: "Spreparowane zdjęcie" },
       bezPoziomu: true, lekcje: [["k16", "Kartka z historii: grafika komputerowa"]],
       wstep: W([
         ["n", "Kilka tygodni ciszy. {wrog} zniknął z sieci po ostatnim starciu."],
@@ -57,7 +57,7 @@
     },
 
     {
-      id: "r2-m1", r: 2, typ: "misja", lekcja: "Grafika rastrowa (1/3) · piksele, formaty, GIMP", tytul: { det: "Piksel po pikselu" },
+      id: "r2-m1", r: 2, typ: "misja", teczka: "graf-r1", lekcja: "Grafika rastrowa (1/3) · piksele, formaty, GIMP", tytul: { det: "Piksel po pikselu" },
       lekcje: [["k17", "3.1 Budowa obrazu rastrowego i jego formaty"], ["k18", "3.2 Grafika rastrowa w programie GIMP"]],
       karta: "c7",
       wstep: W([
@@ -178,7 +178,7 @@
     },
 
     {
-      id: "r2-m2", r: 2, typ: "misja", lekcja: "Grafika rastrowa (2/3) · skalowanie, kadrowanie, warstwy", tytul: { det: "Przycięty kadr" },
+      id: "r2-m2", r: 2, typ: "misja", teczka: "graf-r2", lekcja: "Grafika rastrowa (2/3) · skalowanie, kadrowanie, warstwy", tytul: { det: "Przycięty kadr" },
       lekcje: [["k19", "3.3 Skalowanie i kadrowanie obrazu"], ["k20", "3.4 Warstwy i maska warstwy"]],
       karta: "c8",
       wstep: W([
@@ -299,7 +299,7 @@
     },
 
     {
-      id: "r2-m3", r: 2, typ: "misja", lekcja: "Grafika rastrowa (3/3) · fotomontaż i retusz", tytul: { det: "Dowód fotomontażu" },
+      id: "r2-m3", r: 2, typ: "misja", teczka: "graf-r3", lekcja: "Grafika rastrowa (3/3) · fotomontaż i retusz", tytul: { det: "Dowód fotomontażu" },
       lekcje: [["k21", "3.5 Fotomontaż i 3.6 Retusz fotografii"], ["k22", "Zadania z tematu 3 (grafika rastrowa)"]],
       karta: "c9",
       wstep: W([
@@ -419,7 +419,7 @@
     },
 
     {
-      id: "r2-m4", r: 2, typ: "misja", lekcja: "Grafika wektorowa (1/3) · budowa obrazu, Inkscape", tytul: { det: "Fałszywe logo" },
+      id: "r2-m4", r: 2, typ: "misja", teczka: "graf-w1", lekcja: "Grafika wektorowa (1/3) · budowa obrazu, Inkscape", tytul: { det: "Fałszywe logo" },
       lekcje: [["k23", "4.1 Grafika wektorowa: budowa obrazu i porównanie z rastrową"], ["k24", "4.2 Program Inkscape"]],
       karta: "c10",
       wstep: W([
@@ -540,7 +540,7 @@
     },
 
     {
-      id: "r2-m5", r: 2, typ: "misja", lekcja: "Grafika wektorowa (2/3) · wektoryzacja, ikona ołówka", tytul: { det: "Wektoryzacja pieczęci" },
+      id: "r2-m5", r: 2, typ: "misja", teczka: "graf-w2", lekcja: "Grafika wektorowa (2/3) · wektoryzacja, ikona ołówka", tytul: { det: "Wektoryzacja pieczęci" },
       lekcje: [["k25", "4.3 Wektoryzacja i 4.4 Tworzenie ikony ołówka"]],
       wstep: W([
         ["n", "Poprzednio: fałszywe logo okazało się wektorowe, a jedna jego ścieżka nazywała się „B0_szkic”."],
@@ -658,7 +658,7 @@
     },
 
     {
-      id: "r2-m6", r: 2, typ: "misja", lekcja: "Grafika wektorowa (3/3) · wizytówka do druku", tytul: { det: "Wizytówki z drukarni" },
+      id: "r2-m6", r: 2, typ: "misja", teczka: "graf-w3", lekcja: "Grafika wektorowa (3/3) · wizytówka do druku", tytul: { det: "Wizytówki z drukarni" },
       lekcje: [["k26", "4.5 Tworzenie wizytówki"], ["k27", "Zadania z tematu 4 (grafika wektorowa)"]],
       karta: "c11",
       wstep: W([
@@ -778,7 +778,7 @@
     },
 
     {
-      id: "r2-m7", r: 2, typ: "misja", lekcja: "Grafiki informacyjne (1/2) · porządkowanie, piktogramy, rodzaje", tytul: { det: "Kłamliwe wykresy" },
+      id: "r2-m7", r: 2, typ: "misja", teczka: "graf-i1", lekcja: "Grafiki informacyjne (1/2) · porządkowanie, piktogramy, rodzaje", tytul: { det: "Kłamliwe wykresy" },
       lekcje: [["k28", "5.1 Sposoby przekazywania informacji i ich porządkowanie"], ["k29", "5.2 Piktogramy i 5.3 Przykłady infografik"]],
       wstep: W([
         ["n", "Poprzednio: na spadzie fałszywej wizytówki ukryto napis „B0 – egzemplarz zerowy”."],
@@ -897,7 +897,7 @@
     },
 
     {
-      id: "r2-m8", r: 2, typ: "misja", lekcja: "Grafiki informacyjne (2/2) · poprawna infografika", tytul: { det: "Uczciwa infografika" },
+      id: "r2-m8", r: 2, typ: "misja", teczka: "graf-i2", lekcja: "Grafiki informacyjne (2/2) · poprawna infografika", tytul: { det: "Uczciwa infografika" },
       lekcje: [["k30", "5.4 Jak stworzyć poprawną infografikę?"], ["k31", "5.5 Tworzymy własną infografikę"], ["k32", "Zadania z tematu 5 i Z informatyką w przyszłość"]],
       wstep: W([
         ["n", "Poprzednio: kłamliwy wykres {wrog} został zdemaskowany. Agencja rozwiązała 9 z 10 spraw."],

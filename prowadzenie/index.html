@@ -77,7 +77,9 @@ body:has(#obec) .pasekG{padding-right:290px}
 <script src="../tresc/klasa1/gra/konsola.js"></script>
 <script src="../tresc/klasa1/gra/animacje-sieci.js"></script>
 <script src="../tresc/klasa1/gra/animacje-systemy.js"></script>
+<script src="../tresc/klasa1/gra/animacje-grafika.js"></script>
 <script src="../tresc/klasa1/gra/teczki.js"></script>
+<script src="../tresc/klasa1/gra/teczki-grafika.js"></script>
 <script src="../tresc/klasa1/gra/zadania.js"></script>
 <script>
 (function(){
@@ -543,7 +545,10 @@ function teoria(){
     <iframe id="ifT" title="Teoria"></iframe></div>`;
   const ifr=$("#ifT");let zoom=1;
   const prezentacja=()=>{try{const d=ifr.contentDocument;if(!d||!d.body)return;
-    if(!d.getElementById("trybPrez")){const st=d.createElement("style");st.id="trybPrez";st.textContent="header,nav{display:none!important}.layout{grid-template-columns:1fr!important;min-height:100vh!important}main{max-width:none!important;padding:1.5rem 3rem!important}";d.head.appendChild(st);
+    if(!d.getElementById("trybPrez")){const st=d.createElement("style");st.id="trybPrez";const cs=getComputedStyle(document.body),v=n=>cs.getPropertyValue(n).trim();d.documentElement.dataset.theme="dark";
+      /* Podręcznik w kolorach gry (tak samo jak w grze u ucznia), bez jego własnych pomarańczowo-różowych barw. */
+      st.textContent=`:root{--bg:${v("--tlo")}!important;--panel:${v("--panel")}!important;--line:${v("--panel2")}!important;--ink:${v("--tekst")}!important;--mute:${v("--mute")}!important;--acc:${v("--akc")}!important;--acc-ink:#111!important;--c1:${v("--akc")}!important;--c2:${v("--akc2")}!important}
+        header,nav,#hud,#misnick,#misrank{display:none!important}.layout{grid-template-columns:1fr!important;min-height:100vh!important}main{max-width:none!important;padding:1.5rem 3rem!important}`;d.head.appendChild(st);
       const bt=d.getElementById("bTeacher");if(bt&&bt.getAttribute("aria-pressed")!=="true")bt.click()}
     d.body.style.zoom=zoom}catch(er){}};
   const pokaz=()=>{const [id,n]=e.lekcje[i];$("#tytT").textContent=`${n} (${i+1}/${e.lekcje.length})`;
